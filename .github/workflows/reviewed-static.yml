@@ -1,0 +1,18 @@
+name: Preview reviewed notes (no model API)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/build_reviewed_site.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewed-notes-preview
+          path: preview

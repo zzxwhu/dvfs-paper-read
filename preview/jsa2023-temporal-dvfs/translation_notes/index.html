@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>中英文摘要与章节导读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">中英文摘要与章节导读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link active" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="中英文摘要与章节导读">中英文摘要与章节导读<a class="anchor" href="#中英文摘要与章节导读">#</a></h1>
+<p>&gt; 本页为双语改写概述与阅读导航，不是论文全文翻译。原文：<a href="https://arxiv.org/abs/2309.03779">arXiv:2309.03779v1</a>。对原始摘要的准确措辞请直接查看 PDF 第 1 页。</p>
+<h2 id="english-abstract--reader-written-paraphrase">English abstract — reader-written paraphrase<a class="anchor" href="#english-abstract--reader-written-paraphrase">#</a></h2>
+<p>This work develops CPU frequency control for periodic embedded applications with soft deadlines. Utilization-based Linux governors can miss energy-saving opportunities when voltage levels are coarse, CPU cores have uneven activity, or tasks include I/O waiting. The authors summarize execution history through temporal encoding and use Double DQN to choose frequency actions. Training is performed in user space, and quantized inference is deployed in the kernel. Experiments on a Jetson Nano use two custom applications and four MiBench workloads. The reported energy benefits depend on the workload, deadline, and comparison governor. The method is a practical soft-deadline controller; its results do not establish hard real-time guarantees or performance on another CPU.</p>
+<h2 id="中文对应摘要">中文对应摘要<a class="anchor" href="#中文对应摘要">#</a></h2>
+<p>本文为具有软截止时间的周期性嵌入式应用设计 CPU 频率控制。电压档位粗、多核忙闲不均和任务中的 I/O 等待，会使基于利用率的 Linux governor 错过节能机会。作者通过时序编码压缩执行历史，再由 Double DQN 选择频率动作。训练在用户态完成，量化推理部署在内核。Jetson Nano 实验覆盖两项自建应用和四项 MiBench 负载。节能收益取决于负载、截止时间以及比较的 governor。本文展示的是一个可实现的软截止时间控制器，实验不能证明硬实时保证或另一种 CPU 上的性能。</p>
+<h2 id="按问题阅读全文">按问题阅读全文<a class="anchor" href="#按问题阅读全文">#</a></h2>
+<table>
+<thead><tr>
+<th>想知道什么</th>
+<th>原文重点位置</th>
+<th>读的时候记下什么</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么需要新策略</td>
+<td>第 1–3 节及动机实验</td>
+<td>现有 governor 的具体失效情形，平台有多少电压档</td>
+</tr>
+<tr>
+<td>控制器看什么、输出什么</td>
+<td>方法章节与图 8、11、12</td>
+<td>状态、动作、采样时序、截止时间、终端奖励</td>
+</tr>
+<tr>
+<td>历史怎样变成固定输入</td>
+<td>图 11–12 及编码描述</td>
+<td>近期信息、累计信息、历史分配；别把时间比例当进度</td>
+</tr>
+<tr>
+<td>智能算法怎样训练</td>
+<td>DDQN、奖励及训练流程</td>
+<td>在线网络、目标网络、经验、每种截止时间的训练设置</td>
+</tr>
+<tr>
+<td>怎么在真实系统里跑</td>
+<td>实现章节与图 15</td>
+<td>用户态训练、内核量化推理、CPUFreq 执行路径</td>
+</tr>
+<tr>
+<td>比普通调频好多少</td>
+<td>实验章节与图 22–25</td>
+<td>基线、时限、能量归一化参照及超时分布</td>
+</tr>
+<tr>
+<td>编码是否有必要</td>
+<td>RNN 对照与图 26–31</td>
+<td>对照网络大小、输入长度、训练开销、收敛差异</td>
+</tr>
+</tbody>
+</table>
+<p>页码随期刊排版可能改变。本笔记的图号与页码采用 21 页 arXiv v1，不能机械套到期刊 PDF。</p>
+<h2 id="术语对照">术语对照<a class="anchor" href="#术语对照">#</a></h2>
+<table>
+<thead><tr>
+<th>英文</th>
+<th>中文及本论文含义</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Dynamic Voltage and Frequency Scaling (DVFS)</td>
+<td>动态电压频率调节，通过合法工作点调整 CPU 性能与能耗</td>
+</tr>
+<tr>
+<td>governor</td>
+<td>调频策略模块，不是 PLL 本身</td>
+</tr>
+<tr>
+<td>workload</td>
+<td>CPU 运行的任务与输入，不是控制算法自身</td>
+</tr>
+<tr>
+<td>soft deadline</td>
+<td>软截止时间，少量或轻微违约可能被系统接受</td>
+</tr>
+<tr>
+<td>slack</td>
+<td>相对截止时间可利用的时间余量，含义需看具体实验定义</td>
+</tr>
+<tr>
+<td>temporal encoding</td>
+<td>时序编码，把执行历史压缩成有限规模状态</td>
+</tr>
+<tr>
+<td>Double DQN</td>
+<td>双重深度 Q 学习，将动作选择与目标值评估分离</td>
+</tr>
+<tr>
+<td>Q value</td>
+<td>某状态采取某动作的预计长期回报</td>
+</tr>
+<tr>
+<td>quantized inference</td>
+<td>量化推理；本文用整数路径适配内核约束</td>
+</tr>
+<tr>
+<td>energy / power</td>
+<td>能量 / 功率；总能量不能用单一瞬时功率替代</td>
+</tr>
+<tr>
+<td>model-free</td>
+<td>不依赖预先给出的精确任务模型，不是无数据或无约束</td>
+</tr>
+</tbody>
+</table>
+<h2 id="读完后应能回答">读完后应能回答<a class="anchor" href="#读完后应能回答">#</a></h2>
+<p>控制器是否真正改变硬件工作点？候选动作是什么？状态里哪些量来自观测，哪些是累计得到？奖励与真实能量是什么关系？最低能量结果是否伴随截止时间违约？比较对象是否有相同动作集合？如果迁移到单核 RISC-V，哪些输入会失效？</p>
+<p>答案与证据分别整理在“论文解析”和“图表详解”；迁移建议与改进设想均需后续实验。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#中英文摘要与章节导读">中英文摘要与章节导读</a>
+<a class="toc-level-2" href="#english-abstract--reader-written-paraphrase">English abstract — reader-written paraphrase</a>
+<a class="toc-level-2" href="#中文对应摘要">中文对应摘要</a>
+<a class="toc-level-2" href="#按问题阅读全文">按问题阅读全文</a>
+<a class="toc-level-2" href="#术语对照">术语对照</a>
+<a class="toc-level-2" href="#读完后应能回答">读完后应能回答</a>
+    </aside>
+  </div>
+</body>
+</html>

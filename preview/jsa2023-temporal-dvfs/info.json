@@ -1,0 +1,23 @@
+{
+  "index": "jsa2023-temporal-dvfs",
+  "paper_title": "CPU Frequency Scheduling of Real-Time Applications on Embedded Devices with Temporal Encoding-based Deep Reinforcement Learning",
+  "description": "从零入门 + 图文技术精读：先解释频率、能量与闭环，再逐式推导状态、奖励和DDQN。重要原图表随文出现，附原文/PDF/DOI入口。",
+  "authors": [
+    "Ti Zhou",
+    "Man Lin"
+  ],
+  "metadata": {
+    "venue": "Journal of Systems Architecture 142, 102955",
+    "year": 2023,
+    "doi": "10.1016/j.sysarc.2023.102955"
+  },
+  "source_url": "https://arxiv.org/abs/2309.03779",
+  "source_version": "arXiv:2309.03779v1, 21 pages",
+  "review_date": "2026-11-04",
+  "review_basis": "Full local PDF text and original figures; prepared in the current Codex conversation, not an executed external LLM pipeline",
+  "translation_scope": "Bilingual abstract paraphrases and section guide; not a full translation",
+  "figure_attribution": "Selected original figures by Ti Zhou and Man Lin, arXiv:2309.03779v1; used with attribution for scholarly reading. Original PDF is not redistributed in this repository.",
+  "pdf_url": "https://arxiv.org/pdf/2309.03779",
+  "tutorial_revision": "v2-beginner-inline-figures-formulas",
+  "equations_note": "Original encoder/reward/DDQN expressions are re-typeset with explicitly renamed symbols; background and teaching models are identified separately."
+}

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>图表索引：用于回查原图与实验边界 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">图表索引：用于回查原图与实验边界</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="图表索引用于回查原图与实验边界">图表索引：用于回查原图与实验边界<a class="anchor" href="#图表索引用于回查原图与实验边界">#</a></h1>
+<p>&gt; 重要图表已嵌入“从零入门”和“图文精读”的相应段落；此页保留原先八幅图的简短回查说明。以下为原论文图表的阅读裁图，保留原作者图号。来源：Ti Zhou、Man Lin，arXiv:2309.03779v1。页码按 21 页预印本，原始图表与数据归原作者。这里只解析精选图表，不声称覆盖论文全部图表。<a href="https://arxiv.org/abs/2309.03779">原文</a></p>
+<h2 id="图-8任务内部的空隙pdf-第-7-页">图 8：任务内部的空隙（PDF 第 7 页）<a class="anchor" href="#图-8任务内部的空隙pdf-第-7-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig08.png" target="_blank" rel="noopener"><img src="../images/fig08.png" alt="图8：采音、图像处理与剩余时间" loading="lazy"></a></figure>
+<p>录音、拍照和特征提取的持续时间不同，部分工作可以重叠。图中的 slack 是一次任务内部形成的余量。它解释了为什么“CPU 刚才很忙”不足以决定下一步必须高频：某段计算稍慢，可能仍能被另一段无法加速的等待遮盖。</p>
+<p>这是一种特定应用结构，不是所有程序都存在同样的隐藏余量。</p>
+<h2 id="图-11怎样利用内部余量pdf-第-7-页">图 11：怎样利用内部余量（PDF 第 7 页）<a class="anchor" href="#图-11怎样利用内部余量pdf-第-7-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig11.png" target="_blank" rel="noopener"><img src="../images/fig11.png" alt="图11：降低部分频率且避免后续性能损失" loading="lazy"></a></figure>
+<p>先看横轴的执行时间，再同时看利用率与频率。作者希望在可以被等待遮盖的部分降低频率，而在关键计算阶段避免不必要降频。图用于解释理想调度行为，并不能单独证明学习算法在所有输入上都找到了最优策略。</p>
+<h2 id="图-12历史如何压缩成状态pdf-第-8-页">图 12：历史如何压缩成状态（PDF 第 8 页）<a class="anchor" href="#图-12历史如何压缩成状态pdf-第-8-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig12.png" target="_blank" rel="noopener"><img src="../images/fig12.png" alt="图12：时序编码的组成" loading="lazy"></a></figure>
+<p>图展示近期信息、累计利用率、时间消耗以及性能分配等状态组。重点是把执行历史压缩成有界表示，使模型不必输入无限增长的原始序列。</p>
+<p>时间比例表示已消耗的预算，不是观测到了真实任务进度。具体张量尺寸和动作如何拼接，需要复现时对照源码确认。</p>
+<h2 id="图-15真实系统的部署架构pdf-第-12-页">图 15：真实系统的部署架构（PDF 第 12 页）<a class="anchor" href="#图-15真实系统的部署架构pdf-第-12-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig15.png" target="_blank" rel="noopener"><img src="../images/fig15.png" alt="图15：用户态训练与内核态控制" loading="lazy"></a></figure>
+<p>沿着采样、编码、经验与网络更新、频率动作的箭头阅读。训练与实际控制分布在不同位置：用户态负责学习，内核路径负责轻量推理和调频。这是软件策略控制真实 CPU 的实现，不是只运行一个虚拟功耗模型。</p>
+<p>迁移到裸机 RISC-V 时，用户态/内核态划分可以改成主机离线训练与固件在线推理，但 CPUFreq 和平台采样接口必须替换。</p>
+<h2 id="图-22facerecog-的截止时间与能量pdf-第-16-页">图 22：FaceRecog 的截止时间与能量（PDF 第 16 页）<a class="anchor" href="#图-22facerecog-的截止时间与能量pdf-第-16-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig22.png" target="_blank" rel="noopener"><img src="../images/fig22.png" alt="图22：FaceRecog 在不同截止时间下的归一化结果" loading="lazy"></a></figure>
+<p>每组柱子须与上方的 deadline 一起读。FaceRecog 在 0.6、0.9、1.2 s 条件下，相对 Performance 的能量约为 88%、80%、72%。这是相对最高性能策略的归一化值，不能与相对 Ondemand 的 5%–14% 改善混用。</p>
+<p>图题与正文存在 power/energy 用语需要核查的地方，引用时应说明本文讨论的是运行期间能量，不能把它写成瞬时功率降低了同样百分比。</p>
+<h2 id="图-23audiorecog-的对比pdf-第-16-页">图 23：AudioRecog 的对比（PDF 第 16 页）<a class="anchor" href="#图-23audiorecog-的对比pdf-第-16-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig23.png" target="_blank" rel="noopener"><img src="../images/fig23.png" alt="图23：AudioRecog 在不同截止时间下的归一化结果" loading="lazy"></a></figure>
+<p>横向比较同一 deadline 下各 governor，再比较 deadline 变宽后的变化。正文报告相对 Ondemand 的改善约为 12%–14%。需同时注意这个应用包括录音和其他处理阶段，不能只凭名字将其当作纯语音模型。</p>
+<p>更宽松的时限通常提供更多调节余地，但图中的趋势不构成任意负载、任意工作点上的数学保证。四项 MiBench 的详细对比另见原文图 24，相对 Ondemand 的改善为 3%–11%；本页未裁录图 24。</p>
+<h2 id="图-25平均时间掩盖了多少违约pdf-第-17-页">图 25：平均时间掩盖了多少违约（PDF 第 17 页）<a class="anchor" href="#图-25平均时间掩盖了多少违约pdf-第-17-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig25.png" target="_blank" rel="noopener"><img src="../images/fig25.png" alt="图25：各截止时间下的执行时间与超时分布" loading="lazy"></a></figure>
+<p>表中同时给出 deadline、平均执行时间、标准差以及不同超时区间。FaceRecog 的 0.6 s 条件下平均约 0.59 s，按时比例却只有 83.9%。剩余约 16.1% 运行出现不同程度的超时。</p>
+<p>这是判断实时性的关键证据。不能因为平均执行时间低于截止时间，就写“满足实时性且没有性能损失”。你的实验也应给出违约率和尾延迟。</p>
+<h2 id="图-31编码与-rnn-的训练开销pdf-第-19-页">图 31：编码与 RNN 的训练开销（PDF 第 19 页）<a class="anchor" href="#图-31编码与-rnn-的训练开销pdf-第-19-页">#</a></h2>
+<figure><a class="image-link" href="../images/fig31.png" target="_blank" rel="noopener"><img src="../images/fig31.png" alt="图31：随输入规模增长的归一化训练开销" loading="lazy"></a></figure>
+<p>比较横轴不同输入规模下，两种方法的开销增长。论文支持在其网络结构与实现设置中，编码方案的增长较缓。它不能证明所有 RNN 都更差，也不能直接给出 E902 的推理时间。</p>
+<p>训练开销、在线推理开销与硬件切换开销是不同指标；做自己的方案时要分开测量。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#图表索引用于回查原图与实验边界">图表索引：用于回查原图与实验边界</a>
+<a class="toc-level-2" href="#图-8任务内部的空隙pdf-第-7-页">图 8：任务内部的空隙（PDF 第 7 页）</a>
+<a class="toc-level-2" href="#图-11怎样利用内部余量pdf-第-7-页">图 11：怎样利用内部余量（PDF 第 7 页）</a>
+<a class="toc-level-2" href="#图-12历史如何压缩成状态pdf-第-8-页">图 12：历史如何压缩成状态（PDF 第 8 页）</a>
+<a class="toc-level-2" href="#图-15真实系统的部署架构pdf-第-12-页">图 15：真实系统的部署架构（PDF 第 12 页）</a>
+<a class="toc-level-2" href="#图-22facerecog-的截止时间与能量pdf-第-16-页">图 22：FaceRecog 的截止时间与能量（PDF 第 16 页）</a>
+<a class="toc-level-2" href="#图-23audiorecog-的对比pdf-第-16-页">图 23：AudioRecog 的对比（PDF 第 16 页）</a>
+<a class="toc-level-2" href="#图-25平均时间掩盖了多少违约pdf-第-17-页">图 25：平均时间掩盖了多少违约（PDF 第 17 页）</a>
+<a class="toc-level-2" href="#图-31编码与-rnn-的训练开销pdf-第-19-页">图 31：编码与 RNN 的训练开销（PDF 第 19 页）</a>
+    </aside>
+  </div>
+</body>
+</html>
