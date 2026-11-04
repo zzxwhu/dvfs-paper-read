@@ -1,4 +1,8 @@
-# JSA 2023 技术精读：从观测到真实 CPU DVFS 决策
+---
+title: "JSA 2023 技术精读：从观测到真实 CPU DVFS 决策"
+tags: ["DVFS", "CPU"]
+date: "2026-11-04"
+---
 
 **原文入口：** [论文页面](https://arxiv.org/abs/2309.03779) · [直接打开 PDF](https://arxiv.org/pdf/2309.03779) · [期刊 DOI](https://doi.org/10.1016/j.sysarc.2023.102955)
 

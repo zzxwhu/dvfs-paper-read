@@ -68,6 +68,14 @@ class ImportBlaBlaPaperTests(unittest.TestCase):
         with self.assertRaises(BundleError):
             import_bundle(self.source, self.root / "content", "../outside", "paper")
 
+    def test_distinct_quartz_title_for_reports_with_reused_filenames(self) -> None:
+        (self.source / "paper_notes.md").write_text("# CPU model: evidence guide\n\n![figure](images/figure.png)\n",encoding="utf-8")
+        destination=import_bundle(self.source,self.root/'content','DVFS','DVFS,CPU')
+        published=(destination/'paper_notes.md').read_text(encoding='utf-8')
+        self.assertIn('title: "CPU model: evidence guide"',published)
+        self.assertNotIn('# CPU model: evidence guide',published)
+        self.assertIn('![figure](images/figure.png)',published)
+
     def test_rejects_missing_local_image(self) -> None:
         (self.source / "paper_notes.md").write_text(
             "# Missing image\n\n![](images/missing.png)\n",

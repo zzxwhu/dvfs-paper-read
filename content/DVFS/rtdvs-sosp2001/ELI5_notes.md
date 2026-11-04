@@ -1,4 +1,9 @@
-# RT-DVS：从零入门
+---
+title: "RT-DVS：从零入门"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "7b545b34b0df992a2af7e410712da17cf8294819fd0438a9b42dfb8f6b37f80b"
+---
 
 [论文页面](https://doi.org/10.1145/378239.378245) · [本笔记所用 PDF](https://www.andrew.cmu.edu/course/15-821/assets/READINGS/PAPERS/pillai2001.pdf) · [DOI](https://doi.org/10.1145/378239.378245)
 

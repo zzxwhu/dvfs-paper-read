@@ -74,7 +74,7 @@ plugins:
   - source: github:quartz-community/crawl-links
     enabled: true
     options:
-      markdownLinkResolution: shortest
+      markdownLinkResolution: relative
     order: 60
   - source: github:quartz-community/description
     enabled: true

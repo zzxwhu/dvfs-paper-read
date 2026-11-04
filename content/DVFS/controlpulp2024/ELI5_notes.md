@@ -1,4 +1,9 @@
-# ControlPULP：从零入门
+---
+title: "ControlPULP：从零入门"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "2b9470c87ead6d7604acc9aaa1db8aa22cade384f713874bfbd978c92a4ffe8e"
+---
 
 [论文页面](https://arxiv.org/abs/2306.09501) · [本笔记所用 PDF](https://arxiv.org/pdf/2306.09501v2) · [DOI](https://doi.org/10.1007/s10766-024-00761-4)
 

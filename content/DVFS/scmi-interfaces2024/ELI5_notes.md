@@ -1,4 +1,9 @@
-# SCMI端到端时延：从零入门
+---
+title: "SCMI端到端时延：从零入门"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "ada38d883ca1d1eae09a0ddae6224cdc2f5d89e6c44ed682b62d44fdb9c8f1ae"
+---
 
 [论文页面](https://www.mdpi.com/1996-1073/17/22/5778) · [本笔记所用 PDF](https://www.research-collection.ethz.ch/server/api/core/bitstreams/5fab7af7-3ebf-4ae4-93bb-9fea8875e6e3/content) · [DOI](https://doi.org/10.3390/en17225778)
 

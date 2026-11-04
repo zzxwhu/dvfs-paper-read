@@ -1,4 +1,9 @@
-# DRQN Governor：图文技术精读
+---
+title: "DRQN Governor：图文技术精读"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "ffd2b5710c8d4c8533d0b683be8a6fe22637abce9ecbbdeb85056688a8e82bce"
+---
 
 [论文页面](https://doi.org/10.1109/TNSE.2021.3123280) · [本笔记所用 PDF](https://coladog.github.io/assets/papers/TNSE2021.pdf) · [DOI](https://doi.org/10.1109/TNSE.2021.3123280)
 

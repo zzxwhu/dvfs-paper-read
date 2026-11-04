@@ -145,6 +145,22 @@ def _prepare_reports(source: Path) -> dict[str, str]:
         raise BundleError(f"存在找不到的本地图片引用:\n  - {details}")
     return prepared
 
+def _quartz_document(text: str, info: dict[str, Any], report_name: str, tags_value: str, source_sha256: str) -> str:
+    """Give same-named reports distinct page titles without changing reviewed originals."""
+    if text.startswith("---\n") or text.startswith("---\r\n"):
+        return text
+    heading = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
+    title = heading.group(1).strip() if heading else f"{info.get('paper_title', 'Paper')} - {report_name}"
+    body = text[:heading.start()] + text[heading.end():] if heading else text
+    fields = {"title": title, "tags": [t.strip() for t in tags_value.split(',') if t.strip()]}
+    if info.get("review_date"):
+        fields["date"] = info["review_date"]
+    if source_sha256 or info.get("source_sha256"):
+        fields["source_sha256"] = source_sha256 or info["source_sha256"]
+    frontmatter = "\n".join(f"{key}: {json.dumps(value, ensure_ascii=False)}" for key, value in fields.items())
+    return f"---\n{frontmatter}\n---\n\n{body.lstrip()}"
+
+
 def import_bundle(
     source: Path,
     content_root: Path,
@@ -174,7 +190,7 @@ def import_bundle(
 
     for report_name in REPORTS:
         (destination / report_name).write_text(
-            prepared_reports[report_name],
+            _quartz_document(prepared_reports[report_name], info, report_name, tags_value, source_sha256),
             encoding="utf-8",
         )
 

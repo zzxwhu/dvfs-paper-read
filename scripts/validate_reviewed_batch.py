@@ -1,6 +1,7 @@
 """Check a reviewed batch's report, figure, equation and source integrity."""
 from pathlib import Path
 import json,re,sys
+from import_blablapaper import _quartz_document
 ROOT=Path(__file__).resolve().parents[1]
 batch=json.loads((ROOT/'reviewed/batch-2026-11-05.json').read_text(encoding='utf-8'))
 reports=['ELI5_notes.md','paper_notes.md','figs_notes.md','translation_notes.md']
@@ -13,7 +14,8 @@ for p in batch['papers']:
         a=source/report;b=dest/report;n+=1
         if not a.is_file() or not b.is_file():errors.append(f'missing {slug}/{report}');continue
         text=a.read_text(encoding='utf-8')
-        if text!=b.read_text(encoding='utf-8'):errors.append(f'stale import {slug}/{report}')
+        expected=_quartz_document(text,info,report,'DVFS,CPU,E902',p['sha256'])
+        if expected!=b.read_text(encoding='utf-8'):errors.append(f'stale import {slug}/{report}')
         if '\ufffd' in text:errors.append(f'encoding replacement {slug}/{report}')
         for link in re.findall(r'!\[[^\]]*\]\(([^)]+)\)',text):
             if not (a.parent/link).is_file() or not (b.parent/link).is_file():errors.append(f'broken image {slug}/{link}')

@@ -1,4 +1,9 @@
-# ControlPULPlet：图文技术精读
+---
+title: "ControlPULPlet：图文技术精读"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "4cab1b4552d85f1135b152300d932de285eedfc2612aafb3abce04caf32e131f"
+---
 
 [论文页面](https://arxiv.org/abs/2410.15985) · [本笔记所用 PDF](https://arxiv.org/pdf/2410.15985v2) · [DOI](https://doi.org/10.1109/TVLSI.2025.3596452)
 

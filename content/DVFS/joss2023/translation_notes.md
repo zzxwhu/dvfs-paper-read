@@ -1,4 +1,9 @@
-# JOSS：中英文摘要与章节导读
+---
+title: "JOSS：中英文摘要与章节导读"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "150f8563ec048b2521bfe38bb8baea543170f4fd3379691395f5debb73baf797"
+---
 
 [论文页面](https://arxiv.org/abs/2306.04615) · [本笔记所用 PDF](https://arxiv.org/pdf/2306.04615v1) · [DOI](https://doi.org/10.48550/arXiv.2306.04615)
 

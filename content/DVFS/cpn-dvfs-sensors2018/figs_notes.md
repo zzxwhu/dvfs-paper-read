@@ -1,4 +1,9 @@
-# CPN-DVFS：原图原表阅读索引
+---
+title: "CPN-DVFS：原图原表阅读索引"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "6cc1511a3c6c9bc73aed92936a35810d7cdec7782805f7ebf845c1ecd5e5159f"
+---
 
 [论文页面](https://pmc.ncbi.nlm.nih.gov/articles/PMC6163884/) · [本笔记所用 PDF](https://mdpi-res.com/d_attachment/sensors/sensors-18-03068/article_deploy/sensors-18-03068.pdf) · [DOI](https://doi.org/10.3390/s18093068)
 

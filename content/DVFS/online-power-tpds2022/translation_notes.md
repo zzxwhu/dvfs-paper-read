@@ -1,4 +1,9 @@
-# Online Power / Double Q：中英文摘要与章节导读
+---
+title: "Online Power / Double Q：中英文摘要与章节导读"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "ecefe654734b821f9c8bd0964688b43f4f332f5729a63eddef6a8b2292ec5a65"
+---
 
 [论文页面](https://doi.org/10.1109/TPDS.2021.3092270) · [本笔记所用 PDF](https://issl-uk.com/publications/tpds21-2.pdf) · [DOI](https://doi.org/10.1109/TPDS.2021.3092270)
 

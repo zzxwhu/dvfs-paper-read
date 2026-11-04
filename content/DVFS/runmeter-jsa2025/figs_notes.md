@@ -1,4 +1,9 @@
-# Runmeter：原图原表阅读索引
+---
+title: "Runmeter：原图原表阅读索引"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "69a5f984b36ef84e071da33e909f56cfdc87d88d17346d0fd463c7d8851b583f"
+---
 
 [论文页面](https://doi.org/10.1016/j.sysarc.2025.103504) · [本笔记所用 PDF](https://www.research-collection.ethz.ch/server/api/core/bitstreams/64d80e13-6f49-46a4-bb66-f8b0bc8e60f6/content) · [DOI](https://doi.org/10.1016/j.sysarc.2025.103504)
 

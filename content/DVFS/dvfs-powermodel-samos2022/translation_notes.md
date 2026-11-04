@@ -1,4 +1,9 @@
-# DVFS功率模型 / SAMOS：中英文摘要与章节导读
+---
+title: "DVFS功率模型 / SAMOS：中英文摘要与章节导读"
+tags: ["DVFS", "CPU", "E902"]
+date: "2026-11-05"
+source_sha256: "1f563de9786d56e8acfdbfcd9c2fa9f2cc7cf74995bddd401ba4d5f1cac264df"
+---
 
 [论文页面](https://arxiv.org/abs/2305.06782) · [本笔记所用 PDF](https://arxiv.org/pdf/2305.06782) · [DOI](https://doi.org/10.1007/978-3-031-15074-6_22)
 
