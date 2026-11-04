@@ -2,6 +2,16 @@
 
 // put your custom CSS here!
 
+// Original figures have no HTML width/height attributes. Keep their intrinsic
+// dimensions available instead of collapsing off-screen images to a zero box.
+article img {
+  content-visibility: visible;
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
 // Dense evidence tables stay readable on phones through local horizontal scroll.
 @media (max-width: 760px) {
   .table-container > table {
