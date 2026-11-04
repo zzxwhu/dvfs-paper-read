@@ -42,10 +42,10 @@ jobs:
       - run: npm ci
 
       - name: Install Quartz plugins
-        run: npx quartz plugin install --concurrency 2
+        run: node quartz/bootstrap-cli.mjs plugin install --concurrency 2
 
       - name: Build Quartz
-        run: npx quartz build -v
+        run: node quartz/bootstrap-cli.mjs build -v
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

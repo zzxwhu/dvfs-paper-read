@@ -87,7 +87,7 @@ jobs:
         run: |
           python -m pip install -r BlaBlaPaper/requirements.txt
           npm ci
-          npx quartz plugin install --concurrency 2
+          node quartz/bootstrap-cli.mjs plugin install --concurrency 2
 
       - name: Download PDF
         env:
@@ -139,7 +139,7 @@ jobs:
         run: python -m unittest discover -s scripts -p 'test_*.py'
 
       - name: Build Quartz site
-        run: npx quartz build -v
+        run: node quartz/bootstrap-cli.mjs build -v
 
       - name: Commit generated source notes
         env:
