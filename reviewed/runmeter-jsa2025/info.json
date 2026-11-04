@@ -1,0 +1,31 @@
+{
+  "index": "runmeter-jsa2025",
+  "paper_title": "Data-driven power modeling and monitoring via hardware performance counter tracking",
+  "description": "从离线功率模型走向内核在线监控：精度、定点数和采样窗口。把小型、按频率索引的功率模型放进Linux内核，并设计更及时的计数器采样与移动窗口。",
+  "authors": [
+    "Sergio Mazzola",
+    "Gabriele Ara",
+    "Thomas Benz",
+    "Björn Forsberg",
+    "Tommaso Cucinotta",
+    "Luca Benini"
+  ],
+  "metadata": {
+    "venue": "Journal of Systems Architecture 167,103504 (2025)",
+    "year": 2025,
+    "doi": "10.1016/j.sysarc.2025.103504"
+  },
+  "source_url": "https://doi.org/10.1016/j.sysarc.2025.103504",
+  "pdf_url": "https://www.research-collection.ethz.ch/server/api/core/bitstreams/64d80e13-6f49-46a4-bb66-f8b0bc8e60f6/content",
+  "source_version": "ETH仓储提供的正式出版版，12个PDF页面，第一页面是仓储封面；正文11页。存在2024及2025预印本，本文页码只针对本正式版。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "69a5f984b36ef84e071da33e909f56cfdc87d88d17346d0fd463c7d8851b583f",
+  "figure_count": 6,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

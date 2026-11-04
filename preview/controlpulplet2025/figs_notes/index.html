@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ControlPULPlet：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">ControlPULPlet：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="controlpulplet原图原表阅读索引">ControlPULPlet：原图原表阅读索引<a class="anchor" href="#controlpulplet原图原表阅读索引">#</a></h1>
+<p><a href="https://arxiv.org/abs/2410.15985">论文页面</a> · <a href="https://arxiv.org/pdf/2410.15985v2">本笔记所用 PDF</a> · <a href="https://doi.org/10.1109/TVLSI.2025.3596452">DOI</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的19项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> 本文混合RTL周期精确测试、综合面积、实际硅片、板测和硅校准仿真，所有数字要注明层级。MPC5次迭代与horizon2只是实验设置，不证明大模型控制器都可实时。板上长走线和封装限制与真正2.5D不同，跨论文能效比较需匹配电压、距离、带宽、工艺与是否含PHY。</p>
+<h2 id="fig1感知计算执行链">Fig1：感知—计算—执行链<a class="anchor" href="#fig1感知计算执行链">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=1">原文 Fig1，PDF p1</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 感知—计算—执行链，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先找传感器、控制器、执行器。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 通信属于控制回路。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不专属于电机应用。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“通信属于控制回路。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不专属于电机应用。”所排除的外推。</li>
+</ol>
+<h2 id="fig2封装与控制拓扑">Fig2：封装与控制拓扑<a class="anchor" href="#fig2封装与控制拓扑">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=2">原文 Fig2，PDF p2</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 封装与控制拓扑，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 比较片内、离散与chiplet控制。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 封装改变接口需求。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 图示拓扑不代表全部被流片。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“封装改变接口需求。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“图示拓扑不代表全部被流片。”所排除的外推。</li>
+</ol>
+<h2 id="fig3架构与新增模块">Fig3：架构与新增模块<a class="anchor" href="#fig3架构与新增模块">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=3">原文 Fig3，PDF p3</a></p>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 架构与新增模块，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 彩色新增、灰色继承；分管理域和PMCA。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 快速中断与DMA/D2D协同。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> Kairos并未集成图中所有域。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“快速中断与DMA/D2D协同。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“Kairos并未集成图中所有域。”所排除的外推。</li>
+</ol>
+<h2 id="fig4d2d分层">Fig4：D2D分层<a class="anchor" href="#fig4d2d分层">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=4">原文 Fig4，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> D2D分层，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 网络／数据链路／PHY分层看。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> AXI语义转换成链路传输。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不是透明零开销。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“AXI语义转换成链路传输。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不是透明零开销。”所排除的外推。</li>
+</ol>
+<h2 id="fig5网络层通路">Fig5：网络层通路<a class="anchor" href="#fig5网络层通路">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=4">原文 Fig5，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 网络层通路，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 区分五类AXI通道与包转换。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 控制逻辑也占面积。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不能只数PHY门数当整个接口。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“控制逻辑也占面积。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不能只数PHY门数当整个接口。”所排除的外推。</li>
+</ol>
+<h2 id="fig6物理层与时钟域">Fig6：物理层与时钟域<a class="anchor" href="#fig6物理层与时钟域">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=5">原文 Fig6，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 物理层与时钟域，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 看发送、接收与跨时钟连接。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 时序与同步是可靠通信前提。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不证明任意PCB长度都可靠。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“时序与同步是可靠通信前提。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不证明任意PCB长度都可靠。”所排除的外推。</li>
+</ol>
+<h2 id="fig732b突发传输时序">Fig7：32B突发传输时序<a class="anchor" href="#fig732b突发传输时序">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=5">原文 Fig7，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 32B突发传输时序，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 从AXI请求到数据／信用返回逐拍读。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 协议往返带来空拍。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 峰值带宽不等于小包效率。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“协议往返带来空拍。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“峰值带宽不等于小包效率。”所排除的外推。</li>
+</ol>
+<h2 id="fig8rtl测试台">Fig8：RTL测试台<a class="anchor" href="#fig8rtl测试台">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=7">原文 Fig8，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> RTL测试台，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 两D2D端和内存模型组成闭环事务。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 测试为周期精确。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不是实际2.5D封装。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“测试为周期精确。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不是实际2.5D封装。”所排除的外推。</li>
+</ol>
+<h2 id="fig9fifo与burst影响吞吐">Fig9：FIFO与burst影响吞吐<a class="anchor" href="#fig9fifo与burst影响吞吐">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=7">原文 Fig9，PDF p7</a></p>
+<figure><a class="image-link" href="../images/original-fig9.png" target="_blank" rel="noopener"><img src="../images/original-fig9.png" alt="Fig9" loading="lazy"></a></figure>
+<p><a href="../images/original-fig9.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> FIFO与burst影响吞吐，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 横轴字节数，纵轴读写利用率，多曲线为CRD。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 大FIFO和突发提高利用率。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 85%结果依赖指定参数。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“大FIFO和突发提高利用率。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“85%结果依赖指定参数。”所排除的外推。</li>
+</ol>
+<h2 id="fig10通信对dvfs控制时长影响">Fig10：通信对DVFS控制时长影响<a class="anchor" href="#fig10通信对dvfs控制时长影响">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=8">原文 Fig10，PDF p8</a></p>
+<figure><a class="image-link" href="../images/original-fig10.png" target="_blank" rel="noopener"><img src="../images/original-fig10.png" alt="Fig10" loading="lazy"></a></figure>
+<p><a href="../images/original-fig10.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 通信对DVFS控制时长影响，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 看归一化总时长与细分开销。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 计算主导时D2D相对影响小。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不能把总开销小理解成传输本身无延迟。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“计算主导时D2D相对影响小。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不能把总开销小理解成传输本身无延迟。”所排除的外推。</li>
+</ol>
+<h2 id="fig11kairos芯片照片和规格">Fig11：Kairos芯片照片和规格<a class="anchor" href="#fig11kairos芯片照片和规格">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=9">原文 Fig11，PDF p9</a></p>
+<figure><a class="image-link" href="../images/original-fig11.png" target="_blank" rel="noopener"><img src="../images/original-fig11.png" alt="Fig11" loading="lazy"></a></figure>
+<p><a href="../images/original-fig11.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> Kairos芯片照片和规格，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读参数，再辨存储／管理核区域。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 证明管理域实际流片。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> PMCA未集成，不能宣称全8核控制芯片实测。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“证明管理域实际流片。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“PMCA未集成，不能宣称全8核控制芯片实测。”所排除的外推。</li>
+</ol>
+<h2 id="fig12双芯片pcb">Fig12：双芯片PCB<a class="anchor" href="#fig12双芯片pcb">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=9">原文 Fig12，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 双芯片PCB，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 看两芯片和走线。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 板上链路真实存在。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 长PCB不是先进2.5D interposer。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“板上链路真实存在。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“长PCB不是先进2.5D interposer。”所排除的外推。</li>
+</ol>
+<h2 id="fig13链路参数与面积">Fig13：链路参数与面积<a class="anchor" href="#fig13链路参数与面积">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=10">原文 Fig13，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 链路参数与面积，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 看CH/CRD组合，区分左门数与右百分比。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 高吞吐配置有额外面积。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 百分比取决于整个系统配置。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“高吞吐配置有额外面积。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“百分比取决于整个系统配置。”所排除的外推。</li>
+</ol>
+<h2 id="fig14kairos面积分解">Fig14：Kairos面积分解<a class="anchor" href="#fig14kairos面积分解">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=10">原文 Fig14，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> Kairos面积分解，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 比较存储、核、链路等块。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 存储占比显著。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> ASIC门数不等于FPGA LUT。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“存储占比显著。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“ASIC门数不等于FPGA LUT。”所排除的外推。</li>
+</ol>
+<h2 id="fig15链路内部面积分解">Fig15：链路内部面积分解<a class="anchor" href="#fig15链路内部面积分解">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=10">原文 Fig15，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 链路内部面积分解，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 区分完整架构配置和Kairos窄配置。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> FIFO与PHY的占比随参数变化。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 7.6kGE只是每通道PHY，不是整个D2D。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“FIFO与PHY的占比随参数变化。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“7.6kGE只是每通道PHY，不是整个D2D。”所排除的外推。</li>
+</ol>
+<h2 id="fig16芯片电压频率与功耗">Fig16：芯片电压频率与功耗<a class="anchor" href="#fig16芯片电压频率与功耗">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=10">原文 Fig16，PDF p10</a></p>
+<figure><a class="image-link" href="../images/original-fig16.png" target="_blank" rel="noopener"><img src="../images/original-fig16.png" alt="Fig16" loading="lazy"></a></figure>
+<p><a href="../images/original-fig16.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 芯片电压频率与功耗，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 左轴mW、右轴MHz，分别看不同负载。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 1.2V可到约290MHz。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不能混用500MHz RTL控制案例。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“1.2V可到约290MHz。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不能混用500MHz RTL控制案例。”所排除的外推。</li>
+</ol>
+<h2 id="fig17板级能量每bit">Fig17：板级能量每bit<a class="anchor" href="#fig17板级能量每bit">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=11">原文 Fig17，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 板级能量每bit，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 横轴burst，曲线对应I/O电压。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 长PCB与I/O电压增加能耗。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 不能拿内部1.3pJ/bit代替板测。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“长PCB与I/O电压增加能耗。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“不能拿内部1.3pJ/bit代替板测。”所排除的外推。</li>
+</ol>
+<h2 id="tablei控制器比较">TableI：控制器比较<a class="anchor" href="#tablei控制器比较">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=12">原文 TableI，PDF p12</a></p>
+<figure><a class="image-link" href="../images/original-tablei.png" target="_blank" rel="noopener"><img src="../images/original-tablei.png" alt="TableI" loading="lazy"></a></figure>
+<p><a href="../images/original-tablei.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 控制器比较，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 按工艺、是否流片、集群和D2D能力读脚注。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不同证据类型被集中列出。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 忽略脚注会把仿真指标当硅片实测。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不同证据类型被集中列出。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“忽略脚注会把仿真指标当硅片实测。”所排除的外推。</li>
+</ol>
+<h2 id="tableiid2d接口比较">TableII：D2D接口比较<a class="anchor" href="#tableiid2d接口比较">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2410.15985v2#page=12">原文 TableII，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> D2D接口比较，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 核对距离、频率、线数、能量边界。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不同接口面向不同应用。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 跨工艺排行榜不说明E902必须用最高带宽。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不同接口面向不同应用。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“跨工艺排行榜不说明E902必须用最高带宽。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#controlpulplet原图原表阅读索引">ControlPULPlet：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1感知计算执行链">Fig1：感知—计算—执行链</a>
+<a class="toc-level-2" href="#fig2封装与控制拓扑">Fig2：封装与控制拓扑</a>
+<a class="toc-level-2" href="#fig3架构与新增模块">Fig3：架构与新增模块</a>
+<a class="toc-level-2" href="#fig4d2d分层">Fig4：D2D分层</a>
+<a class="toc-level-2" href="#fig5网络层通路">Fig5：网络层通路</a>
+<a class="toc-level-2" href="#fig6物理层与时钟域">Fig6：物理层与时钟域</a>
+<a class="toc-level-2" href="#fig732b突发传输时序">Fig7：32B突发传输时序</a>
+<a class="toc-level-2" href="#fig8rtl测试台">Fig8：RTL测试台</a>
+<a class="toc-level-2" href="#fig9fifo与burst影响吞吐">Fig9：FIFO与burst影响吞吐</a>
+<a class="toc-level-2" href="#fig10通信对dvfs控制时长影响">Fig10：通信对DVFS控制时长影响</a>
+<a class="toc-level-2" href="#fig11kairos芯片照片和规格">Fig11：Kairos芯片照片和规格</a>
+<a class="toc-level-2" href="#fig12双芯片pcb">Fig12：双芯片PCB</a>
+<a class="toc-level-2" href="#fig13链路参数与面积">Fig13：链路参数与面积</a>
+<a class="toc-level-2" href="#fig14kairos面积分解">Fig14：Kairos面积分解</a>
+<a class="toc-level-2" href="#fig15链路内部面积分解">Fig15：链路内部面积分解</a>
+<a class="toc-level-2" href="#fig16芯片电压频率与功耗">Fig16：芯片电压频率与功耗</a>
+<a class="toc-level-2" href="#fig17板级能量每bit">Fig17：板级能量每bit</a>
+<a class="toc-level-2" href="#tablei控制器比较">TableI：控制器比较</a>
+<a class="toc-level-2" href="#tableiid2d接口比较">TableII：D2D接口比较</a>
+    </aside>
+  </div>
+</body>
+</html>

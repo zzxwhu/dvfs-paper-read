@@ -1,0 +1,27 @@
+{
+  "index": "rtdvs-sosp2001",
+  "paper_title": "Real-Time Dynamic Voltage Scaling for Low-Power Embedded Operating Systems",
+  "description": "实时任务为什么能降频：先证明来得及，再回收执行余量。把“CPU 看起来不忙就降频”改成“在任务截止时间仍可满足的条件下降频”。",
+  "authors": [
+    "Padmanabhan Pillai",
+    "Kang G. Shin"
+  ],
+  "metadata": {
+    "venue": "SOSP 2001，89–102",
+    "year": 2001,
+    "doi": "10.1145/378239.378245"
+  },
+  "source_url": "https://doi.org/10.1145/378239.378245",
+  "pdf_url": "https://www.andrew.cmu.edu/course/15-821/assets/READINGS/PAPERS/pillai2001.pdf",
+  "source_version": "CMU 课程站提供的 ACM 论文扫描版，14 个 PDF 页面；印刷页从 89 开始。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "7b545b34b0df992a2af7e410712da17cf8294819fd0438a9b42dfb8f6b37f80b",
+  "figure_count": 21,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

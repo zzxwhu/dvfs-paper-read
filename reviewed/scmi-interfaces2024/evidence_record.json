@@ -1,0 +1,245 @@
+{
+  "short": "SCMI端到端时延",
+  "zh": "算法算完之后，频率多久才真的变：拆开整条控制链",
+  "authors": [
+    "Antonio del Vecchio",
+    "Alessandro Ottaviano",
+    "Giovanni Bambini",
+    "Andrea Acquaviva",
+    "Andrea Bartolini"
+  ],
+  "venue": "Energies17(22),5778 (2024)",
+  "version": "ETH仓储正式版，含1页封面共16页；本文所有PDF页码比正文印刷页多1。",
+  "identity": "博洛尼亚大学与ETH Zürich合作，通讯作者Antonio del Vecchio、Andrea Bartolini。作者声明无利益冲突；资助包括EUPEX、EPI SGA2、DECICE等（正文末）。",
+  "one": "把“写入新频率”拆成Linux发请求、邮箱传输、固件解码、控制任务计算和执行器生效。",
+  "abstract_zh": "本文以Linux高层策略与ControlPULP底层控制器为对象，研究SCMI软硬件接口对DVFS的影响。作者在FPGA硬件在环环境中测量请求发送、应答与解码延迟，再比较周期策略、事件驱动策略和底层降频快速通路。结果说明仅优化消息传输远远不够，控制任务调度也能主导响应。优化对降频最明显，升频仍受安全控制和周期限制；实验对象包含模拟CPU和工作负载，不能当真实HPC系统能耗复现。",
+  "abstract_en": "The study measures the path from Linux frequency requests to a firmware power controller through SCMI. Hardware-in-the-loop experiments separate communication latency from control-policy delay and evaluate periodic, event-driven and optimized low-level policies. Fast application of safe frequency decreases reduces delay, whereas increases remain constrained. The plant and energy effects are emulated. This is a reader-written paraphrase.",
+  "question": "控制器即使推理只需几微秒，Linux应答、固件任务排队和下一周期应用可能使总延迟达到毫秒。待验证的是哪一段主导，怎样优化才真正改善应用。",
+  "novel": "贯通Linux CPUFreq/SCMI与真实固件测量，再将时延放入HIL控制质量实验。贡献在接口和调度的系统刻画，不是提出新的机器学习器；它为智能策略的开销预算提供依据。",
+  "flow": "CPUFreq请求 → Linux SCMI驱动发送 → 共享内存邮箱与doorbell → ControlPULP ISR → FreeRTOS解码任务 → 功率／温度控制任务 → 写频率 → 完成应答回Linux。",
+  "io": [
+    [
+      "输入",
+      "perf_level_set消息、目标性能点、plant温度与功率状态。"
+    ],
+    [
+      "输出",
+      "经底层约束后的频率与SCMI应答；写请求不等于立即生效。"
+    ],
+    [
+      "关键测量",
+      "T1发送、T2解码窗口、T3返回；CD为负载变化至实际频率变化。"
+    ],
+    [
+      "平台",
+      "Linux在A53侧，ControlPULP在FPGA；被控CPU及能量由模型提供。"
+    ]
+  ],
+  "method": "§3（PDF p6–9）：SCMI-MU实现邮箱和中断，Linux使用实际CPUFreq/SCMI驱动。底层ISR只保存和转交，较低优先级解码任务可能等待控制任务。默认PCF每500µs读取新要求，下一周期再应用，形成至少一周期等待。\n\n优化快速通路只在新请求比之前受控频率更低时直接应用，升频仍需检查功率、温度与电压条件。不能把114µs写成所有动作平均延迟。高层采用阶段事件触发可减少周期轮询的等待。\n\n§4：1000次请求的固件解码测量；Linux HLC按1s周期发无拥塞请求做通信刻画。控制质量实验另用500个20ms计算／访存阶段，模拟应用基准10s，比较周期HLC、事件HLC、优化LLC。仿真时间相对控制器放慢25倍，并加入1.7ms人工转发延迟进行时间尺度映射，不能直接等同实机墙钟。",
+  "equations": [
+    {
+      "title": "通信延迟与控制延迟不是同一量（定义整理）",
+      "tex": "T_{\\rm msg}=T_1+T_2+T_3,\\qquad T_{\\rm CD}=t_{\\rm frequency\\ effective}-t_{\\rm phase\\ change}",
+      "symbols": "全部为秒；T1发送，T2包含平台与Linux等待，T3返回。CD还包括检测、排队、周期与动作应用；T_msg返回完成也不一定是工作负载开始变速的同一时刻。",
+      "example": "Table1均值70.5+603.5+133.8≈807.8µs。若固件实际解码13.15µs，不能把整个603.5µs都归罪于RISC-V解码慢。",
+      "source": "§3.2、Table1及§4.2，PDF p8/10–12。"
+    },
+    {
+      "title": "控制改善的正确分母（读者算例）",
+      "tex": "\\Delta T\\%=100\\,(T_{\\rm base}-T_{\\rm new})/T_{\\rm base}",
+      "symbols": "该式是耗时减少百分比；若用speedup=T_base/T_new−1，定义不同，小差异时才近似相等。论文Table2使用自身speedup口径，应保留表述。",
+      "example": "1.35ms降到0.114ms是特定降频路径约91.6%延迟减少；不能据此宣称应用节能91.6%。Table2应用改善只有约2.89%，且为模拟负载。",
+      "source": "Fig4、Table2与讨论；算例为读者补充。"
+    }
+  ],
+  "metrics": [
+    [
+      "Linux发送T1",
+      "均值70.5µs",
+      "HLC1.2GHz；非完整控制延迟",
+      "Table1a，p10"
+    ],
+    [
+      "应答窗口T2",
+      "均值603.5µs",
+      "含OS与平台，非固件解码本身",
+      "Table1a，p10"
+    ],
+    [
+      "LLC解码",
+      "263周期≈13.15µs @20MHz",
+      "不是2.2GHz实测CPU变频时间",
+      "Table1b、§4.1.2，p10–11"
+    ],
+    [
+      "控制延迟CD",
+      "周期HLC2.20ms；事件HLC1.35ms；优化平均0.77ms",
+      "SCMI路径；优化升频1.42ms、降频114µs",
+      "§4.2，p11–12"
+    ],
+    [
+      "应用speedup",
+      "SCMI优化2.89%；理想共享内存3.18%",
+      "相对周期HLC+理想共享内存基线，模拟应用",
+      "Table2，p12"
+    ]
+  ],
+  "stats": "通信有分布和最小／平均／最大值，不能只拿70.5µs代表完整链。无拥塞1s发包与密集突发命令是不同工况，未覆盖就不能保证突发响应。模拟阶段模式固定、50%占空比，不能代表全部CPU应用。论文摘要约3%的能效改善，在主结果中应优先引用Table2明确的执行时间指标，不能自行扩成所有真实任务节能3%。",
+  "limits": [
+    [
+      "作者方向",
+      "关键",
+      "当前快速通路主要改善降频，升频延迟未来优化。"
+    ],
+    [
+      "作者实验边界",
+      "重要",
+      "被控CPU和工作负载为HIL模型，通信虽真实但能量不是完整实机测量。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "排队、拥塞、周期相位与OS中断尾部可能支配最坏延迟；只报平均无法保证硬期限。"
+    ]
+  ],
+  "transfer": "你的软控硬模块应记录四个时间戳：算法决定、命令写入、执行器确认、频率实际生效。先做简单目标OPP/busy/ack寄存器即可，不必为单核毕设完整复刻SCMI。智能算法的预测时间要给执行器留余量，超时回退与升降频顺序由底层保证。",
+  "experiments": [
+    [
+      "P0：四时间戳测延迟",
+      "定位真实瓶颈",
+      "周期计数器、寄存器trace或逻辑分析",
+      "时间基准不一致",
+      "分别给均值/P95/最大值，不混用算法时间与生效时间"
+    ],
+    [
+      "P1：轮询与事件驱动",
+      "降低无效等待",
+      "完成中断、邮箱或状态寄存器",
+      "中断过密增加开销",
+      "同频点和负载下比较尾延迟与净能量"
+    ],
+    [
+      "P1：降频快路与升频保护",
+      "实现安全软控硬链路",
+      "OPP表、busy/ack、锁定／稳定指示",
+      "过早升频或调压顺序错误",
+      "随机命令和异常注入不越界，正确性与回退均可观测"
+    ]
+  ],
+  "reproduce": "先只复建SCMI消息链并复测Table1分段延迟，再接同一plant和周期，最后实现仅降频快通路并按方向分组统计。记录时间缩放和人工延迟，避免把模型时间当墙钟。缺FPGA可先做软件协议／寄存器模型，但只能称软件验证。当前未运行HIL。",
+  "code": "论文依托[ControlPULP平台](https://github.com/pulp-platform/control-pulp)；本篇完整Linux补丁、实验脚本与对应commit当前未全部核验，不假定基础仓库包含所有扩展。",
+  "glossary": [
+    [
+      "A",
+      "HLC/LLC",
+      "高层策略与低层约束／执行控制器。"
+    ],
+    [
+      "B",
+      "SCMI",
+      "标准化管理消息接口，传递性能点请求；不是自动优化算法。"
+    ],
+    [
+      "B",
+      "Doorbell邮箱",
+      "写共享内存并发中断通知对方处理消息。"
+    ],
+    [
+      "C",
+      "CD",
+      "从负载阶段变化到实际频率改变的延迟，包含多层等待。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 6,
+      "title": "真实部件与HIL映射",
+      "read": "分清高层Linux、底层固件、模拟CPU。",
+      "observation": "接口与plant的真实程度不同。",
+      "limit": "不能统称真实CPU节能实测。",
+      "crop": [
+        0.27,
+        0.38,
+        0.945,
+        0.745
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 7,
+      "title": "SCMI调用时序",
+      "read": "自上而下读调用，左右区分Linux与固件，定位T1/T2/T3。",
+      "observation": "长等待不都在传输硬件。",
+      "limit": "无拥塞时序不保证高请求吞吐。",
+      "crop": [
+        0.27,
+        0.435,
+        0.945,
+        0.86
+      ],
+      "stage": "method",
+      "image": "original-fig2.png"
+    },
+    {
+      "label": "Table1",
+      "page": 10,
+      "title": "通信与解码统计",
+      "read": "分别看(a)µs与(b)周期及频率。",
+      "observation": "发送、返回和解码差异大。",
+      "limit": "别把两种时钟域周期直接相加。",
+      "crop": [
+        0.055,
+        0.1,
+        0.945,
+        0.25
+      ],
+      "stage": "result",
+      "image": "original-table1.png"
+    },
+    {
+      "label": "Fig3",
+      "page": 10,
+      "title": "三窗口延迟分布",
+      "read": "按子图看分布宽度和单位。",
+      "observation": "T2波动大于T1。",
+      "limit": "没有分布尾部完整数据不能给硬上界。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 12,
+      "title": "控制延迟分布",
+      "read": "先分周期／事件，再分共享内存／SCMI。",
+      "observation": "策略周期影响比邮箱本身更明显。",
+      "limit": "114µs是优化降频子情形，不是这些分布统一均值。",
+      "crop": [
+        0.27,
+        0.22,
+        0.945,
+        0.525
+      ],
+      "stage": "result",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Table2",
+      "page": 12,
+      "title": "应用性能改善",
+      "read": "对照相同参考列和三种配置。",
+      "observation": "SCMI与理想通道差距较小。",
+      "limit": "2.89%属于模型应用，不能外推E902。",
+      "crop": [
+        0.27,
+        0.715,
+        0.945,
+        0.83
+      ],
+      "stage": "result",
+      "image": "original-table2.png"
+    }
+  ]
+}

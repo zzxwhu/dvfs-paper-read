@@ -1,0 +1,374 @@
+{
+  "short": "RT-DVS",
+  "zh": "实时任务为什么能降频：先证明来得及，再回收执行余量",
+  "authors": [
+    "Padmanabhan Pillai",
+    "Kang G. Shin"
+  ],
+  "venue": "SOSP 2001，89–102",
+  "version": "CMU 课程站提供的 ACM 论文扫描版，14 个 PDF 页面；印刷页从 89 开始。",
+  "identity": "作者来自密歇根大学 Real-Time Computing Laboratory。首页列美国空军科研办公室 AFOSR 资助。该版本未设置现代期刊式的通讯作者／利益冲突声明栏目，不能据此推断作者不存在利益关系。",
+  "one": "把“CPU 看起来不忙就降频”改成“在任务截止时间仍可满足的条件下降频”。",
+  "abstract_zh": "论文研究周期性实时任务的节能调度：先按最坏执行时间选择安全频率，再在任务提前完成时回收余量。作者提出静态、周期节约和前瞻式算法，分别适配 EDF 或 RM，并把策略接入 Linux 调度和处理器调压调频接口。随机任务集仿真检验参数影响，笔记本原型检验实际功耗。价值在于建立截止期与选频之间的可分析关系；保证依赖任务独立、执行时间上界有效等假设，不能直接扩展成任意 Linux 程序的硬实时保证。",
+  "abstract_en": "This work connects voltage scaling to real-time scheduling. Frequency selection uses execution-time bounds and task deadlines, while early completion creates additional slack. Simulations and a Linux prototype evaluate several policies. The key lesson is that timing assumptions and transition overhead belong in the controller design. This is a reader-written paraphrase.",
+  "question": "仅按平均利用率降频，可能让一个刚释放、期限很近的任务超时。可证伪的问题是：在给定周期任务模型内，是否能降低频率而不破坏可调度性？证据链为调度条件→算法→随机任务集→真实平台。",
+  "novel": "创新属于调度与执行器的系统整合：用实时可调度性约束选频，再将提前完成释放的周期重新分配。它不是神经网络论文；它适合当你智能控制器的安全基线。",
+  "flow": "任务声明周期和最坏执行量 → EDF/RM 调度器计算可调度频率 → 任务释放／完成事件更新余量 → 工作点表选择频率和电压 → PowerNow! 执行 → 计时和功率反馈。",
+  "io": [
+    [
+      "输入",
+      "每个任务的周期 P_i、最大频率下最坏时间 C_i、释放／完成事件、实际执行周期、可用 OPP。"
+    ],
+    [
+      "输出",
+      "最低可调度工作点索引，随后映射到时钟与电压；不是改变应用代码的运算结果。"
+    ],
+    [
+      "控制位置",
+      "Linux 2.2.16 扩展模块；任务经 /proc 注册周期和计算上界。"
+    ],
+    [
+      "真实负载边界",
+      "周期任务在真实 AMD CPU 上执行；仿真部分则生成随机任务集，两种证据分开。"
+    ]
+  ],
+  "method": "§2.2–2.3（PDF p3–4）：基本模型是单处理器、独立、可抢占的周期任务，期限等于周期。C_i 在最大频率下给定，降频因子 a=f/f_max 时执行时间近似变为 C_i/a。静态 EDF 选择使总利用率不超过 a 的最低离散档位。RM 的判断不同，不能照搬 EDF 的利用率等式。\n\n§2.4（p4–5）：cycle-conserving 策略在任务释放时恢复最坏需求，完成后才用本次实际需求替换；不能提前把上一次的短执行时间当成本次必然上界。EDF 与 RM 各有余量维护方式。§2.5（p6–7）的 look-ahead EDF 尝试推迟未来工作，让当前运行更慢；离散 OPP 不同时，它并不总比 cycle-conserving 更好。\n\n§4（p10–12）：HP N3350、AMD K6-2+，最高 550MHz，实际主板只有 1.4V 和 2.0V 两档。作者以单台机器测试了低电压下稳定频率，不能据此确定其他器件的安全 OPP。电压切换约 0.4ms，纯频率切换约 41µs；这些停顿应算入执行预算。",
+  "equations": [
+    {
+      "title": "EDF 的选频条件（原文 §2.3 的符号重排）",
+      "tex": "\\sum_i C_i/P_i\\ \\leq\\ a,\\qquad a=f/f_{\\max},\\quad C_i(a)=C_i/a",
+      "symbols": "C_i：最大频率下的最坏执行时间，秒；P_i：周期／相对期限，秒；a：无量纲，0<a≤1；f：Hz。前提是执行时间近似与频率成反比，且独立周期任务满足 EDF 模型。",
+      "example": "教学例：任务利用率分别 0.2 与 0.3，总需求 0.5。有 0.4、0.6、1.0 三档时选 0.6，而不是向下取 0.4。若控制／切换额外占周期 0.12，则需求变为 0.62，必须改选 1.0。",
+      "source": "§2.2–2.3，PDF p3–4；例子是读者补充。"
+    },
+    {
+      "title": "整周期能量（读者补充，用于纠正只比较活动功率）",
+      "tex": "E_{\\rm period}=E_{\\rm run}+E_{\\rm switch}+P_{\\rm idle}(P-T_{\\rm run})",
+      "symbols": "E：J；P_idle：W；P 和 T_run：s。这里 P 代表任务周期，不是功率。必须把切换停顿和空闲状态的能量归属统一。",
+      "example": "运行能量从 8mJ 降到 6mJ，若控制与切换增加 3mJ，净结果是 9mJ，不能宣称节能。",
+      "source": "由 §3–4 的能量边界整理，不是论文编号公式。"
+    }
+  ],
+  "metrics": [
+    [
+      "原型总系统功率",
+      "约降低 20%–40%",
+      "5 个任务、各次使用 90% WCET，屏幕背光关闭；不是现代 E902 预期",
+      "§4.3，Fig16，PDF p12"
+    ],
+    [
+      "切换延迟",
+      "变压约0.4ms；仅变频约41µs",
+      "单台 HP/AMD 原型经验值",
+      "§4.1，p11"
+    ],
+    [
+      "仿真样本",
+      "数百个不同随机任务集",
+      "不同利用率、空闲功率、频率集合；不等于数百台板卡",
+      "§3.1，p7–8"
+    ]
+  ],
+  "stats": "仿真跨数百任务集取平均；硬件 OPP 稳定性样本量明确为一台。功率以电流探头和示波器测量，15–30秒区间平均，包含主板固定开销。图中未提供现代意义完整置信区间。模拟默认忽略切换等开销，原型讨论补入时间预算；理论模型与部署保证不能合并陈述。",
+  "limits": [
+    [
+      "作者讨论",
+      "重要",
+      "动态加入任务可能产生暂时违约，需控制首个释放时刻；频点集合会改变算法排名。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "实际 WCET、访存等待、锁阻塞与中断若未计入，理论可调度性不能保护真实程序。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "2001年的电压范围和固定功耗结构不代表现代MCU；原型单台稳定性验证不足以证明工艺温度全覆盖。"
+    ]
+  ],
+  "transfer": "你可把每个压缩数据块当作一次作业，周期表示数据到达间隔，期限表示必须压完的时间。先实测不同文件和频点的执行时间，建立保守上界，再让学习策略在安全档位集合内选档。E902 能否动态变压取决于供电域和板级接口；只有时钟分频时，应把第一阶段称为 DFS。",
+  "experiments": [
+    [
+      "P0：固定频率与静态安全选频",
+      "建立必做基线",
+      "电脑或E902仿真；相同压缩数据和计时器",
+      "最坏时间估计过小",
+      "留出的输入均正确解压；完整周期无违约；报告时间与能量边界"
+    ],
+    [
+      "P1：完成事件余量回收",
+      "验证周期节约是否比固定安全档更好",
+      "作业开始／完成事件、离散频率表",
+      "短块频繁切换抵消收益",
+      "同约束下净能量下降；列出每周期切换次数"
+    ],
+    [
+      "P1：学习策略加安全过滤",
+      "连接智能算法与可分析基线",
+      "小Q表或回归器、保守剩余工作估计",
+      "误差导致安全集合失效",
+      "对比无保护学习；分别报告违约率、能量和过滤触发数"
+    ]
+  ],
+  "reproduce": "先用论文 Table2/3 的3任务例重现频率时间线，再随机生成任务集扫利用率与OPP。将切换成本显式加入，不把“忽略成本”与“测得零成本”混同。之后在有权限且支持调频的CPU运行周期任务，测整周期能量；要复现原型百分比还需相同硬件及测量边界。当前未运行作者软件或复现实验。",
+  "code": "原文提供实现结构和算法伪代码；当前材料中尚未定位到可直接下载的配套源码仓库。",
+  "glossary": [
+    [
+      "A",
+      "WCET",
+      "最坏执行时间：保证范围内最长的执行时间；有限样本最大值不自动等于WCET。"
+    ],
+    [
+      "A",
+      "Slack",
+      "余量：满足期限后仍可支配的时间。"
+    ],
+    [
+      "B",
+      "EDF / RM",
+      "EDF按最近绝对截止期排序；RM按周期长短给固定优先级。"
+    ],
+    [
+      "C",
+      "Look-ahead",
+      "前瞻式分析未来需求；其性能取决于模型与可用离散档位。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Table1",
+      "page": 2,
+      "title": "笔记本不同部件的功率",
+      "read": "逐行看显示、CPU和磁盘状态。",
+      "observation": "整机有与CPU调频无关的固定功耗。",
+      "limit": "不能用CPU动态功率公式代替整机测量。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 3,
+      "title": "三任务最坏时间与周期",
+      "read": "先读每个C、P，再算C/P。",
+      "observation": "例子提供静态选频的输入。",
+      "limit": "不是实测压缩负载。",
+      "crop": [
+        0.52,
+        0.265,
+        0.93,
+        0.323
+      ],
+      "stage": "method",
+      "image": "original-table2.png"
+    },
+    {
+      "label": "Fig1",
+      "page": 3,
+      "title": "静态EDF/RM算法",
+      "read": "先看可调度测试，再看离散频点选择。",
+      "observation": "两类调度器约束不同。",
+      "limit": "不能把平均利用率阈值当成相同算法。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "静态缩放时间线",
+      "read": "横轴时间，纵向分任务，比较EDF与RM。",
+      "observation": "不同优先级产生不同可用降频空间。",
+      "limit": "该例不能概括所有任务集。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 4,
+      "title": "实际执行量",
+      "read": "与Table2最坏值逐任务对照。",
+      "observation": "提前完成产生可回收预算。",
+      "limit": "运行前不能假定已知实际量。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 4,
+      "title": "EDF回收余量时间线",
+      "read": "沿时间轴看频率与任务释放完成点。",
+      "observation": "需求变化触发选频变化。",
+      "limit": "只在给定任务模型内解释。",
+      "crop": [
+        0.07,
+        0.045,
+        0.5,
+        0.137
+      ],
+      "stage": "method",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "EDF周期节约算法",
+      "read": "释放用最坏量，完成用实际量。",
+      "observation": "事件处理顺序是安全性的关键。",
+      "limit": "不能只保留降频逻辑而删掉需求恢复。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 5,
+      "title": "RM余量推演",
+      "read": "按(a)到后续子图看剩余工作。",
+      "observation": "固定优先级的余量维护比EDF复杂。",
+      "limit": "子图是构造示例。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 5,
+      "title": "RM算法",
+      "read": "对照Fig5追踪变量更新。",
+      "observation": "包含RM特有预算。",
+      "limit": "不能用EDF伪代码冒充。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 6,
+      "title": "前瞻EDF示例",
+      "read": "按子图阅读未来截止期前的工作迁移。",
+      "observation": "推迟一部分未来工作可给当前降频留空间。",
+      "limit": "推迟仍受后续期限限制。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 7,
+      "title": "前瞻EDF伪代码",
+      "read": "从最近到较远期限检查需求。",
+      "observation": "算法输出满足未来需求的当前频率。",
+      "limit": "不是已经部署的学习预测器。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 7,
+      "title": "示例能量比较",
+      "read": "统一看相对能量和OPP假设。",
+      "observation": "不同策略在同一例子有不同代价。",
+      "limit": "不能外推为平均实验收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 9,
+      "title": "任务数与能量",
+      "read": "横轴利用率，分面5/10/15任务。",
+      "observation": "该仿真中利用率比任务数影响更明显。",
+      "limit": "不是任务数永远无影响。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 9,
+      "title": "空闲功耗敏感性",
+      "read": "比较不同idle level与归一化基线。",
+      "observation": "空闲越耗电，延长运行与空闲的权衡越重要。",
+      "limit": "真实深睡功耗需重测。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "频率电压档位敏感性",
+      "read": "三种machine分面内比较同一算法曲线。",
+      "observation": "更多档位可能改变策略排名。",
+      "limit": "不得假设前瞻策略总最优。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 9,
+      "title": "实际量占WCET比例",
+      "read": "从低到高执行比例比较。",
+      "observation": "提前完成幅度影响动态回收价值。",
+      "limit": "比例是仿真条件。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 10,
+      "title": "均匀分布的实际需求",
+      "read": "比较随机需求下的归一化曲线。",
+      "observation": "分布与均值共同构成实验条件。",
+      "limit": "不能据此断言任意分布都一样。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 11,
+      "title": "Linux原型架构",
+      "read": "先看任务注册，再看调度模块与PowerNow模块。",
+      "observation": "软件选策略，硬件完成工作点切换。",
+      "limit": "Linux模块结构不能直接搬进E902裸机。",
+      "crop": [
+        0.065,
+        0.045,
+        0.505,
+        0.19
+      ],
+      "stage": "method",
+      "image": "original-fig14.png"
+    },
+    {
+      "label": "Fig15",
+      "page": 11,
+      "title": "实测连接",
+      "read": "沿电源→电流探头→笔记本看边界。",
+      "observation": "示波器采样的是整机电源路径。",
+      "limit": "不能称为独立CPU电源轨。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 12,
+      "title": "真实平台功率",
+      "read": "横轴利用率，纵轴W；比较同负载各策略。",
+      "observation": "整机固定功耗存在时仍有节能。",
+      "limit": "不是每个应用都有20%–40%。",
+      "crop": [
+        0.07,
+        0.045,
+        0.5,
+        0.23
+      ],
+      "stage": "result",
+      "image": "original-fig16.png"
+    },
+    {
+      "label": "Fig17",
+      "page": 12,
+      "title": "同参数仿真",
+      "read": "与Fig16趋势比较，注意量纲／边界。",
+      "observation": "模型与硬件趋势近似。",
+      "limit": "仿真只含CPU，不等于整机数值相等。",
+      "crop": null,
+      "stage": "method"
+    }
+  ]
+}

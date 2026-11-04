@@ -1,0 +1,27 @@
+{
+  "index": "drqn-tnse2022",
+  "paper_title": "Deadline-Aware Deep-Recurrent-Q-Network Governor for Smart Energy Saving",
+  "description": "为什么要让CPU选频器记住过去：DRQN及用户态训练。用GRU记住频率和CPU利用率的历史，再由Q网络选择下一档频率，训练与内核推理分开执行。",
+  "authors": [
+    "Ti Zhou",
+    "Man Lin"
+  ],
+  "metadata": {
+    "venue": "IEEE TNSE 9(6),3886–3895 (2022；在线2021)",
+    "year": 2022,
+    "doi": "10.1109/TNSE.2021.3123280"
+  },
+  "source_url": "https://doi.org/10.1109/TNSE.2021.3123280",
+  "pdf_url": "https://coladog.github.io/assets/papers/TNSE2021.pdf",
+  "source_version": "作者公开的IEEE正式排版PDF，10页；印刷页3886起。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "ffd2b5710c8d4c8533d0b683be8a6fe22637abce9ecbbdeb85056688a8e82bce",
+  "figure_count": 17,
+  "embedded_figures": 5,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

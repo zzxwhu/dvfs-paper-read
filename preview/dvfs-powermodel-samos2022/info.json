@@ -1,0 +1,29 @@
+{
+  "index": "dvfs-powermodel-samos2022",
+  "paper_title": "A Data-Driven Approach to Lightweight DVFS-Aware Counter-Based Power Modeling for Heterogeneous Platforms",
+  "description": "没有高速功耗仪时，如何用少量计数器估计功率。每个频率分别拟合一个很小的功率模型，自动选择能同时读取的计数器，再组合成跨频点模型表。",
+  "authors": [
+    "Sergio Mazzola",
+    "Thomas Benz",
+    "Björn Forsberg",
+    "Luca Benini"
+  ],
+  "metadata": {
+    "venue": "SAMOS 2022；公开预印本于2023上传",
+    "year": 2022,
+    "doi": "10.1007/978-3-031-15074-6_22"
+  },
+  "source_url": "https://arxiv.org/abs/2305.06782",
+  "pdf_url": "https://arxiv.org/pdf/2305.06782",
+  "source_version": "arXiv:2305.06782，16页；对应书章DOI 10.1007/978-3-031-15074-6_22。不能把arXiv上传年误记为会议年。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "1f563de9786d56e8acfdbfcd9c2fa9f2cc7cf74995bddd401ba4d5f1cac264df",
+  "figure_count": 8,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

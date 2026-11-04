@@ -1,0 +1,346 @@
+{
+  "short": "DRQN Governor",
+  "zh": "为什么要让CPU选频器记住过去：DRQN及用户态训练",
+  "authors": [
+    "Ti Zhou",
+    "Man Lin"
+  ],
+  "venue": "IEEE TNSE 9(6),3886–3895 (2022；在线2021)",
+  "version": "作者公开的IEEE正式排版PDF，10页；印刷页3886起。",
+  "identity": "作者来自加拿大St. Francis Xavier University计算机系，通讯作者Man Lin。致谢列NSERC资助（PDF p10）。当前版本未定位到单独的利益冲突表格，不能推断没有利益关系。",
+  "one": "用GRU记住频率和CPU利用率的历史，再由Q网络选择下一档频率，训练与内核推理分开执行。",
+  "abstract_zh": "传统Linux governor主要根据当前负载阈值调频，难以按特定应用的软截止时间利用执行阶段差异。作者以频率和利用率为观测，用GRU压缩历史、Q网络输出频率动作；内核只执行推理和采样，用户态进行经验回放训练。i5平台上的视觉、转码联网以及FFT与文件写入三类任务显示了依截止期变化的能量收益。方法证明了真实CPU上的学习选频可实现，但4–10ms推理开销、单平台与软时限证据使其不能原样迁移到小型E902。",
+  "abstract_en": "A recurrent Q-network uses frequency and CPU-utilization history to choose CPU operating frequencies for application-specific timing targets. Inference runs in the Linux kernel, while training uses collected experience in user space. Experiments evaluate three mixed compute and I/O workloads. Savings depend on deadlines, and the inference cost remains material for smaller processors. This is a reader-written paraphrase.",
+  "question": "同样的瞬时利用率可能来自不同执行阶段，后续需求不同；单点阈值看不到这些历史。假设是历史编码能改善选频，同时把训练移出内核能使部署可行。网络消融与跨输入测试的充分性仍需独立审查。",
+  "novel": "贡献由历史状态表示、应用期限驱动奖励、用户态训练／内核推理框架共同组成。它是已有JSA2023时序编码论文的前序工作；2023的轻量编码、整数实现和25µs数值不能倒填到本篇。",
+  "flow": "上一采样周期的频率和忙闲时间 → 归一化观测 → GRU更新历史向量 → Q网络给15个动作评分 → CPUFreq执行 → 内核记经验 → 用户态重建序列并训练 → 更新推理参数。",
+  "io": [
+    [
+      "观测",
+      "s_t=(频率,利用率)，利用率=CPU active time/total time；非图像或LLM token。"
+    ],
+    [
+      "历史／模型",
+      "GRU输入2、内部状态8；Q网络8–16–15，ReLU。此处依据§III-A，不是6维。"
+    ],
+    [
+      "动作",
+      "15档400–2500MHz，采样100ms，Turbo关闭。"
+    ],
+    [
+      "目标",
+      "期限内偏好低频、超期惩罚；属于学习目标，不等于硬实时安全过滤。"
+    ]
+  ],
+  "method": "§III（PDF p4–7）：部分可观测执行过程由GRU向量h_t表示，Q网络评估各频率的预期回报。训练回放需要恢复历史状态，不能把随机抽取的单个观测直接当作完整序列。Adam学习率1e-3，折扣因子0.9，共600个episode，探索概率从0.5逐步降低。\n\n框架把重训练与轻推理分开：用户态读经验、训练、导出权重；内核在采样周期更新历史、推理和执行CPUFreq。该分离减轻内核负担，但训练仍运行在同一设备上，不能假定零资源消耗。\n\n§IV：Intel i5-7200U、Ubuntu18.04、Linux5.4.45。视觉任务含相机、ResNet50和存储；网络任务含MP3转WAV和蓝牙通知；第三类含FFT与4KB文件写入。它们提供不同计算／等待阶段，而不是让DVFS控制图像内容。RAPL测CPU on-core能量，不是整板电池。\n\n材料内部差异：正文实验段写Ubuntu18.04，TableII可见18.05；本笔记保留差异，不凭猜测补成统一的可复现系统版本。",
+  "equations": [
+    {
+      "title": "历史编码与动作（原文§III的符号澄清）",
+      "tex": "h_t=G(h_{t-1},s_t),\\qquad a_t=\\arg\\max_a Q(h_t,a),\\quad f_t=T[a_t]",
+      "symbols": "s_t为当前二维观测；h_t为8维历史状态；a是离散动作编号，无量纲；T为频率表，Hz。原文推理式的max应按选择动作的含义理解为argmax。",
+      "example": "教学例：Q值(0.1,0.4,0.3)对应三档时选择第二档，不是把0.4当成频率。GRU状态必须随一次作业连续更新，并在规定边界重置。",
+      "source": "§III-A/B，Fig2，PDF p4。"
+    },
+    {
+      "title": "即时奖励与TD目标（本篇版本）",
+      "tex": "r_t=1-f_t/f_{\\max}\\ \\ (t\\leq D),\\quad r_t=-5\\ \\ (t>D),\\qquad y_t=r_t+\\gamma\\max_{a'}Q(h_{t+1},a')",
+      "symbols": "r和Q是无量纲学习分数；D是应用期限，秒；γ=0.9。终止样本只取y=r。频率比奖励是能量偏好的代理，不是实测J。",
+      "example": "f=0.5fmax时期限内奖励0.5；超时记-5。低频可能得到较多局部奖励却拖长任务，因此必须观察实际期限与完整能量，不能只用训练reward证明节能。",
+      "source": "Algorithms1–3与§IV-A，PDF p5–7。"
+    }
+  ],
+  "metrics": [
+    [
+      "Benchmark1相对Ondemand",
+      "13%–33%核心能量降低",
+      "期限4.0–5.0s，10次请求",
+      "§IV-D，Fig9，p9"
+    ],
+    [
+      "Benchmark2相对Ondemand",
+      "22%–30%降低",
+      "期限4.0/4.5s，含转码和蓝牙",
+      "Fig10，p9"
+    ],
+    [
+      "Benchmark3相对Ondemand",
+      "7%–28%降低",
+      "期限4.0/5.0s，FFT与写文件",
+      "Fig11，p9"
+    ],
+    [
+      "单次推理",
+      "4–10ms",
+      "不是2023后续工作的25µs",
+      "结论，p9"
+    ]
+  ],
+  "stats": "每个训练epoch末做3次测试取平均，能量图按10次请求汇总。训练曲线平均执行时间靠近期限不证明所有作业都按时；当前证据不足以给出最坏情况保证。基线有Ondemand、Schedutil、Conservative，采样均为100ms。应进一步核对训练总能量、权重更新成本和输入独立性。",
+  "limits": [
+    [
+      "作者讨论",
+      "关键",
+      "4–10ms推理仍慢于启发式；更低算力设备更难部署，作者提出量化／剪枝方向。"
+    ],
+    [
+      "作者讨论",
+      "重要",
+      "解释学习出的策略仍待后续工作。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "单平台、少量应用与均值曲线不足以证明跨数据泛化及尾时延安全；奖励并非真实净能量。"
+    ]
+  ],
+  "transfer": "最值得迁移的是“执行历史有用”与“离线训练、在线轻推理”的分工。你的被控负载可以是压缩程序，状态历史换成每块进度、周期与忙闲比例。E902上先比较短历史统计量和小Q表，再决定是否需要GRU；不要把i5上的4–10ms叫轻到可以忽略。",
+  "experiments": [
+    [
+      "P0：无历史与短历史消融",
+      "判断当前负载是否需要记忆",
+      "相同压缩块、频点、阈值／小MLP",
+      "历史并未增加可辨识信息",
+      "留出文件上净能量或违约率优于无历史"
+    ],
+    [
+      "P1：推理成本预算",
+      "验证E902是否装得下",
+      "周期计数、模型参数、栈与RAM统计",
+      "软件浮点开销过大",
+      "控制时间小于自定周期预算；同时报告最大值和周期占比"
+    ],
+    [
+      "P1：训练与部署分离",
+      "训练放电脑、板上只推理",
+      "离线轨迹、冻结权重、小整数推理器",
+      "训练部署分布不一致",
+      "独立输入正确执行；比较浮点／整数决策差异及能量"
+    ]
+  ],
+  "reproduce": "建立相同15档、100ms采样与任务期限；复核GRU8维及QNN8–16–15，恢复序列回放和episode重置。先验证不调频时结果正确，再加入训练、冻结测试和RAPL对齐。要精确复现还需完整训练代码、种子和输入数据，当前尚未齐全；本笔记未运行训练。",
+  "code": "作者网页提供PDF。当前材料中尚未确认对应本篇版本的完整代码；后续2023论文仓库不能未经核对就充当本篇源码。",
+  "glossary": [
+    [
+      "A",
+      "Governor",
+      "根据观测作出频率请求的软件策略。"
+    ],
+    [
+      "B",
+      "GRU",
+      "带门控的循环网络，用固定长度向量概括历史。"
+    ],
+    [
+      "B",
+      "Q值",
+      "某状态采取动作的预期累计回报，非功率测量值。"
+    ],
+    [
+      "C",
+      "经验回放",
+      "保存交互样本后重用训练；循环模型还需处理序列状态。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 3,
+      "title": "传统governor示意",
+      "read": "比较利用率、频率与任务阶段。",
+      "observation": "即时阈值缺乏应用期限信息。",
+      "limit": "示意图不是统计实验。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 4,
+      "title": "DRQN网络",
+      "read": "从二维观测进入GRU再到15个Q输出。",
+      "observation": "历史与动作评分分两部分。",
+      "limit": "图中输出是选频，不是训练LLM。",
+      "crop": [
+        0.05,
+        0.065,
+        0.945,
+        0.3
+      ],
+      "stage": "method",
+      "image": "original-fig2.png"
+    },
+    {
+      "label": "TableI",
+      "page": 5,
+      "title": "符号表",
+      "read": "先分s、h、动作和频率表。",
+      "observation": "不同符号表示不同控制角色。",
+      "limit": "不要把历史向量当物理传感器。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 6,
+      "title": "训练／推理成本比",
+      "read": "横轴序列长度，纵轴耗时比。",
+      "observation": "序列越长，训练相对越重。",
+      "limit": "比值大不证明推理绝对值足够小。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 6,
+      "title": "用户态与内核分工",
+      "read": "看权重向下、经验向上的箭头。",
+      "observation": "训练与推理分离。",
+      "limit": "同机训练仍有资源开销。",
+      "crop": [
+        0.055,
+        0.265,
+        0.495,
+        0.45
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 6,
+      "title": "交互训练流程",
+      "read": "按episode、参数交换和运行顺序读。",
+      "observation": "策略通过真实执行反馈更新。",
+      "limit": "流程可执行不等于已有安全保证。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableII",
+      "page": 7,
+      "title": "环境与训练设置",
+      "read": "核对CPU、OS、频率表和学习参数。",
+      "observation": "决定结果适用平台。",
+      "limit": "不能替换成E902而沿用时延。",
+      "crop": [
+        0.54,
+        0.075,
+        0.9,
+        0.315
+      ],
+      "stage": "method",
+      "image": "original-tableii.png"
+    },
+    {
+      "label": "TableIII",
+      "page": 7,
+      "title": "传统governor执行时间",
+      "read": "按三个benchmark读平均值。",
+      "observation": "期限设计有基线参照。",
+      "limit": "平均时间不是WCET。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 8,
+      "title": "训练收敛与执行时间",
+      "read": "先看每组reward，再看时间相对目标线。",
+      "observation": "不同期限导向不同策略。",
+      "limit": "平均靠近期限不说明每次按时。",
+      "crop": [
+        0.055,
+        0.07,
+        0.94,
+        0.3
+      ],
+      "stage": "result",
+      "image": "original-fig6.png"
+    },
+    {
+      "label": "Fig7",
+      "page": 8,
+      "title": "Benchmark1时间功率轨迹",
+      "read": "横轴时间，比较频率与功耗变化。",
+      "observation": "DRQN利用较长执行窗口。",
+      "limit": "峰值低不等于累计能量同幅下降。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 8,
+      "title": "Benchmark2时间功率轨迹",
+      "read": "对照转码与等待阶段。",
+      "observation": "策略随阶段调档。",
+      "limit": "没有独立消融时不能把全部收益归因GRU。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 9,
+      "title": "Benchmark1能量",
+      "read": "按deadline比较相对Ondemand柱。",
+      "observation": "4–5s范围节能13%–33%。",
+      "limit": "不是固定33%。",
+      "crop": [
+        0.055,
+        0.065,
+        0.49,
+        0.26
+      ],
+      "stage": "result",
+      "image": "original-fig9.png"
+    },
+    {
+      "label": "Fig10",
+      "page": 9,
+      "title": "Benchmark2能量",
+      "read": "同一任务比较4与4.5s。",
+      "observation": "更宽松期限有更大节能。",
+      "limit": "不能与其他任务直接按柱高比。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "Benchmark3能量",
+      "read": "保持Ondemand归一化口径。",
+      "observation": "收益可低到7%。",
+      "limit": "不能宣称任何任务都超过20%。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 5,
+      "title": "基础训练",
+      "read": "看TD目标与终止样本处理。",
+      "observation": "奖励来自交互。",
+      "limit": "需要正确处理序列。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm2",
+      "page": 6,
+      "title": "内核推理",
+      "read": "按取观测、GRU、Q、设频执行。",
+      "observation": "实时路径不做完整训练。",
+      "limit": "仍有毫秒成本。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm3",
+      "page": 7,
+      "title": "用户态训练",
+      "read": "重建序列，再更新参数。",
+      "observation": "回放并非独立单样本。",
+      "limit": "代码和种子未齐全不算复现。",
+      "crop": null,
+      "stage": "method"
+    }
+  ]
+}

@@ -938,5 +938,7 @@ figure em {
   article { padding: 24px 18px 40px; }
   h1 { font-size: 25px; }
   h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
 }
 """

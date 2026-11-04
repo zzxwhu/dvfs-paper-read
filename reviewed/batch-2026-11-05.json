@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-05",
+  "new_papers": 10,
+  "existing_papers": 1,
+  "report_count": 40,
+  "figure_crops": 46,
+  "equation_images": 20,
+  "reproduction_executed": false,
+  "source_pdfs_redistributed": false,
+  "papers": [
+    {
+      "slug": "rtdvs-sosp2001",
+      "title": "Real-Time Dynamic Voltage Scaling for Low-Power Embedded Operating Systems",
+      "year": 2001,
+      "page": "https://doi.org/10.1145/378239.378245",
+      "pdf": "https://www.andrew.cmu.edu/course/15-821/assets/READINGS/PAPERS/pillai2001.pdf",
+      "doi": "10.1145/378239.378245",
+      "sha256": "7b545b34b0df992a2af7e410712da17cf8294819fd0438a9b42dfb8f6b37f80b",
+      "analysis_version": "CMU 课程站提供的 ACM 论文扫描版，14 个 PDF 页面；印刷页从 89 开始。"
+    },
+    {
+      "slug": "dvfs-powermodel-samos2022",
+      "title": "A Data-Driven Approach to Lightweight DVFS-Aware Counter-Based Power Modeling for Heterogeneous Platforms",
+      "year": 2022,
+      "page": "https://arxiv.org/abs/2305.06782",
+      "pdf": "https://arxiv.org/pdf/2305.06782",
+      "doi": "10.1007/978-3-031-15074-6_22",
+      "sha256": "1f563de9786d56e8acfdbfcd9c2fa9f2cc7cf74995bddd401ba4d5f1cac264df",
+      "analysis_version": "arXiv:2305.06782，16页；对应书章DOI 10.1007/978-3-031-15074-6_22。不能把arXiv上传年误记为会议年。"
+    },
+    {
+      "slug": "drqn-tnse2022",
+      "title": "Deadline-Aware Deep-Recurrent-Q-Network Governor for Smart Energy Saving",
+      "year": 2022,
+      "page": "https://doi.org/10.1109/TNSE.2021.3123280",
+      "pdf": "https://coladog.github.io/assets/papers/TNSE2021.pdf",
+      "doi": "10.1109/TNSE.2021.3123280",
+      "sha256": "ffd2b5710c8d4c8533d0b683be8a6fe22637abce9ecbbdeb85056688a8e82bce",
+      "analysis_version": "作者公开的IEEE正式排版PDF，10页；印刷页3886起。"
+    },
+    {
+      "slug": "online-power-tpds2022",
+      "title": "Online Power Management for Multi-cores: A Reinforcement Learning Based Approach",
+      "year": 2022,
+      "page": "https://doi.org/10.1109/TPDS.2021.3092270",
+      "pdf": "https://issl-uk.com/publications/tpds21-2.pdf",
+      "doi": "10.1109/TPDS.2021.3092270",
+      "sha256": "ecefe654734b821f9c8bd0964688b43f4f332f5729a63eddef6a8b2292ec5a65",
+      "analysis_version": "作者公开的接受稿，14页，页眉DOI标2021接受／在线；卷期年份为2022。作者网站的异常3030日期不采用。"
+    },
+    {
+      "slug": "joss2023",
+      "title": "JOSS: Joint Exploration of CPU-Memory DVFS and Task Scheduling for Energy Efficiency",
+      "year": 2023,
+      "page": "https://arxiv.org/abs/2306.04615",
+      "pdf": "https://arxiv.org/pdf/2306.04615v1",
+      "doi": "10.48550/arXiv.2306.04615",
+      "sha256": "150f8563ec048b2521bfe38bb8baea543170f4fd3379691395f5debb73baf797",
+      "analysis_version": "arXiv v1，11页。页眉Conference’17/2017属于未替换模板，不能视为真实会议元数据。"
+    },
+    {
+      "slug": "controlpulp2024",
+      "title": "ControlPULP: A RISC-V On-Chip Parallel Power Controller for Many-Core HPC Processors with FPGA-Based Hardware-In-The-Loop Power and Thermal Emulation",
+      "year": 2024,
+      "page": "https://arxiv.org/abs/2306.09501",
+      "pdf": "https://arxiv.org/pdf/2306.09501v2",
+      "doi": "10.1007/s10766-024-00761-4",
+      "sha256": "2b9470c87ead6d7604acc9aaa1db8aa22cade384f713874bfbd978c92a4ffe8e",
+      "analysis_version": "本次分析arXiv:2306.09501v2（2023-06-19），33页；关联2024期刊DOI。元数据核查确认另有v3（2024-02-21），尚未逐页比较v2/v3，本文图号、页码和数字均指v2，不能称最新版本复核。"
+    },
+    {
+      "slug": "scmi-interfaces2024",
+      "title": "Performance Characterization of Hardware/Software Communication Interfaces in End-to-End Power Management Solutions of High-Performance Computing Processors",
+      "year": 2024,
+      "page": "https://www.mdpi.com/1996-1073/17/22/5778",
+      "pdf": "https://www.research-collection.ethz.ch/server/api/core/bitstreams/5fab7af7-3ebf-4ae4-93bb-9fea8875e6e3/content",
+      "doi": "10.3390/en17225778",
+      "sha256": "ada38d883ca1d1eae09a0ddae6224cdc2f5d89e6c44ed682b62d44fdb9c8f1ae",
+      "analysis_version": "ETH仓储正式版，含1页封面共16页；本文所有PDF页码比正文印刷页多1。"
+    },
+    {
+      "slug": "cpn-dvfs-sensors2018",
+      "title": "Learning-Directed Dynamic Voltage and Frequency Scaling Scheme with Adjustable Performance for Single-Core and Multi-Core Embedded and Mobile Systems",
+      "year": 2018,
+      "page": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6163884/",
+      "pdf": "https://mdpi-res.com/d_attachment/sensors/sensors-18-03068/article_deploy/sensors-18-03068.pdf",
+      "doi": "10.3390/s18093068",
+      "sha256": "6cc1511a3c6c9bc73aed92936a35810d7cdec7782805f7ebf845c1ecd5e5159f",
+      "analysis_version": "MDPI正式版，25个PDF页面；部分文本层叠加了排版草稿文字，图表以可见页面为准。"
+    },
+    {
+      "slug": "controlpulplet2025",
+      "title": "ControlPULPlet: A Flexible Real-time Multi-core RISC-V Controller for 2.5D Systems-in-package",
+      "year": 2025,
+      "page": "https://arxiv.org/abs/2410.15985",
+      "pdf": "https://arxiv.org/pdf/2410.15985v2",
+      "doi": "10.1109/TVLSI.2025.3596452",
+      "sha256": "4cab1b4552d85f1135b152300d932de285eedfc2612aafb3abce04caf32e131f",
+      "analysis_version": "arXiv:2410.15985v2，2025-08-13，14页；有2024年v1，不把预印本首发年当期刊年。"
+    },
+    {
+      "slug": "runmeter-jsa2025",
+      "title": "Data-driven power modeling and monitoring via hardware performance counter tracking",
+      "year": 2025,
+      "page": "https://doi.org/10.1016/j.sysarc.2025.103504",
+      "pdf": "https://www.research-collection.ethz.ch/server/api/core/bitstreams/64d80e13-6f49-46a4-bb66-f8b0bc8e60f6/content",
+      "doi": "10.1016/j.sysarc.2025.103504",
+      "sha256": "69a5f984b36ef84e071da33e909f56cfdc87d88d17346d0fd463c7d8851b583f",
+      "analysis_version": "ETH仓储提供的正式出版版，12个PDF页面，第一页面是仓储封面；正文11页。存在2024及2025预印本，本文页码只针对本正式版。"
+    }
+  ]
+}

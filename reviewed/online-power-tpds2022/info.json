@@ -1,0 +1,29 @@
+{
+  "index": "online-power-tpds2022",
+  "paper_title": "Online Power Management for Multi-cores: A Reinforcement Learning Based Approach",
+  "description": "同时控制CPU功率帽与uncore：轻量表格强化学习。先辨认程序处于计算阶段还是访存阶段，再联合调整处理器功率上限和非核心部分频率。",
+  "authors": [
+    "Yiming Wang",
+    "Weizhe Zhang",
+    "Meng Hao",
+    "Zheng Wang"
+  ],
+  "metadata": {
+    "venue": "IEEE TPDS 33(4),751–764 (2022)",
+    "year": 2022,
+    "doi": "10.1109/TPDS.2021.3092270"
+  },
+  "source_url": "https://doi.org/10.1109/TPDS.2021.3092270",
+  "pdf_url": "https://issl-uk.com/publications/tpds21-2.pdf",
+  "source_version": "作者公开的接受稿，14页，页眉DOI标2021接受／在线；卷期年份为2022。作者网站的异常3030日期不采用。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "ecefe654734b821f9c8bd0964688b43f4f332f5729a63eddef6a8b2292ec5a65",
+  "figure_count": 18,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

@@ -1,0 +1,33 @@
+{
+  "index": "controlpulp2024",
+  "paper_title": "ControlPULP: A RISC-V On-Chip Parallel Power Controller for Many-Core HPC Processors with FPGA-Based Hardware-In-The-Loop Power and Thermal Emulation",
+  "description": "RISC-V怎样作为电源控制器：硬件在环并不等于真实负载芯片测能。用一颗管理RISC-V核加可并行的工作核集群，运行电源控制固件，并用FPGA连接模拟的多核功耗／热系统。",
+  "authors": [
+    "Alessandro Ottaviano",
+    "Robert Balas",
+    "Giovanni Bambini",
+    "Antonio del Vecchio",
+    "Maicol Ciani",
+    "Davide Rossi",
+    "Luca Benini",
+    "Andrea Bartolini"
+  ],
+  "metadata": {
+    "venue": "International Journal of Parallel Programming 52,93–123 (2024)",
+    "year": 2024,
+    "doi": "10.1007/s10766-024-00761-4"
+  },
+  "source_url": "https://arxiv.org/abs/2306.09501",
+  "pdf_url": "https://arxiv.org/pdf/2306.09501v2",
+  "source_version": "本次分析arXiv:2306.09501v2（2023-06-19），33页；关联2024期刊DOI。元数据核查确认另有v3（2024-02-21），尚未逐页比较v2/v3，本文图号、页码和数字均指v2，不能称最新版本复核。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "2b9470c87ead6d7604acc9aaa1db8aa22cade384f713874bfbd978c92a4ffe8e",
+  "figure_count": 16,
+  "embedded_figures": 5,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

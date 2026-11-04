@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JOSS：图文技术精读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">JOSS：图文技术精读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link active" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="joss图文技术精读">JOSS：图文技术精读<a class="anchor" href="#joss图文技术精读">#</a></h1>
+<p><a href="https://arxiv.org/abs/2306.04615">论文页面</a> · <a href="https://arxiv.org/pdf/2306.04615v1">本笔记所用 PDF</a> · <a href="https://doi.org/10.48550/arXiv.2306.04615">DOI</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>一句话：</strong> 每个任务选择哪类核、几个核、CPU频率和内存频率，以最小化CPU加内存的总能量。</p>
+<p>阅读地图：先看问题与输入输出，再顺着架构图、公式和结果图阅读；最后检查统计边界与E902迁移。完整编号索引另见“图表索引”。下文“读者分析”是推断或建议，不是原文结果。</p>
+<h2 id="阶段0材料与版本审计">阶段0：材料与版本审计<a class="anchor" href="#阶段0材料与版本审计">#</a></h2>
+<table>
+<thead><tr>
+<th>材料</th>
+<th>当前可用程度</th>
+<th>影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>摘要、正文、方法、原图注</td>
+<td>已获取本地完整PDF、文本与逐页渲染</td>
+<td>可核查结构、实验及关键数字；可见页面优先于异常文本层</td>
+</tr>
+<tr>
+<td>分析版本</td>
+<td>arXiv v1，11页。页眉Conference’17/2017属于未替换模板，不能视为真实会议元数据。</td>
+<td>引用页码以“PDF第几页”标识</td>
+</tr>
+<tr>
+<td>代码／原始数据</td>
+<td>论文引用<a href="https://github.com/CHART-Team/xitao">XiTAO基础运行时</a>，当前材料中尚未确认完全对应JOSS扩展的发布commit。</td>
+<td>公开链接不等于已构建或已拿到原始轨迹</td>
+</tr>
+<tr>
+<td>附件、独立原始重复与勘误</td>
+<td>当前未完成全渠道附件／勘误穷尽检索</td>
+<td>不能断言没有附件、没有勘误或没有其他版本</td>
+</tr>
+<tr>
+<td>本次工作范围</td>
+<td>材料阅读、图表裁取、证据整理、教学公式</td>
+<td>所有新实验均是建议，尚未执行</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段1身份卡与整体概述">阶段1：身份卡与整体概述<a class="anchor" href="#阶段1身份卡与整体概述">#</a></h2>
+<table>
+<thead><tr>
+<th>项目</th>
+<th>内容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>英文题名</td>
+<td>JOSS: Joint Exploration of CPU-Memory DVFS and Task Scheduling for Energy Efficiency</td>
+</tr>
+<tr>
+<td>中文导读题名</td>
+<td>别只盯CPU功耗：同时预测任务时间、CPU能量与内存能量</td>
+</tr>
+<tr>
+<td>作者</td>
+<td>Jing Chen, Madhavan Manivannan, Bhavishya Goel, Miquel Pericàs</td>
+</tr>
+<tr>
+<td>发表／版本</td>
+<td>arXiv:2306.04615 (2023)，本笔记按预印本标注；arXiv v1，11页。页眉Conference’17/2017属于未替换模板，不能视为真实会议元数据。</td>
+</tr>
+<tr>
+<td>类型与领域</td>
+<td>原始方法／工程系统研究；DVFS、CPU能效、运行时控制</td>
+</tr>
+<tr>
+<td>单位、通讯、资助与利益关系</td>
+<td>作者主要来自Chalmers University of Technology。当前版本未定位到明确通讯作者标记、完整资助或利益冲突栏目；这些字段保持未知，不由作者顺序推断。</td>
+</tr>
+<tr>
+<td>核心对象与接口</td>
+<td>TX2双Denver＋四A57，各cluster共享频率，INA3221测CPU和内存轨。</td>
+</tr>
+<tr>
+<td>代码与数据</td>
+<td>论文引用<a href="https://github.com/CHART-Team/xitao">XiTAO基础运行时</a>，当前材料中尚未确认完全对应JOSS扩展的发布commit。</td>
+</tr>
+<tr>
+<td>与本课题关系</td>
+<td>你最应借鉴免PMC的两档标定、把非CPU固定功耗加入目标、用小查表替代复杂在线搜索。E902先只调CPU，测量SRAM/外设和板级功耗的边界；不要为了照搬四旋钮引入不存在的内存调压接口。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>约200字中文概述（改写）：</strong> JOSS把任务映射与CPU／内存频率选择联合起来。它通过平台离线回归和运行时两档采样，预测每类任务的执行时间及CPU、内存功耗，搜索满足能量或相对性能目标的配置；再处理共享频域的并发冲突及短任务切换成本。Jetson TX2实验显示，只优化CPU能量可能增加内存驻留能量。该方法有助于建立“总能量而非单轨功率”的选频观念，但多核异构调度和内存DVFS并不是E902现成具备的条件。</p>
+<p><strong>三句话定位：</strong> 问题是降低CPU功率会延长任务，内存也可能多耗一段时间；只优化CPU能量的配置可能不是系统总能量最优。假设是联合建模与联合选择能够获得更好折中，即便不能改变内存频率也有价值。 方法主线为离线合成计算／访存程序拟合模型 → 每个kernel在两档CPU频率采样 → 估计memory-boundness → 预测各配置的时间和两项功率 → 搜索最低能量／满足速度要求的配置 → 共享域协调、合并短任务 → 实际运行。 主要证据见下方结果表，结论须与测量和版本范围一起使用。</p>
+<h2 id="阶段2问题假设与创新位置">阶段2：问题、假设与创新位置<a class="anchor" href="#阶段2问题假设与创新位置">#</a></h2>
+<p>降低CPU功率会延长任务，内存也可能多耗一段时间；只优化CPU能量的配置可能不是系统总能量最优。假设是联合建模与联合选择能够获得更好折中，即便不能改变内存频率也有价值。</p>
+<p><strong>创新判断（读者分析）：</strong> 贡献是四旋钮联合、免PMC的任务特征估计、CPU和内存分项模型、运行时调度整合；学习成分为回归预测与模型引导搜索，不是强化学习。 不依据作者自称“首次”断定整个领域绝无前例。</p>
+<h2 id="阶段3必要术语与数学">阶段3：必要术语与数学<a class="anchor" href="#阶段3必要术语与数学">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>总能量</td>
+<td>这里主要指CPU轨＋内存轨，不自动包括整板所有外设。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Memory-boundness</td>
+<td>等待访存对运行时间的影响，本文由模型估计。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Moldable任务</td>
+<td>同类任务可选择使用不同核数执行。</td>
+</tr>
+<tr>
+<td>C</td>
+<td>最陡下降</td>
+<td>邻域内逐步找更低预测能量；一般不保证全局最优。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="公式1总能量选配置对方法的紧凑整理">公式1：总能量选配置（对方法的紧凑整理）<a class="anchor" href="#公式1总能量选配置对方法的紧凑整理">#</a></h3>
+<figure><a class="image-link" href="../images/equation-1.png" target="_blank" rel="noopener"><img src="../images/equation-1.png" alt="公式1" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> P_C/P_M为W，T为s，E为J；TC为核类型，NC为核数，频率Hz。依赖功率／时间模型准确、共享空闲功耗分摊合理。</p>
+<p><strong>代入与检查：</strong> 教学例：配置A CPU1W+内存1W运行10ms，20mJ；配置B CPU0.7W+内存1W运行15ms，25.5mJ。CPU功率降低了，总能量却增加。</p>
+<p><strong>来源：</strong> §4–5，PDF p4–6；数字为读者算例。</p>
+<h3 id="公式2计算项缩放与预测准确率">公式2：计算项缩放与预测准确率<a class="anchor" href="#公式2计算项缩放与预测准确率">#</a></h3>
+<figure><a class="image-link" href="../images/equation-2.png" target="_blank" rel="noopener"><img src="../images/equation-2.png" alt="公式2" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> MB无量纲，描述原始运行中等待占比；T_C′为新CPU频率下计算时间。A是本文用的相对误差反向分数，不是分类准确率。完整等待模型还包含内存频率，不能删掉。</p>
+<p><strong>代入与检查：</strong> T=10ms、MB=0.4、CPU频率减半，则计算部分变成12ms；不能把整个任务直接说成20ms，还要加新配置等待项。若实际功率2W、预测1.6W，则A=80%。</p>
+<p><strong>来源：</strong> Eq1、§7.3，PDF p4/9。</p>
+<h2 id="阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解<a class="anchor" href="#阶段46架构关键图与方法拆解">#</a></h2>
+<p><strong>输入—处理—输出：</strong> 离线合成计算／访存程序拟合模型 → 每个kernel在两档CPU频率采样 → 估计memory-boundness → 预测各配置的时间和两项功率 → 搜索最低能量／满足速度要求的配置 → 共享域协调、合并短任务 → 实际运行。</p>
+<table>
+<thead><tr>
+<th>系统角色</th>
+<th>具体设置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>任务类型、两档执行时间、核类型／数量、可用CPU与内存频点、用户相对速度目标。</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>(TC,NC,f_C,f_M)四元组及调度位置；E902单核可缩减为f_C。</td>
+</tr>
+<tr>
+<td>约束</td>
+<td>相对最低能量设置的1.2×/1.4×/1.8×性能目标，不等于任意绝对硬截止期。</td>
+</tr>
+<tr>
+<td>实验</td>
+<td>TX2双Denver＋四A57，各cluster共享频率，INA3221测CPU和内存轨。</td>
+</tr>
+</tbody>
+</table>
+<p>§4（PDF p4–5）：时间拆成计算和等待，计算项按CPU频率近似反比缩放；等待项使用memory-boundness和CPU／内存频率比的多项式回归。两个功率模型分别预测CPU与内存，空闲功率在并发任务间分摊。核心特征不依赖硬件PMC，但依赖可重复任务采样和平台离线表征。</p>
+<p>§5：每类kernel在两种CPU频率、不同核类型／核数下采样。模型表生成后，四角筛选加最陡下降降低搜索量；共享域并发采用算术平均频率协调，而非证明全局最优。短任务先聚合，避免每几个微秒就切频。</p>
+<p>§6–7：十类任务基准，g++7.5.0、Linux4.9.253-tegra；5ms功率采样，每项重复10次取算术平均。Fig8汇总用Geo.Mean标识，不能把所有汇总统计笼统称算术平均。部分性能目标受预测误差或峰值能力限制而达不到。</p>
+<h3 id="fig3joss总架构">Fig3：JOSS总架构<a class="anchor" href="#fig3joss总架构">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3：JOSS总架构" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a> · <a href="https://arxiv.org/pdf/2306.04615v1#page=3">原文 Fig3，PDF p3</a></p>
+<p><strong>怎样看：</strong> 模型提供预测，调度器选择四元组。</p>
+<p><strong>直接观察／原文报告：</strong> 预测与调度是两个环节。</p>
+<p><strong>读者判断：</strong> 不使用深Q学习。</p>
+<h3 id="fig4模型建立流程">Fig4：模型建立流程<a class="anchor" href="#fig4模型建立流程">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig4.png" target="_blank" rel="noopener"><img src="../images/original-fig4.png" alt="Fig4：模型建立流程" loading="lazy"></a></figure>
+<p><a href="../images/original-fig4.png">打开大图</a> · <a href="https://arxiv.org/pdf/2306.04615v1#page=4">原文 Fig4，PDF p4</a></p>
+<p><strong>怎样看：</strong> 离线平台建模→在线任务采样→查表预测。</p>
+<p><strong>直接观察／原文报告：</strong> 训练数据与部署采样分工明确。</p>
+<p><strong>读者判断：</strong> 平台更换必须重新标定。</p>
+<h3 id="table1十类任务与输入">Table1：十类任务与输入<a class="anchor" href="#table1十类任务与输入">#</a></h3>
+<figure><a class="image-link" href="../images/original-table1.png" target="_blank" rel="noopener"><img src="../images/original-table1.png" alt="Table1：十类任务与输入" loading="lazy"></a></figure>
+<p><a href="../images/original-table1.png">打开大图</a> · <a href="https://arxiv.org/pdf/2306.04615v1#page=7">原文 Table1，PDF p7</a></p>
+<p><strong>怎样看：</strong> 按任务类型、输入规模和任务数阅读。</p>
+<p><strong>直接观察／原文报告：</strong> 具有多类计算／访存模式。</p>
+<p><strong>读者判断：</strong> 大量子任务不是同数量独立实验。</p>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段78实验统计及证据链">阶段7–8：实验、统计及证据链<a class="anchor" href="#阶段78实验统计及证据链">#</a></h2>
+<p>本节数字均是<strong>原文明确报告或原文数值的标注算例</strong>；没有按图柱高度臆造额外精确值。</p>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>相对GRWS总能量</td>
+<td>JOSS降低40.7%；STEER降低19.5%</td>
+<td>Fig8统一归一化到GRWS，含CPU＋内存</td>
+<td>§7.1，p8–9</td>
+</tr>
+<tr>
+<td>论文所谓额外收益</td>
+<td>作者称相对STEER额外21.2%</td>
+<td>40.7−19.5=21.2个百分点；分母不同，不能直接当相对比值</td>
+<td>§7.1，Fig8</td>
+</tr>
+<tr>
+<td>不控制内存频率</td>
+<td>相对GRWS降低24.8%</td>
+<td>仍考虑内存能量，证明目标边界重要</td>
+<td>§7.1，p8</td>
+</tr>
+<tr>
+<td>平均模型分数</td>
+<td>时间97%、CPU功率90%、内存功率80%</td>
+<td>按1−相对绝对误差定义，不是三种分类正确率</td>
+<td>§7.3，Fig10，p9</td>
+</tr>
+<tr>
+<td>运行时采样</td>
+<td>约0.8%总时间</td>
+<td>每kernel重复出现的测试场景</td>
+<td>§5.1，p5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fig8总能量对比">Fig8：总能量对比<a class="anchor" href="#fig8总能量对比">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig8.png" target="_blank" rel="noopener"><img src="../images/original-fig8.png" alt="Fig8：总能量对比" loading="lazy"></a></figure>
+<p><a href="../images/original-fig8.png">打开大图</a> · <a href="https://arxiv.org/pdf/2306.04615v1#page=9">原文 Fig8，PDF p9</a></p>
+<p><strong>怎样看：</strong> 横轴应用，堆叠CPU／内存，统一GRWS=1。</p>
+<p><strong>直接观察／原文报告：</strong> 仅优化CPU会遗漏内存部分。</p>
+<p><strong>读者判断：</strong> 节能百分点与相对百分比不能混用。</p>
+<h3 id="fig10模型准确率分布">Fig10：模型准确率分布<a class="anchor" href="#fig10模型准确率分布">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig10.png" target="_blank" rel="noopener"><img src="../images/original-fig10.png" alt="Fig10：模型准确率分布" loading="lazy"></a></figure>
+<p><a href="../images/original-fig10.png">打开大图</a> · <a href="https://arxiv.org/pdf/2306.04615v1#page=9">原文 Fig10，PDF p9</a></p>
+<p><strong>怎样看：</strong> 看三模型分布和虚线中位数。</p>
+<p><strong>直接观察／原文报告：</strong> 内存预测比时间预测弱。</p>
+<p><strong>读者判断：</strong> 分数不是测试应用分类准确率。</p>
+<p><strong>统计与公平性审查（读者分析）：</strong> 每项重复10次，但缺少完整原始重复数据／所有置信区间。性能目标并非全部达到：MC_4096在1.2×目标上约差3%，高访存任务可能达不到1.8×。模型误差不等于决策损失。读者对Fig8的百分数做分母审查：若直接拿已四舍五入汇总值估算，相对STEER约(0.805−0.593)/0.805≈26.3%，但这不是从逐任务原始数据重新算出的正式均值；保留原文数值并明确“百分点口径”。</p>
+<p>工程实验中，设备、程序、输入文件、重复运行、时间窗口是不同统计层级，不能互相替代。本任务不涉及生物样本，细胞／动物／试剂等检查不适用。未注明的P值或置信区间不补造；“差了几个百分点”不自动等于统计显著。</p>
+<table>
+<thead><tr>
+<th>主张层级</th>
+<th>直接证据</th>
+<th>对照与统计</th>
+<th>可得结论／替代解释</th>
+<th>可信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>原文明确报告</td>
+<td>相对GRWS总能量：JOSS降低40.7%；STEER降低19.5%</td>
+<td>§7.1，p8–9</td>
+<td>Fig8统一归一化到GRWS，含CPU＋内存；仅在该实验范围内成立</td>
+<td>图表／文本可核对：高；独立复现：尚无</td>
+</tr>
+<tr>
+<td>作者解释</td>
+<td>所提架构／模型解释了性能或估计改善</td>
+<td>关键原图与方法见上文；统计边界见下节</td>
+<td>效果可能同时来自动作空间、平台特性与采样设置，因果归因需消融</td>
+<td>中</td>
+</tr>
+<tr>
+<td>AI分析／迁移假设</td>
+<td>用于E902的压缩候选负载</td>
+<td>本篇未直接验证该芯片与任务组合</td>
+<td>需三项后续实验；不能复制论文收益数字</td>
+<td>待验证，当前无法判断</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断<a class="anchor" href="#阶段910贡献与局限分开判断">#</a></h2>
+<p>贡献是四旋钮联合、免PMC的任务特征估计、CPU和内存分项模型、运行时调度整合；学习成分为回归预测与模型引导搜索，不是强化学习。</p>
+<table>
+<thead><tr>
+<th>来源</th>
+<th>严重程度</th>
+<th>局限及其影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>作者报告</td>
+<td>重要</td>
+<td>部分速度目标受模型误差和平台能力限制；内存模型较不准确。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>两点采样依赖同类任务行为稳定，输入变化大时要检测失配并重新校准。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>重要</td>
+<td>平均频率合成与局部搜索无全局最优保证；小E902没有异构核和可调DRAM时应删减动作空间。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口<a class="anchor" href="#阶段11最小复现路线与缺口">#</a></h2>
+<p>先跑XiTAO及论文Table1任务，离线复测平台功率表；在两档下采样而非完整测试集泄漏训练。复建共享域合成与短任务合并，统一基线是否可变核数／内存频率。记录每任务的CPU、内存能量和时限分布；论文链接提供框架，不等于JOSS完整扩展已可复现。当前未编译运行。</p>
+<p><strong>代码／数据现状：</strong> 论文引用<a href="https://github.com/CHART-Team/xitao">XiTAO基础运行时</a>，当前材料中尚未确认完全对应JOSS扩展的发布commit。</p>
+<p><strong>质量控制顺序：</strong> 先验证程序输出和时间基准，再验证采样／模型，最后比较策略。保存输入文件哈希、平台配置、OPP、随机种子、温度与每次运行原始记录。失败时先回固定安全频点定位错误，再继续优化。复现可行性判断为“可开始部分方法复建，完整数值复现条件未齐”；这与“已完成复现”不同。</p>
+<h2 id="阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题<a class="anchor" href="#阶段12用于你的cpue902课题">#</a></h2>
+<p>你最应借鉴免PMC的两档标定、把非CPU固定功耗加入目标、用小查表替代复杂在线搜索。E902先只调CPU，测量SRAM/外设和板级功耗的边界；不要为了照搬四旋钮引入不存在的内存调压接口。</p>
+<table>
+<thead><tr>
+<th>建议实验／优先级</th>
+<th>价值</th>
+<th>最低资源</th>
+<th>主要风险</th>
+<th>成功判据（设计目标，非已得结果）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P0：CPU能量与整板能量双目标</td>
+<td>找出目标边界是否改变最优频点</td>
+<td>两档计时与可获得的电源测量</td>
+<td>测量噪声大于收益</td>
+<td>同一输入画两套E–T曲线，给出选档是否变化</td>
+</tr>
+<tr>
+<td>P1：两频点预测压缩耗时</td>
+<td>降低穷举标定成本</td>
+<td>固定块大小、两档CPU频率</td>
+<td>压缩熵变化破坏模型</td>
+<td>留出文件预测误差和决策后违约率都达自定阈值</td>
+</tr>
+<tr>
+<td>P1：块合并摊薄切频成本</td>
+<td>处理过短控制粒度</td>
+<td>不同块数合并、相同到达期限</td>
+<td>合并增加排队时间</td>
+<td>把等待也计入端到端期限，报告净收益和尾时延</td>
+</tr>
+</tbody>
+</table>
+<p>上述优先级是读者建议：P0先做，P1建立在基线可运行后，P2只在资源允许且前序实验证明有必要时开展。压缩应用仍是候选，尚未替你最终定题或证明已在E902运行。论文公开可读不自动授权任意复制数据；代码、图片和数据须分别核对许可。</p>
+<h2 id="阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查<a class="anchor" href="#阶段13读完后应掌握与继续核查">#</a></h2>
+<p><strong>五个知识点：</strong> 每个任务选择哪类核、几个核、CPU频率和内存频率，以最小化CPU加内存的总能量。 你还应能解释输入输出表中的角色、两条公式的单位、首个结果指标的分母，以及局限表里的关键条件。</p>
+<p><strong>五个未决问题：</strong> 独立新输入是否成立？最差时延是否可接受？测量参考是否足够？控制与切换是否抵消收益？E902实际具有哪些接口和可观测量？这些是研究问题，不是对作者遗漏的无证据指控。</p>
+<p><strong>立即做：</strong> 按公式算例手算一次，选一张结果图复述“硬件—负载—基线—指标—边界”。<strong>后续核查：</strong> 补齐代码版本、训练数据和仪表设置。<strong>可复用：</strong> 上文明确标注的模型与接口思路。<strong>谨慎采用：</strong> 所有跨平台百分比。<strong>暂不采用：</strong> 尚未证实存在的电压控制和完整硬实时承诺。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#joss图文技术精读">JOSS：图文技术精读</a>
+<a class="toc-level-2" href="#阶段0材料与版本审计">阶段0：材料与版本审计</a>
+<a class="toc-level-2" href="#阶段1身份卡与整体概述">阶段1：身份卡与整体概述</a>
+<a class="toc-level-2" href="#阶段2问题假设与创新位置">阶段2：问题、假设与创新位置</a>
+<a class="toc-level-2" href="#阶段3必要术语与数学">阶段3：必要术语与数学</a>
+<a class="toc-level-3" href="#公式1总能量选配置对方法的紧凑整理">公式1：总能量选配置（对方法的紧凑整理）</a>
+<a class="toc-level-3" href="#公式2计算项缩放与预测准确率">公式2：计算项缩放与预测准确率</a>
+<a class="toc-level-2" href="#阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解</a>
+<a class="toc-level-3" href="#fig3joss总架构">Fig3：JOSS总架构</a>
+<a class="toc-level-3" href="#fig4模型建立流程">Fig4：模型建立流程</a>
+<a class="toc-level-3" href="#table1十类任务与输入">Table1：十类任务与输入</a>
+<a class="toc-level-2" href="#阶段78实验统计及证据链">阶段7–8：实验、统计及证据链</a>
+<a class="toc-level-3" href="#fig8总能量对比">Fig8：总能量对比</a>
+<a class="toc-level-3" href="#fig10模型准确率分布">Fig10：模型准确率分布</a>
+<a class="toc-level-2" href="#阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断</a>
+<a class="toc-level-2" href="#阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口</a>
+<a class="toc-level-2" href="#阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题</a>
+<a class="toc-level-2" href="#阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查</a>
+    </aside>
+  </div>
+</body>
+</html>

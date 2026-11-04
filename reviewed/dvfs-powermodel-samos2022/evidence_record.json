@@ -1,0 +1,252 @@
+{
+  "short": "DVFS功率模型 / SAMOS",
+  "zh": "没有高速功耗仪时，如何用少量计数器估计功率",
+  "authors": [
+    "Sergio Mazzola",
+    "Thomas Benz",
+    "Björn Forsberg",
+    "Luca Benini"
+  ],
+  "venue": "SAMOS 2022；公开预印本于2023上传",
+  "version": "arXiv:2305.06782，16页；对应书章DOI 10.1007/978-3-031-15074-6_22。不能把arXiv上传年误记为会议年。",
+  "identity": "主要单位ETH Zürich IIS，Luca Benini同时关联博洛尼亚大学。致谢列欧盟Horizon2020 AMPERE和Fractal项目（p15）。当前预印本未定位到单独的通讯作者或利益冲突声明，保持未知。",
+  "one": "每个频率分别拟合一个很小的功率模型，自动选择能同时读取的计数器，再组合成跨频点模型表。",
+  "abstract_zh": "本文研究支持DVFS的异构平台功率估计。作者按子系统和频率分开建模，通过统计相关性与PMU兼容性筛选少量计数器，用非负线性回归拟合各模型，再按当前工作点查表组合。Xavier实验检验CPU、GPU分项和合成模型的瞬时功率及累计能量误差，并测量求值时间。它可为DVFS提供反馈估计，但本身没有证明某个选频策略节省了多少能量；跨域耦合、低功率参考仪表和测试范围限制均需保留。",
+  "abstract_en": "The method builds separate linear power estimators for each subsystem and frequency, using statistically selected, simultaneously readable performance counters. A lookup table composes these estimators across DVFS states. Xavier measurements validate instantaneous power and integrated energy, while evaluation timing assesses computational cost. The estimator is an enabling component rather than a complete energy-saving policy. This is a reader-written paraphrase.",
+  "question": "单一模型难处理跨频率非线性，手工挑选事件依赖架构经验，而全部读取又有计数器数量／兼容性限制。假设是按频点拆分后，用少量线性项仍能兼顾精度与低开销。",
+  "novel": "自动事件选择＋每子系统每频点非负线性模型＋组合查表，避免必须在全部CPU/GPU频率对上重新训练。相较后续Runmeter，本篇主要完成离线模型构造与验证，尚不是2025内核在线框架。",
+  "flow": "多类负载重复运行 → 同步采PMC和功率 → 各频点做相关筛选 → 在PMU限制内选兼容事件 → NNLS拟合 → 留出数据验证 → LUT组合CPU/GPU功率 → 可供控制策略调用。",
+  "io": [
+    [
+      "模型输入",
+      "当前子系统频率、采样窗口长度、选定PMC增量／事件率、CPU活跃周期。"
+    ],
+    [
+      "输出",
+      "CPU/GPU及两者之和的估计功率W；积分得能量J，不直接输出下一频率。"
+    ],
+    [
+      "CPU特征约束",
+      "每核3个可编程PMC＋额外cycle counter，模型只用可同时观测的事件。"
+    ],
+    [
+      "平台与标定",
+      "Xavier 8核ARMv8.2＋Volta GPU，INA3221，100ms同步采样。"
+    ]
+  ],
+  "method": "§3（PDF p5–9）：以子系统d和频率f为索引，构建各自特征集合与权重。CPU模型包含power-gating相关活跃度和事件项；GPU用常数项与按时间归一化的事件。线性并不意味着总跨频率曲面是单一直线，非线性由不同频率的模型表承载。\n\n平台表征先多次重放同一负载采不同事件，避免在线时间复用。单事件回归p>0.05者过滤，再按Pearson相关排序，选择可在一个pass同时计数的组合。GPU事件存在互斥，不能简单选相关最高的前N个。最后用非负最小二乘拟合；非负权重有解释便利，但相关性不证明因果，重复检验也未自动控制多重比较。\n\n§4–5：17个Rodinia OpenMP程序＋5个合成负载用于CPU，10个CUDA程序用于GPU；每负载采3次。CPU训练使用初始70%轨迹、后30%验证；GPU为初始60%／后40%，与2025论文随机70/30不同。CPU建模只选择730/1190/2266MHz，不能说覆盖所有29档实测。",
+  "equations": [
+    {
+      "title": "固定频点的线性模型与组合（简化记号）",
+      "tex": "\\widehat P_{d,f}=b_{d,f}+\\sum_j w_{d,f,j}\\frac{\\Delta n_j}{\\Delta t},\\qquad \\widehat P_{\\rm sys}=\\sum_d\\widehat P_{d,f_d}",
+      "symbols": "Δn为窗口事件次数，Δt为秒，事件率单位s⁻¹；b为W，w单位J/事件，依特征定义变化；CPU活跃度项在原文Eq4中另有表示。这里为阅读统一式，不代替完整实现。",
+      "example": "教学例：b=0.01W，每秒2×10⁶次事件、权重2nJ/事件，则估计0.014W。若把2ms内的4000次事件直接当每秒事件，结果会错500倍。",
+      "source": "§3.1，Eq1/4/5，PDF p5–7；数字为教学。"
+    },
+    {
+      "title": "非负最小二乘及误差",
+      "tex": "\\min_{b,w\\geq0}\\|Xw+b\\mathbf{1}-p\\|_2^2,\\qquad {\\rm MAPE}=\\frac{100}{N}\\sum_k\\frac{|\\widehat p_k-p_k|}{p_k}",
+      "symbols": "X是事件率矩阵，p是测得W；N为样本数。MAPE在p接近零时不稳定；能量误差需先积分再比较，不等于功率MAPE。",
+      "example": "估计前半偏高后半偏低，累计能量误差可能很小，瞬时误差仍大。故1.3%能量误差不能写成每个瞬间功率都准到1.3%。",
+      "source": "§3.3与§5，PDF p8/13–15。"
+    }
+  ],
+  "metrics": [
+    [
+      "全部组合",
+      "瞬时功率MAPE8.6%；整体能量误差2.5%",
+      "包括高CPU/低GPU等困难组合",
+      "§5.3，p14"
+    ],
+    [
+      "限制GPU>600MHz后",
+      "功率MAPE7.5%；能量平均1.3%、最大约3.1%",
+      "这是受限范围的结果，不是全部组合上限",
+      "§5.3，p14"
+    ],
+    [
+      "低GPU频率例",
+      "Table4出现5.7%与6.6%能量误差",
+      "不能与受限范围最大3.1%合并",
+      "Table4，p15"
+    ],
+    [
+      "模型求值",
+      "约150–500ns",
+      "仅模型binary求值，非完整PMC读取＋策略＋切频",
+      "§5.3，p14"
+    ]
+  ],
+  "stats": "每负载3次有助平滑系统干扰，但时间轨迹样本不是独立芯片重复。训练／验证沿轨迹切分，仍可能包含相同程序和输入；未见程序留出测试与温度漂移需另做。INA3221约200mW分辨率、响应较慢，既做训练参考又做验证参考，不能以相对它的低误差证明高速瞬态绝对真实。",
+  "limits": [
+    [
+      "作者报告",
+      "关键",
+      "子系统独立假设在CPU/GPU频率差很大时失效，后续聚焦更高GPU频率范围。"
+    ],
+    [
+      "作者方向",
+      "重要",
+      "在线监控和DPM策略、跨平台验证属于后续工作。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "统计筛选会受负载覆盖、共线性与多重检验影响；E902事件种类和计数资源不同。"
+    ]
+  ],
+  "transfer": "你可以先把CPU单独建模：3个频点×几项低成本特征，离线拟合系数、在线整数乘加。功耗模型只能给估计反馈，真正节能还需加入选频策略与外部测能闭环。若E902没有足够PMC，可先用活跃周期、退休指令或已处理字节，但必须重验误差。",
+  "experiments": [
+    [
+      "P0：每频点线性功率代理",
+      "获得可部署反馈",
+      "外部电测／RTL功耗工具、频点和周期计数",
+      "标签本身噪声较大",
+      "留出文件同时报告功率MAPE和任务能量误差"
+    ],
+    [
+      "P1：单一模型与分频点模型",
+      "检验LUT是否必要",
+      "相同数据和参数预算",
+      "过多模型过拟合",
+      "按输入划分下比较误差与存储量"
+    ],
+    [
+      "P1：模型误差对选频的影响",
+      "连接预测与控制收益",
+      "候选OPP、能量估计和期限约束",
+      "错误排序比平均误差更致命",
+      "报告选错档位率、期限违约和相对穷举最优的净能量差"
+    ]
+  ],
+  "reproduce": "先核实PMU可同时读取的事件，再固定频点同步采样。按原文切分与严格按程序／文件切分分别测试，保留仪表分辨率与采样对齐记录。分别复现CPU、GPU和组合，不能只报最有利频率子集。精确数据和脚本未完整定位；本笔记只完成材料与方法审查。",
+  "code": "当前预印本材料中尚未定位到完整独立发布的2022模型流水线。后续Runmeter提供相关开源工具，应标明版本和新增部分。",
+  "glossary": [
+    [
+      "A",
+      "PMC/PMU",
+      "事件计数器及管理这些计数器的硬件单元。"
+    ],
+    [
+      "B",
+      "NNLS",
+      "限制权重非负的最小二乘拟合。"
+    ],
+    [
+      "B",
+      "LUT",
+      "按频率／子系统索引的模型表，并非每时刻都重新训练。"
+    ],
+    [
+      "C",
+      "相关性",
+      "统计共同变化程度，不是某事件直接造成几瓦功率的证明。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Table1",
+      "page": 4,
+      "title": "与已有功耗模型比较",
+      "read": "逐列看自动化、DVFS与开销。",
+      "observation": "本文整合多种能力。",
+      "limit": "不同硬件误差不能当同平台公平排名。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig1",
+      "page": 5,
+      "title": "完整建模流程",
+      "read": "从离线采样到事件选择、训练、验证、模型合成。",
+      "observation": "可独立构建子系统模型。",
+      "limit": "图右输出功率模型，不是最优调频动作。",
+      "crop": [
+        0.2,
+        0.12,
+        0.89,
+        0.33
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Table2",
+      "page": 11,
+      "title": "CPU事件相关系数",
+      "read": "看每频点候选与绿色选中项。",
+      "observation": "选用事件随频点可能变化。",
+      "limit": "不能无视PMU数量限制。",
+      "crop": [
+        0.215,
+        0.14,
+        0.458,
+        0.495
+      ],
+      "stage": "method",
+      "image": "original-table2.png"
+    },
+    {
+      "label": "Table3",
+      "page": 11,
+      "title": "GPU兼容事件",
+      "read": "结合事件编号、频点与选中颜色。",
+      "observation": "兼容性约束影响最终组合。",
+      "limit": "最高相关的事件不一定能同读。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 12,
+      "title": "GPU筛选与计数器数目",
+      "read": "先看相关性，再看随事件数量的误差。",
+      "observation": "八个输入是该平台折中。",
+      "limit": "不是任意平台固定最优8个。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 13,
+      "title": "CPU/GPU实测与估计",
+      "read": "横轴时间，比较估计与传感器轨迹。",
+      "observation": "模型可跟踪活动变化。",
+      "limit": "传感器平滑使瞬态比较受限。",
+      "crop": [
+        0.22,
+        0.12,
+        0.89,
+        0.283
+      ],
+      "stage": "result",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 14,
+      "title": "合成与分项功率",
+      "read": "总和与CPU/GPU分项一起看。",
+      "observation": "模型可解释子系统贡献。",
+      "limit": "独立假设遇跨域等待会失准。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 15,
+      "title": "不同频率对的能量误差",
+      "read": "逐列核对CPU与GPU频点。",
+      "observation": "某些低GPU组合误差高达6.6%。",
+      "limit": "受限范围最大3.1%不是该表全部最大值。",
+      "crop": [
+        0.22,
+        0.15,
+        0.89,
+        0.245
+      ],
+      "stage": "result",
+      "image": "original-table4.png"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "index": "scmi-interfaces2024",
+  "paper_title": "Performance Characterization of Hardware/Software Communication Interfaces in End-to-End Power Management Solutions of High-Performance Computing Processors",
+  "description": "算法算完之后，频率多久才真的变：拆开整条控制链。把“写入新频率”拆成Linux发请求、邮箱传输、固件解码、控制任务计算和执行器生效。",
+  "authors": [
+    "Antonio del Vecchio",
+    "Alessandro Ottaviano",
+    "Giovanni Bambini",
+    "Andrea Acquaviva",
+    "Andrea Bartolini"
+  ],
+  "metadata": {
+    "venue": "Energies17(22),5778 (2024)",
+    "year": 2024,
+    "doi": "10.3390/en17225778"
+  },
+  "source_url": "https://www.mdpi.com/1996-1073/17/22/5778",
+  "pdf_url": "https://www.research-collection.ethz.ch/server/api/core/bitstreams/5fab7af7-3ebf-4ae4-93bb-9fea8875e6e3/content",
+  "source_version": "ETH仓储正式版，含1页封面共16页；本文所有PDF页码比正文印刷页多1。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "ada38d883ca1d1eae09a0ddae6224cdc2f5d89e6c44ed682b62d44fdb9c8f1ae",
+  "figure_count": 6,
+  "embedded_figures": 5,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

@@ -1,0 +1,382 @@
+{
+  "short": "ControlPULPlet",
+  "zh": "控制器不仅要算得快，还要及时读传感器和写执行器",
+  "authors": [
+    "Alessandro Ottaviano",
+    "Robert Balas",
+    "Tim Fischer",
+    "Thomas Benz",
+    "Andrea Bartolini",
+    "Luca Benini"
+  ],
+  "venue": "IEEE TVLSI 33(11),3057–3070 (2025)",
+  "version": "arXiv:2410.15985v2，2025-08-13，14页；有2024年v1，不把预印本首发年当期刊年。",
+  "identity": "作者来自ETH Zürich和博洛尼亚大学。本文沿ControlPULP架构发展到实时特性和chiplet通信；当前没有逐项核实资助编号与利益冲突声明，保留未知。",
+  "one": "用快速中断、自动周期DMA和可配置D2D接口，减小RISC-V控制器的通信负担，并流片验证管理域。",
+  "abstract_zh": "ControlPULPlet面向芯粒系统的实时控制，在RISC-V管理核和可编程加速架构中加入快速中断、自动周期DMA及AXI4兼容D2D链路。作者用RTL测试DVFS控制案例与链路吞吐，使用Kairos芯片和双芯片板测量管理域功耗及通信能效。贡献在控制计算、通信和执行时限的共同设计。需要区分500MHz仿真控制案例与290MHz硅片结果，也需区分完整架构包含的集群和Kairos未集成的集群。",
+  "abstract_en": "The design adds fast interrupt handling, autonomous periodic DMA and an AXI4-compatible die-to-die link to a programmable RISC-V control platform. RTL studies evaluate DVFS control timing, while the Kairos silicon demonstrator measures selected hardware properties. Communication and computation costs are analyzed separately. Simulation configurations, synthesized structures and fabricated components must not be conflated. This is a reader-written paraphrase.",
+  "question": "芯粒让传感器和执行器跨die，协议转换、DMA重编程及中断会占用控制预算。能否用较小硬件代价保持接近片内通信的控制性能，并用硅片验证关键实现？",
+  "novel": "CV32RT快速上下文处理、自动周期采样DMA、可参数化数字D2D与系统级时限分析。它强调硬件基础设施，不是新学习策略；DVFS案例采用MPC，是模型预测优化而非必然需要神经网络。",
+  "flow": "邮箱接收设点 → 快速中断/解码 → RT-DMA周期读PVT → 管理核执行MPC → D2D写PLL与片外电压接口 → 确认传输 → 下个控制周期。架构可接8核PMCA，但案例和流片配置有裁剪。",
+  "io": [
+    [
+      "输入",
+      "被控CPU温度／PVT、频率目标、功率／热约束；D2D端口参数与DMA周期。"
+    ],
+    [
+      "输出",
+      "MPC计算的DVFS点，以及AXI4／D2D读写事务。"
+    ],
+    [
+      "RTL控制案例",
+      "9／36个PE，MPC预测horizon2，5次迭代；500MHz控制器；250µs与3ms双周期。"
+    ],
+    [
+      "硅片边界",
+      "Kairos TSMC65nm、管理域、448KiB SPM；无PMCA/DSA端口，QFN64双芯片PCB，非完整2.5D封装样片。"
+    ]
+  ],
+  "method": "§II（PDF p3–6）：CV32RT加速中断上下文保存／恢复，DMA mid-end保存周期配置减少反复软件编程。链路将AXI4事务转换成流式包，提供信用流控、FIFO及源同步DDR物理层；参数CH、LN、CRD改变吞吐和面积。\n\n§III-A/B（p7–8）：RTL testbench连接另一D2D实例与内存模型。高吞吐配置CH=8、LN=8、CRD=128可达到约85%总线饱和度，片内AXI约95%。DVFS案例读取500个8B PVT寄存器；短任务250µs、长任务3ms，在500MHz下由管理核算MPC，PMCA没有用于本次MPC加速。99%以上时间用于计算，因此通信附加成本对总时长很小，这并不代表通信本身只慢0.05%。\n\n§III-C/D（p8–11）：Kairos采用65nm，核心1.2V最高约290MHz、功耗包络小于30mW；板上两芯片通过平均70.5mm走线连通，受QFN64限制只用CH=1、CRD=8。51.2Gbit/s来自更宽配置的理论／RTL能力，不能声称这块窄链路PCB实测51Gbit/s。内部链路1.3pJ/bit是硅校准后仿真，板级I/O能耗则另外实测。",
+  "equations": [
+    {
+      "title": "控制时限余量（原文§III-B）",
+      "tex": "T_{\\rm ctrl}=T_{\\rm comp}+T_{\\rm comm},\\qquad T_{\\rm slack}=T_{\\rm long}-T_{\\rm ctrl}>0",
+      "symbols": "T_comp含MPC计算；T_comm含消息、采样与动作传输；T_long=3ms。所有单位s，短周期任务抢占等应在完整预算中体现。",
+      "example": "教学例：计算2.2ms、通信0.1ms，3ms周期剩0.7ms；若模型变复杂令计算2.95ms，就会超时。通信占比小不意味着可以忽略计算增大后的预算。",
+      "source": "§III-B，PDF p8。"
+    },
+    {
+      "title": "峰值链路与实际吞吐（原文整理）",
+      "tex": "\\Theta=2\\alpha f\\theta,\\qquad 0\\leq\\alpha\\leq1",
+      "symbols": "Θ单位bit/s；α为利用率；f是时钟Hz；θ为单向每周期有效位数，2表示双向。理论带宽、RTL利用率与板测物理链路应分开。",
+      "example": "f=200MHz、θ=128bit时理论双向51.2Gbit/s；α=0.85时约43.5Gbit/s。不能把理论峰值与实测可持续值混写。",
+      "source": "§III-A，Fig9，PDF p7。"
+    }
+  ],
+  "metrics": [
+    [
+      "RTL链路利用率",
+      "约85%，片内AXI约95%",
+      "CH8/LN8/CRD128、大burst",
+      "Fig9，p7"
+    ],
+    [
+      "DVFS总时长附加开销",
+      "CRD128低于0.05%；CRD8低于0.9%",
+      "MPC计算占99%以上；500MHz RTL案例",
+      "Fig10，p8"
+    ],
+    [
+      "快速中断",
+      "46→13周期；尾链约8周期",
+      "局部ISR进入路径，非完整闭环",
+      "§III-B，p8"
+    ],
+    [
+      "Kairos硅片",
+      "1.2V约290MHz、30mW包络",
+      "管理域；不含完整PMCA架构",
+      "Fig16，p10"
+    ],
+    [
+      "内部D2D能量",
+      "约1.3pJ/bit",
+      "硅校准后仿真，非长PCB的总I/O实测",
+      "§III-D，p11"
+    ]
+  ],
+  "stats": "本文混合RTL周期精确测试、综合面积、实际硅片、板测和硅校准仿真，所有数字要注明层级。MPC5次迭代与horizon2只是实验设置，不证明大模型控制器都可实时。板上长走线和封装限制与真正2.5D不同，跨论文能效比较需匹配电压、距离、带宽、工艺与是否含PHY。",
+  "limits": [
+    [
+      "作者说明",
+      "关键",
+      "Kairos受QFN64限制使用窄链路，不等同先进2.5D封装；PMCA在硅片配置被省略。"
+    ],
+    [
+      "实验边界",
+      "重要",
+      "500MHz控制案例为RTL设置，不能称290MHz样片实测同一性能。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "大带宽D2D对单核E902毕设可能过度设计；应该先证明寄存器／UART/SPI等路径不足。"
+    ]
+  ],
+  "transfer": "值得你借鉴的是自动采样、快中断、计算与通信预算，不是做chiplet。单核SoC先用简单定时器和寄存器控制，积累完整时延分解。如果智能模型推理很慢，优化通信只能解决小部分；若采样／写PLL占主导，再考虑DMA或轻量硬件状态机。",
+  "experiments": [
+    [
+      "P0：控制路径成本分解",
+      "决定该优化哪里",
+      "周期计数、采样／推理／切换日志",
+      "只测局部函数",
+      "建立完整预算，说明最大占比项"
+    ],
+    [
+      "P1：周期采样自动化",
+      "减少控制核重复配置",
+      "定时器＋DMA或小RTL状态机",
+      "总线争用／数据陈旧",
+      "同数据质量下控制占用下降，尾时延不增加"
+    ],
+    [
+      "P2：模型复杂度与周期预算",
+      "选择可行智能算法",
+      "小Q表、决策树、小MLP三组",
+      "精度增加而期限失败",
+      "同时报告参数RAM、推理周期、净能量、最大违约"
+    ]
+  ],
+  "reproduce": "从ControlPULPlet仓库锁定参数先跑RTL：区分CH/LN/CRD和不同内存延迟；复建Fig9吞吐及Fig10控制预算。硅片、先进封装与板级能量需专用设备，普通电脑无法复现流片实测。对你的项目可只复现预算分析与DMA状态机思想，不声称复现51Gbit/s。",
+  "code": "[ControlPULPlet开源项目](https://github.com/pulp-platform/control-pulp)。原文脚注将架构指向该项目；需要进一步核对相应分支／commit与Kairos配置，当前未运行。",
+  "glossary": [
+    [
+      "A",
+      "MPC",
+      "模型预测控制：用模型预测短期行为，再在约束下求动作。"
+    ],
+    [
+      "B",
+      "DMA",
+      "不由CPU逐项搬数据的传输硬件，配置和总线争用仍有成本。"
+    ],
+    [
+      "B",
+      "D2D",
+      "die-to-die芯片间通信，带宽能力不等于应用性能收益。"
+    ],
+    [
+      "C",
+      "信用流控",
+      "接收方可用缓冲决定发送许可，FIFO深度影响吞吐与面积。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 1,
+      "title": "感知—计算—执行链",
+      "read": "先找传感器、控制器、执行器。",
+      "observation": "通信属于控制回路。",
+      "limit": "不专属于电机应用。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 2,
+      "title": "封装与控制拓扑",
+      "read": "比较片内、离散与chiplet控制。",
+      "observation": "封装改变接口需求。",
+      "limit": "图示拓扑不代表全部被流片。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 3,
+      "title": "架构与新增模块",
+      "read": "彩色新增、灰色继承；分管理域和PMCA。",
+      "observation": "快速中断与DMA/D2D协同。",
+      "limit": "Kairos并未集成图中所有域。",
+      "crop": [
+        0.08,
+        0.045,
+        0.51,
+        0.28
+      ],
+      "stage": "method",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "D2D分层",
+      "read": "网络／数据链路／PHY分层看。",
+      "observation": "AXI语义转换成链路传输。",
+      "limit": "不是透明零开销。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 4,
+      "title": "网络层通路",
+      "read": "区分五类AXI通道与包转换。",
+      "observation": "控制逻辑也占面积。",
+      "limit": "不能只数PHY门数当整个接口。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 5,
+      "title": "物理层与时钟域",
+      "read": "看发送、接收与跨时钟连接。",
+      "observation": "时序与同步是可靠通信前提。",
+      "limit": "不证明任意PCB长度都可靠。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 5,
+      "title": "32B突发传输时序",
+      "read": "从AXI请求到数据／信用返回逐拍读。",
+      "observation": "协议往返带来空拍。",
+      "limit": "峰值带宽不等于小包效率。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 7,
+      "title": "RTL测试台",
+      "read": "两D2D端和内存模型组成闭环事务。",
+      "observation": "测试为周期精确。",
+      "limit": "不是实际2.5D封装。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 7,
+      "title": "FIFO与burst影响吞吐",
+      "read": "横轴字节数，纵轴读写利用率，多曲线为CRD。",
+      "observation": "大FIFO和突发提高利用率。",
+      "limit": "85%结果依赖指定参数。",
+      "crop": [
+        0.08,
+        0.28,
+        0.51,
+        0.54
+      ],
+      "stage": "result",
+      "image": "original-fig9.png"
+    },
+    {
+      "label": "Fig10",
+      "page": 8,
+      "title": "通信对DVFS控制时长影响",
+      "read": "看归一化总时长与细分开销。",
+      "observation": "计算主导时D2D相对影响小。",
+      "limit": "不能把总开销小理解成传输本身无延迟。",
+      "crop": [
+        0.08,
+        0.06,
+        0.51,
+        0.26
+      ],
+      "stage": "result",
+      "image": "original-fig10.png"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "Kairos芯片照片和规格",
+      "read": "先读参数，再辨存储／管理核区域。",
+      "observation": "证明管理域实际流片。",
+      "limit": "PMCA未集成，不能宣称全8核控制芯片实测。",
+      "crop": [
+        0.08,
+        0.05,
+        0.51,
+        0.385
+      ],
+      "stage": "method",
+      "image": "original-fig11.png"
+    },
+    {
+      "label": "Fig12",
+      "page": 9,
+      "title": "双芯片PCB",
+      "read": "看两芯片和走线。",
+      "observation": "板上链路真实存在。",
+      "limit": "长PCB不是先进2.5D interposer。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 10,
+      "title": "链路参数与面积",
+      "read": "看CH/CRD组合，区分左门数与右百分比。",
+      "observation": "高吞吐配置有额外面积。",
+      "limit": "百分比取决于整个系统配置。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 10,
+      "title": "Kairos面积分解",
+      "read": "比较存储、核、链路等块。",
+      "observation": "存储占比显著。",
+      "limit": "ASIC门数不等于FPGA LUT。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 10,
+      "title": "链路内部面积分解",
+      "read": "区分完整架构配置和Kairos窄配置。",
+      "observation": "FIFO与PHY的占比随参数变化。",
+      "limit": "7.6kGE只是每通道PHY，不是整个D2D。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 10,
+      "title": "芯片电压频率与功耗",
+      "read": "左轴mW、右轴MHz，分别看不同负载。",
+      "observation": "1.2V可到约290MHz。",
+      "limit": "不能混用500MHz RTL控制案例。",
+      "crop": [
+        0.51,
+        0.235,
+        0.96,
+        0.37
+      ],
+      "stage": "result",
+      "image": "original-fig16.png"
+    },
+    {
+      "label": "Fig17",
+      "page": 11,
+      "title": "板级能量每bit",
+      "read": "横轴burst，曲线对应I/O电压。",
+      "observation": "长PCB与I/O电压增加能耗。",
+      "limit": "不能拿内部1.3pJ/bit代替板测。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableI",
+      "page": 12,
+      "title": "控制器比较",
+      "read": "按工艺、是否流片、集群和D2D能力读脚注。",
+      "observation": "不同证据类型被集中列出。",
+      "limit": "忽略脚注会把仿真指标当硅片实测。",
+      "crop": [
+        0.06,
+        0.04,
+        0.96,
+        0.452
+      ],
+      "stage": "result",
+      "image": "original-tablei.png"
+    },
+    {
+      "label": "TableII",
+      "page": 12,
+      "title": "D2D接口比较",
+      "read": "核对距离、频率、线数、能量边界。",
+      "observation": "不同接口面向不同应用。",
+      "limit": "跨工艺排行榜不说明E902必须用最高带宽。",
+      "crop": null,
+      "stage": "method"
+    }
+  ]
+}

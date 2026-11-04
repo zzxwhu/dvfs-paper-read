@@ -4,6 +4,14 @@
 
 ## 已经能用的内容
 
+2026-11-05新增10篇全文图文笔记，加已有2023笔记共11篇。新增40份报告、46张关键原图／原表裁图与20张公式图，配147项图表／算法索引及每篇3项CPU/E902相关实验建议。读者分析与原文结果分开，未执行训练、硬件复现或模型API流水线。
+
+- [在线十篇路线图与课题取舍](https://zzxwhu.github.io/dvfs-paper-read/dvfs/reading-map-2026-11)
+- [本批材料与版本记录](reviewed/batch-2026-11-05.json)
+- [用户最新版生成规范](reader_requirements.md)
+
+本批含经典与后续工程论文，并非最新发表十篇。ControlPULP分析材料为2023年v2、关联2024期刊，明确保留已知另有v3但未逐页比对的版本边界。原PDF不再分发；选用图表均注明来源。四类笔记由当前对话阅读整理，并非声称执行了未配置的外部付费模型。
+
 - `reviewed/jsa2023-temporal-dvfs/`：依据 21 页原文整理的第一份完整精读，先从频率、能量与控制闭环入门，再逐式推导状态、奖励与 DDQN；重要图表在正文对应位置，并有符号表、代入算例、中英文摘要、实验比较与改进。
 - 四个报告：`paper_notes.md`、`ELI5_notes.md`、`figs_notes.md`、`translation_notes.md`，附原文重要图表、八组公式与自绘闭环辅助图；图片配有打开大图入口。
 - `preview/index.html`：可直接用浏览器打开的静态阅读入口，无需模型 API 或 Node。
@@ -27,6 +35,7 @@ python scripts/build_reviewed_site.py
 ```powershell
 python scripts/import_blablapaper.py --source reviewed/jsa2023-temporal-dvfs --content-root content --collection DVFS --tags DVFS,CPU
 python -m unittest discover -s scripts -p test_import_blablapaper.py
+python scripts/validate_reviewed_batch.py
 ```
 
 ## 师兄的自动生成流程

@@ -1,0 +1,30 @@
+{
+  "index": "cpn-dvfs-sensors2018",
+  "paper_title": "Learning-Directed Dynamic Voltage and Frequency Scaling Scheme with Adjustable Performance for Single-Core and Multi-Core Embedded and Mobile Systems",
+  "description": "用轻量学习模型给压缩程序选频率。把程序运行特征和用户能接受的性能损失交给CPN，预测应使用的CPU频率。",
+  "authors": [
+    "Yen-Lin Chen",
+    "Ming-Feng Chang",
+    "Chao-Wei Yu",
+    "Xiu-Zhi Chen",
+    "Wen-Yew Liang"
+  ],
+  "metadata": {
+    "venue": "Sensors 18(9),3068 (2018)",
+    "year": 2018,
+    "doi": "10.3390/s18093068"
+  },
+  "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6163884/",
+  "pdf_url": "https://mdpi-res.com/d_attachment/sensors/sensors-18-03068/article_deploy/sensors-18-03068.pdf",
+  "source_version": "MDPI正式版，25个PDF页面；部分文本层叠加了排版草稿文字，图表以可见页面为准。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "6cc1511a3c6c9bc73aed92936a35810d7cdec7782805f7ebf845c1ecd5e5159f",
+  "figure_count": 25,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

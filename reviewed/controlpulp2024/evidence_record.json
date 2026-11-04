@@ -1,0 +1,342 @@
+{
+  "short": "ControlPULP",
+  "zh": "RISC-V怎样作为电源控制器：硬件在环并不等于真实负载芯片测能",
+  "authors": [
+    "Alessandro Ottaviano",
+    "Robert Balas",
+    "Giovanni Bambini",
+    "Antonio del Vecchio",
+    "Maicol Ciani",
+    "Davide Rossi",
+    "Luca Benini",
+    "Andrea Bartolini"
+  ],
+  "venue": "International Journal of Parallel Programming 52,93–123 (2024)",
+  "version": "本次分析arXiv:2306.09501v2（2023-06-19），33页；关联2024期刊DOI。元数据核查确认另有v3（2024-02-21），尚未逐页比较v2/v3，本文图号、页码和数字均指v2，不能称最新版本复核。",
+  "identity": "ETH Zürich IIS与博洛尼亚大学DEI合作，前三作者标共同贡献，通讯作者Alessandro Ottaviano。致谢列EUPILOT、EUPEX、EPI等项目，作者声明无需披露的利益冲突（v2 p29）。",
+  "one": "用一颗管理RISC-V核加可并行的工作核集群，运行电源控制固件，并用FPGA连接模拟的多核功耗／热系统。",
+  "abstract_zh": "本文提出面向多核CPU的开源电源控制平台ControlPULP：管理核处理通信、异常与调度，集群和DMA加速周期控制计算。FreeRTOS执行功率分配和温度限制等固件。作者通过RTL评估控制路径，并把真实FPGA控制器与软件模拟的功耗热对象接成闭环，与模型在环结果对照。它展示控制器实现和验证流程，而非实测72核CPU的应用节能率；4.9倍是控制固件加速，约3%偏差也是指定仿真对照指标。",
+  "abstract_en": "ControlPULP combines a RISC-V management core, parallel workers and DMA to execute power-control firmware. FPGA hardware-in-the-loop connects the implemented controller to a simulated power and thermal plant. The evaluation measures control computation, communication and agreement with a software model. Its reported speedup concerns firmware execution, not application speed or energy savings on a physical 72-core CPU. This is a reader-written paraphrase.",
+  "question": "大规模被控CPU的观测、约束与动作数增加时，单管理核是否还能在控制期限内完成计算？如何在真实被控芯片尚未完成时验证完整控制链？",
+  "novel": "可编程并行控制平台、低延迟中断与DMA的共同设计，以及可运行完整固件的HIL框架。算法主体包含功率分配与PID温控，并不是以新神经网络为主的论文。你的智能算法可作为上层建议器，底层安全限制仍有独立价值。",
+  "flow": "OS/BMC提出性能点与功率预算 → SCMI邮箱到管理核 → 读取PVT和工作负载 → 集群计算功率分配／温控 → 电压任务与频率任务协调 → 写执行器接口 → 模拟对象产生新温度与功率 → 再采样。",
+  "io": [
+    [
+      "输入",
+      "每处理单元的目标频率、温度、功率／活动信息，整系统预算及共享电压域约束。"
+    ],
+    [
+      "输出",
+      "每核频率与各电压域电压／功率限制。"
+    ],
+    [
+      "控制器",
+      "CV32E40P管理核，8核可编程集群与DMA；FreeRTOS固件。"
+    ],
+    [
+      "被控对象",
+      "案例为72核HPC处理器模型，不是用户的E902，也非72核真实硅片测能。"
+    ]
+  ],
+  "method": "§3（PDF p8–14）：PFCT主频率控制任务周期500µs，PVCT电压控制任务125µs。主任务分配上一步频率、读取传感器和命令、估计功率、功率封顶、PID温控，再算新频率电压。电压在较早步骤下发，频率后一步应用；共享电压域不允许任意每核独立调压。\n\n管理核处理协议和FreeRTOS任务；8个worker并行计算不同被控核的控制量，DMA搬移传感器与结果。CLIC支持较快中断，但中断快不等于整个闭环同样快。\n\n§4（p14–18）：ZCU102的PL中实现控制器，PS上C/pthread程序模拟功耗、温度、工作负载与OS/BMC。1µs模型更新和由轨迹生成的合成工作负载用于覆盖动态情况，温度模型参数来自Monte Cimone相关测量。HIL加入真实固件、通信和调度延迟，但功耗依然由模型计算。\n\n§5比较RTL周期数、GF22FDX综合面积、HIL与Simulink MIL以及IBM控制策略。不同实验有不同配置：72核为主要控制规模，HIL/MIL对照为9核tile、固定0.75V、2秒，以控制MIL运行成本。",
+  "equations": [
+    {
+      "title": "控制周期内的时限预算（由Table5整理）",
+      "tex": "T_{\\rm step}=N_{\\rm cycles}/f_{\\rm ctrl},\\qquad S=T_{\\rm period}-T_{\\rm step}",
+      "symbols": "N_cycles为控制器执行周期数；f_ctrl是控制器时钟Hz，非被控CPU频率；S为剩余控制预算，秒。中断、额外通信若未包括，必须另加。",
+      "example": "500MHz下，67330周期约134.66µs；13641周期约27.28µs；在500µs周期内分别剩约73%和95%的时间。4.9倍是控制计算加速，不是被控程序加速4.9倍。",
+      "source": "§5.4，Table5，PDF p23–24；SCMI等共同开销未计入Table5。"
+    },
+    {
+      "title": "被控功耗模型（原文Eq1符号整理）",
+      "tex": "P_i=\\kappa(T_i)[I_{cc,i}V_{dd}+C_{{\\rm eff},i}f_iV_{dd}^2]",
+      "symbols": "P_i为W；V_dd为V；f_i为Hz；I_cc为漏电相关电流A；C_eff为有效开关电容F；κ是温度相关因子。参数由模型标定而来。",
+      "example": "把f降低而保持V不变，只直接减小动态项，漏电和其他模块能量仍存在；该式求得的是模型功率，并非示波器测到的真实72核功率。",
+      "source": "§4.2，PDF p16。"
+    }
+  ],
+  "metrics": [
+    [
+      "主控制步",
+      "67330→13641周期，4.9×",
+      "72核控制量；不含部分共同协议开销",
+      "Table5，p24"
+    ],
+    [
+      "控制周期",
+      "PFCT500µs，PVCT125µs",
+      "多速率固件任务，不是每周期完整神经网络训练",
+      "§3.1，p9–10"
+    ],
+    [
+      "HIL/MIL对照",
+      "平均偏差在TDP的3%以内",
+      "9核tile、固定0.75V、2s；模拟TDP120W",
+      "§5.5.1，Fig9，p25–27"
+    ],
+    [
+      "面积量级",
+      "相对现代HPC die约0.1%",
+      "GF22FDX综合对照；非E902板级面积／能耗",
+      "摘要、§5.1，p19"
+    ]
+  ],
+  "stats": "硬件综合、RTL周期分析、FPGA固件运行和模拟功耗是四类证据，不是同一“真实芯片实测”。HIL/MIL相近证明实现对模型的一致性，不能排除模型本身失准。合成压力轨迹覆盖角落情况，但不能替代实际压缩数据分布或全部多核应用。3%以模拟TDP归一化，不等于每时刻频率误差3%。",
+  "limits": [
+    [
+      "版本边界",
+      "重要",
+      "本次全文为v2，已确认存在v3但未完成差异审查。"
+    ],
+    [
+      "作者方法边界",
+      "关键",
+      "HPC对象为模型，HIL/MIL共享模型基础；仅验证所构造情形。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "单核E902负载不需要照搬8核控制集群；控制器自身面积、能量和复杂性可能超过节能。"
+    ]
+  ],
+  "transfer": "这篇最适合回答“仿真怎么闭环控制”：控制算法与被控模型交换观测和动作，按仿真时钟推进，仍然可以闭环；HIL再把控制算法放到真实硬件。你的E902可以作为被控CPU，也可以作为控制核，这两种角色不能混用。先做单核C控制器＋模型，再接寄存器和真实时钟域，最后才是板级变压验证。",
+  "experiments": [
+    [
+      "P0：软件闭环与RTL闭环对齐",
+      "验证算法与实现一致",
+      "相同压缩轨迹／模型、周期与OPP",
+      "仿真时间与墙钟混用",
+      "相同输入动作顺序一致，解释所有时间偏差"
+    ],
+    [
+      "P1：寄存器控制接口",
+      "让软件建议落到RTL执行路径",
+      "目标OPP、apply/busy/ack、超时和状态寄存器",
+      "切换过程数据丢失",
+      "随机命令下不丢事务；计入生效延迟并正确解压"
+    ],
+    [
+      "P2：控制器资源预算",
+      "证明软控硬实现值得做",
+      "周期测量、综合面积、能量模型或板测",
+      "控制器比负载还耗能",
+      "净收益覆盖控制成本；小核方案优先于并行集群"
+    ]
+  ],
+  "reproduce": "从开源硬件与固件版本锁定工具链、FreeRTOS和参数；先重现RTL控制路径周期，再跑相同合成plant进行HIL/MIL对照。若缺ZCU102，可以先完成软件／RTL在环并如实标注验证层级。真实供电控制另需板卡执行器，不在PC仿真中自动产生。当前仅阅读与材料整理，未综合或上板。",
+  "code": "[ControlPULP硬件](https://github.com/pulp-platform/control-pulp)；[PCF固件](https://github.com/pulp-platform/control_pulp_pcf)。论文明确开源，当前未执行其构建和完整验证。",
+  "glossary": [
+    [
+      "A",
+      "Plant",
+      "被控对象，可是真实CPU，也可以是功耗热模型。"
+    ],
+    [
+      "B",
+      "MIL / HIL",
+      "模型在环／硬件在环，区别在控制器和对象哪些部分真实执行。"
+    ],
+    [
+      "B",
+      "PFCT / PVCT",
+      "频率与电压控制任务，周期不同且需协调。"
+    ],
+    [
+      "C",
+      "可编程控制核",
+      "运行固件的CPU，与承担应用计算的被控CPU角色不同。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Table1",
+      "page": 6,
+      "title": "电源控制平台比较",
+      "read": "看可编程性、并行与接口。",
+      "observation": "平台能力比单个PID更广。",
+      "limit": "不同工艺不能直接比绝对面积。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig1",
+      "page": 9,
+      "title": "系统级控制路径",
+      "read": "区分OS/BMC、LLC、PLL和电压域。",
+      "observation": "上层要求经过底层约束再执行。",
+      "limit": "图中的执行器不代表FPGA已真实改HPC供电。",
+      "crop": [
+        0.08,
+        0.09,
+        0.94,
+        0.382
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 9,
+      "title": "固件软件栈",
+      "read": "PCF在FreeRTOS和HAL之上。",
+      "observation": "策略和驱动可以分层替换。",
+      "limit": "不是所有层在GPU上运行。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 11,
+      "title": "控制器硬件",
+      "read": "管理域、集群、L1/L2和DMA分别定位。",
+      "observation": "并行加速控制计算。",
+      "limit": "它不是被控72核CPU本体。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 15,
+      "title": "FPGA硬件在环",
+      "read": "PL是真控制器，PS为plant模型。",
+      "observation": "能验证真实固件闭环。",
+      "limit": "对象功耗并未变成真实硅片测量。",
+      "crop": [
+        0.08,
+        0.27,
+        0.94,
+        0.47
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Table2",
+      "page": 15,
+      "title": "FPGA资源",
+      "read": "看LUT/FF/BRAM等利用。",
+      "observation": "提供可实现性证据。",
+      "limit": "FPGA资源不是ASIC门数。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 19,
+      "title": "RTL测试台",
+      "read": "注入网络延迟和设备行为。",
+      "observation": "可测控制路径周期。",
+      "limit": "测试台设备响应仍是建模。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 19,
+      "title": "综合面积",
+      "read": "看管理核、集群和存储贡献。",
+      "observation": "面积主要由硬件组成决定。",
+      "limit": "综合值不是最终流片测量。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 21,
+      "title": "中断延迟",
+      "read": "从外部边沿到ISR第一条指令逐阶段累加。",
+      "observation": "30周期量级来自具体实现。",
+      "limit": "不等于命令到频率生效的总时延。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 22,
+      "title": "计算、DMA与中断评估",
+      "read": "(a)(b)计算和加速，(c)传输，(d)消息延迟。",
+      "observation": "多处路径共同影响周期预算。",
+      "limit": "不能把局部最高加速当整步加速。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 24,
+      "title": "控制周期空余",
+      "read": "比较单核和集群占500µs的比例。",
+      "observation": "加速留出更复杂算法空间。",
+      "limit": "有空余不证明复杂算法必然更好。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table5",
+      "page": 24,
+      "title": "整步周期分解",
+      "read": "包含offload与L1/L2搬移再算总和。",
+      "observation": "67330与13641构成4.9×。",
+      "limit": "共同SCMI与片外开销在表外。",
+      "crop": [
+        0.08,
+        0.52,
+        0.94,
+        0.74
+      ],
+      "stage": "result",
+      "image": "original-table5.png"
+    },
+    {
+      "label": "Fig8",
+      "page": 26,
+      "title": "温度功率及DVFS轨迹",
+      "read": "四子图依次看温度、功率、频率、电压。",
+      "observation": "闭环响应预算与设点。",
+      "limit": "轨迹是模拟plant输出。",
+      "crop": [
+        0.08,
+        0.09,
+        0.94,
+        0.41
+      ],
+      "stage": "result",
+      "image": "original-fig8.png"
+    },
+    {
+      "label": "Fig9",
+      "page": 27,
+      "title": "HIL与MIL对照",
+      "read": "先读固定电压和9核条件，再比较时间曲线。",
+      "observation": "实现与模型趋势相近。",
+      "limit": "不证明模型绝对准确或真实节能。",
+      "crop": [
+        0.08,
+        0.09,
+        0.94,
+        0.665
+      ],
+      "stage": "result",
+      "image": "original-fig9.png"
+    },
+    {
+      "label": "Fig10",
+      "page": 28,
+      "title": "IBM策略温控粒度",
+      "read": "横轴被控核，纵轴退休指令差异。",
+      "observation": "不同核心的性能有增有减。",
+      "limit": "单个核心增加不能称全系统普遍提升。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 28,
+      "title": "PCF与改进IBM策略",
+      "read": "同核同轨迹下比较退休指令变化。",
+      "observation": "工作负载导向的分配改变公平性。",
+      "limit": "应用正确性与整体QoS仍需另外定义。",
+      "crop": null,
+      "stage": "method"
+    }
+  ]
+}

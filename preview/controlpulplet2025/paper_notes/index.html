@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ControlPULPlet：图文技术精读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">ControlPULPlet：图文技术精读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link active" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="controlpulplet图文技术精读">ControlPULPlet：图文技术精读<a class="anchor" href="#controlpulplet图文技术精读">#</a></h1>
+<p><a href="https://arxiv.org/abs/2410.15985">论文页面</a> · <a href="https://arxiv.org/pdf/2410.15985v2">本笔记所用 PDF</a> · <a href="https://doi.org/10.1109/TVLSI.2025.3596452">DOI</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>一句话：</strong> 用快速中断、自动周期DMA和可配置D2D接口，减小RISC-V控制器的通信负担，并流片验证管理域。</p>
+<p>阅读地图：先看问题与输入输出，再顺着架构图、公式和结果图阅读；最后检查统计边界与E902迁移。完整编号索引另见“图表索引”。下文“读者分析”是推断或建议，不是原文结果。</p>
+<h2 id="阶段0材料与版本审计">阶段0：材料与版本审计<a class="anchor" href="#阶段0材料与版本审计">#</a></h2>
+<table>
+<thead><tr>
+<th>材料</th>
+<th>当前可用程度</th>
+<th>影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>摘要、正文、方法、原图注</td>
+<td>已获取本地完整PDF、文本与逐页渲染</td>
+<td>可核查结构、实验及关键数字；可见页面优先于异常文本层</td>
+</tr>
+<tr>
+<td>分析版本</td>
+<td>arXiv:2410.15985v2，2025-08-13，14页；有2024年v1，不把预印本首发年当期刊年。</td>
+<td>引用页码以“PDF第几页”标识</td>
+</tr>
+<tr>
+<td>代码／原始数据</td>
+<td><a href="https://github.com/pulp-platform/control-pulp">ControlPULPlet开源项目</a>。原文脚注将架构指向该项目；需要进一步核对相应分支／commit与Kairos配置，当前未运行。</td>
+<td>公开链接不等于已构建或已拿到原始轨迹</td>
+</tr>
+<tr>
+<td>附件、独立原始重复与勘误</td>
+<td>当前未完成全渠道附件／勘误穷尽检索</td>
+<td>不能断言没有附件、没有勘误或没有其他版本</td>
+</tr>
+<tr>
+<td>本次工作范围</td>
+<td>材料阅读、图表裁取、证据整理、教学公式</td>
+<td>所有新实验均是建议，尚未执行</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段1身份卡与整体概述">阶段1：身份卡与整体概述<a class="anchor" href="#阶段1身份卡与整体概述">#</a></h2>
+<table>
+<thead><tr>
+<th>项目</th>
+<th>内容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>英文题名</td>
+<td>ControlPULPlet: A Flexible Real-time Multi-core RISC-V Controller for 2.5D Systems-in-package</td>
+</tr>
+<tr>
+<td>中文导读题名</td>
+<td>控制器不仅要算得快，还要及时读传感器和写执行器</td>
+</tr>
+<tr>
+<td>作者</td>
+<td>Alessandro Ottaviano, Robert Balas, Tim Fischer, Thomas Benz, Andrea Bartolini, Luca Benini</td>
+</tr>
+<tr>
+<td>发表／版本</td>
+<td>IEEE TVLSI 33(11),3057–3070 (2025)；arXiv:2410.15985v2，2025-08-13，14页；有2024年v1，不把预印本首发年当期刊年。</td>
+</tr>
+<tr>
+<td>类型与领域</td>
+<td>原始方法／工程系统研究；DVFS、CPU能效、运行时控制</td>
+</tr>
+<tr>
+<td>单位、通讯、资助与利益关系</td>
+<td>作者来自ETH Zürich和博洛尼亚大学。本文沿ControlPULP架构发展到实时特性和chiplet通信；当前没有逐项核实资助编号与利益冲突声明，保留未知。</td>
+</tr>
+<tr>
+<td>核心对象与接口</td>
+<td>Kairos TSMC65nm、管理域、448KiB SPM；无PMCA/DSA端口，QFN64双芯片PCB，非完整2.5D封装样片。</td>
+</tr>
+<tr>
+<td>代码与数据</td>
+<td><a href="https://github.com/pulp-platform/control-pulp">ControlPULPlet开源项目</a>。原文脚注将架构指向该项目；需要进一步核对相应分支／commit与Kairos配置，当前未运行。</td>
+</tr>
+<tr>
+<td>与本课题关系</td>
+<td>值得你借鉴的是自动采样、快中断、计算与通信预算，不是做chiplet。单核SoC先用简单定时器和寄存器控制，积累完整时延分解。如果智能模型推理很慢，优化通信只能解决小部分；若采样／写PLL占主导，再考虑DMA或轻量硬件状态机。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>约200字中文概述（改写）：</strong> ControlPULPlet面向芯粒系统的实时控制，在RISC-V管理核和可编程加速架构中加入快速中断、自动周期DMA及AXI4兼容D2D链路。作者用RTL测试DVFS控制案例与链路吞吐，使用Kairos芯片和双芯片板测量管理域功耗及通信能效。贡献在控制计算、通信和执行时限的共同设计。需要区分500MHz仿真控制案例与290MHz硅片结果，也需区分完整架构包含的集群和Kairos未集成的集群。</p>
+<p><strong>三句话定位：</strong> 问题是芯粒让传感器和执行器跨die，协议转换、DMA重编程及中断会占用控制预算。能否用较小硬件代价保持接近片内通信的控制性能，并用硅片验证关键实现？ 方法主线为邮箱接收设点 → 快速中断/解码 → RT-DMA周期读PVT → 管理核执行MPC → D2D写PLL与片外电压接口 → 确认传输 → 下个控制周期。架构可接8核PMCA，但案例和流片配置有裁剪。 主要证据见下方结果表，结论须与测量和版本范围一起使用。</p>
+<h2 id="阶段2问题假设与创新位置">阶段2：问题、假设与创新位置<a class="anchor" href="#阶段2问题假设与创新位置">#</a></h2>
+<p>芯粒让传感器和执行器跨die，协议转换、DMA重编程及中断会占用控制预算。能否用较小硬件代价保持接近片内通信的控制性能，并用硅片验证关键实现？</p>
+<p><strong>创新判断（读者分析）：</strong> CV32RT快速上下文处理、自动周期采样DMA、可参数化数字D2D与系统级时限分析。它强调硬件基础设施，不是新学习策略；DVFS案例采用MPC，是模型预测优化而非必然需要神经网络。 不依据作者自称“首次”断定整个领域绝无前例。</p>
+<h2 id="阶段3必要术语与数学">阶段3：必要术语与数学<a class="anchor" href="#阶段3必要术语与数学">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>MPC</td>
+<td>模型预测控制：用模型预测短期行为，再在约束下求动作。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>DMA</td>
+<td>不由CPU逐项搬数据的传输硬件，配置和总线争用仍有成本。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>D2D</td>
+<td>die-to-die芯片间通信，带宽能力不等于应用性能收益。</td>
+</tr>
+<tr>
+<td>C</td>
+<td>信用流控</td>
+<td>接收方可用缓冲决定发送许可，FIFO深度影响吞吐与面积。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="公式1控制时限余量原文iii-b">公式1：控制时限余量（原文§III-B）<a class="anchor" href="#公式1控制时限余量原文iii-b">#</a></h3>
+<figure><a class="image-link" href="../images/equation-1.png" target="_blank" rel="noopener"><img src="../images/equation-1.png" alt="公式1" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> T_comp含MPC计算；T_comm含消息、采样与动作传输；T_long=3ms。所有单位s，短周期任务抢占等应在完整预算中体现。</p>
+<p><strong>代入与检查：</strong> 教学例：计算2.2ms、通信0.1ms，3ms周期剩0.7ms；若模型变复杂令计算2.95ms，就会超时。通信占比小不意味着可以忽略计算增大后的预算。</p>
+<p><strong>来源：</strong> §III-B，PDF p8。</p>
+<h3 id="公式2峰值链路与实际吞吐原文整理">公式2：峰值链路与实际吞吐（原文整理）<a class="anchor" href="#公式2峰值链路与实际吞吐原文整理">#</a></h3>
+<figure><a class="image-link" href="../images/equation-2.png" target="_blank" rel="noopener"><img src="../images/equation-2.png" alt="公式2" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> Θ单位bit/s；α为利用率；f是时钟Hz；θ为单向每周期有效位数，2表示双向。理论带宽、RTL利用率与板测物理链路应分开。</p>
+<p><strong>代入与检查：</strong> f=200MHz、θ=128bit时理论双向51.2Gbit/s；α=0.85时约43.5Gbit/s。不能把理论峰值与实测可持续值混写。</p>
+<p><strong>来源：</strong> §III-A，Fig9，PDF p7。</p>
+<h2 id="阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解<a class="anchor" href="#阶段46架构关键图与方法拆解">#</a></h2>
+<p><strong>输入—处理—输出：</strong> 邮箱接收设点 → 快速中断/解码 → RT-DMA周期读PVT → 管理核执行MPC → D2D写PLL与片外电压接口 → 确认传输 → 下个控制周期。架构可接8核PMCA，但案例和流片配置有裁剪。</p>
+<table>
+<thead><tr>
+<th>系统角色</th>
+<th>具体设置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>输入</td>
+<td>被控CPU温度／PVT、频率目标、功率／热约束；D2D端口参数与DMA周期。</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>MPC计算的DVFS点，以及AXI4／D2D读写事务。</td>
+</tr>
+<tr>
+<td>RTL控制案例</td>
+<td>9／36个PE，MPC预测horizon2，5次迭代；500MHz控制器；250µs与3ms双周期。</td>
+</tr>
+<tr>
+<td>硅片边界</td>
+<td>Kairos TSMC65nm、管理域、448KiB SPM；无PMCA/DSA端口，QFN64双芯片PCB，非完整2.5D封装样片。</td>
+</tr>
+</tbody>
+</table>
+<p>§II（PDF p3–6）：CV32RT加速中断上下文保存／恢复，DMA mid-end保存周期配置减少反复软件编程。链路将AXI4事务转换成流式包，提供信用流控、FIFO及源同步DDR物理层；参数CH、LN、CRD改变吞吐和面积。</p>
+<p>§III-A/B（p7–8）：RTL testbench连接另一D2D实例与内存模型。高吞吐配置CH=8、LN=8、CRD=128可达到约85%总线饱和度，片内AXI约95%。DVFS案例读取500个8B PVT寄存器；短任务250µs、长任务3ms，在500MHz下由管理核算MPC，PMCA没有用于本次MPC加速。99%以上时间用于计算，因此通信附加成本对总时长很小，这并不代表通信本身只慢0.05%。</p>
+<p>§III-C/D（p8–11）：Kairos采用65nm，核心1.2V最高约290MHz、功耗包络小于30mW；板上两芯片通过平均70.5mm走线连通，受QFN64限制只用CH=1、CRD=8。51.2Gbit/s来自更宽配置的理论／RTL能力，不能声称这块窄链路PCB实测51Gbit/s。内部链路1.3pJ/bit是硅校准后仿真，板级I/O能耗则另外实测。</p>
+<h3 id="fig3架构与新增模块">Fig3：架构与新增模块<a class="anchor" href="#fig3架构与新增模块">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3：架构与新增模块" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=3">原文 Fig3，PDF p3</a></p>
+<p><strong>怎样看：</strong> 彩色新增、灰色继承；分管理域和PMCA。</p>
+<p><strong>直接观察／原文报告：</strong> 快速中断与DMA/D2D协同。</p>
+<p><strong>读者判断：</strong> Kairos并未集成图中所有域。</p>
+<h3 id="fig11kairos芯片照片和规格">Fig11：Kairos芯片照片和规格<a class="anchor" href="#fig11kairos芯片照片和规格">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig11.png" target="_blank" rel="noopener"><img src="../images/original-fig11.png" alt="Fig11：Kairos芯片照片和规格" loading="lazy"></a></figure>
+<p><a href="../images/original-fig11.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=9">原文 Fig11，PDF p9</a></p>
+<p><strong>怎样看：</strong> 先读参数，再辨存储／管理核区域。</p>
+<p><strong>直接观察／原文报告：</strong> 证明管理域实际流片。</p>
+<p><strong>读者判断：</strong> PMCA未集成，不能宣称全8核控制芯片实测。</p>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段78实验统计及证据链">阶段7–8：实验、统计及证据链<a class="anchor" href="#阶段78实验统计及证据链">#</a></h2>
+<p>本节数字均是<strong>原文明确报告或原文数值的标注算例</strong>；没有按图柱高度臆造额外精确值。</p>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>RTL链路利用率</td>
+<td>约85%，片内AXI约95%</td>
+<td>CH8/LN8/CRD128、大burst</td>
+<td>Fig9，p7</td>
+</tr>
+<tr>
+<td>DVFS总时长附加开销</td>
+<td>CRD128低于0.05%；CRD8低于0.9%</td>
+<td>MPC计算占99%以上；500MHz RTL案例</td>
+<td>Fig10，p8</td>
+</tr>
+<tr>
+<td>快速中断</td>
+<td>46→13周期；尾链约8周期</td>
+<td>局部ISR进入路径，非完整闭环</td>
+<td>§III-B，p8</td>
+</tr>
+<tr>
+<td>Kairos硅片</td>
+<td>1.2V约290MHz、30mW包络</td>
+<td>管理域；不含完整PMCA架构</td>
+<td>Fig16，p10</td>
+</tr>
+<tr>
+<td>内部D2D能量</td>
+<td>约1.3pJ/bit</td>
+<td>硅校准后仿真，非长PCB的总I/O实测</td>
+<td>§III-D，p11</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fig9fifo与burst影响吞吐">Fig9：FIFO与burst影响吞吐<a class="anchor" href="#fig9fifo与burst影响吞吐">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig9.png" target="_blank" rel="noopener"><img src="../images/original-fig9.png" alt="Fig9：FIFO与burst影响吞吐" loading="lazy"></a></figure>
+<p><a href="../images/original-fig9.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=7">原文 Fig9，PDF p7</a></p>
+<p><strong>怎样看：</strong> 横轴字节数，纵轴读写利用率，多曲线为CRD。</p>
+<p><strong>直接观察／原文报告：</strong> 大FIFO和突发提高利用率。</p>
+<p><strong>读者判断：</strong> 85%结果依赖指定参数。</p>
+<h3 id="fig10通信对dvfs控制时长影响">Fig10：通信对DVFS控制时长影响<a class="anchor" href="#fig10通信对dvfs控制时长影响">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig10.png" target="_blank" rel="noopener"><img src="../images/original-fig10.png" alt="Fig10：通信对DVFS控制时长影响" loading="lazy"></a></figure>
+<p><a href="../images/original-fig10.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=8">原文 Fig10，PDF p8</a></p>
+<p><strong>怎样看：</strong> 看归一化总时长与细分开销。</p>
+<p><strong>直接观察／原文报告：</strong> 计算主导时D2D相对影响小。</p>
+<p><strong>读者判断：</strong> 不能把总开销小理解成传输本身无延迟。</p>
+<h3 id="fig16芯片电压频率与功耗">Fig16：芯片电压频率与功耗<a class="anchor" href="#fig16芯片电压频率与功耗">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig16.png" target="_blank" rel="noopener"><img src="../images/original-fig16.png" alt="Fig16：芯片电压频率与功耗" loading="lazy"></a></figure>
+<p><a href="../images/original-fig16.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=10">原文 Fig16，PDF p10</a></p>
+<p><strong>怎样看：</strong> 左轴mW、右轴MHz，分别看不同负载。</p>
+<p><strong>直接观察／原文报告：</strong> 1.2V可到约290MHz。</p>
+<p><strong>读者判断：</strong> 不能混用500MHz RTL控制案例。</p>
+<h3 id="tablei控制器比较">TableI：控制器比较<a class="anchor" href="#tablei控制器比较">#</a></h3>
+<figure><a class="image-link" href="../images/original-tablei.png" target="_blank" rel="noopener"><img src="../images/original-tablei.png" alt="TableI：控制器比较" loading="lazy"></a></figure>
+<p><a href="../images/original-tablei.png">打开大图</a> · <a href="https://arxiv.org/pdf/2410.15985v2#page=12">原文 TableI，PDF p12</a></p>
+<p><strong>怎样看：</strong> 按工艺、是否流片、集群和D2D能力读脚注。</p>
+<p><strong>直接观察／原文报告：</strong> 不同证据类型被集中列出。</p>
+<p><strong>读者判断：</strong> 忽略脚注会把仿真指标当硅片实测。</p>
+<p><strong>统计与公平性审查（读者分析）：</strong> 本文混合RTL周期精确测试、综合面积、实际硅片、板测和硅校准仿真，所有数字要注明层级。MPC5次迭代与horizon2只是实验设置，不证明大模型控制器都可实时。板上长走线和封装限制与真正2.5D不同，跨论文能效比较需匹配电压、距离、带宽、工艺与是否含PHY。</p>
+<p>工程实验中，设备、程序、输入文件、重复运行、时间窗口是不同统计层级，不能互相替代。本任务不涉及生物样本，细胞／动物／试剂等检查不适用。未注明的P值或置信区间不补造；“差了几个百分点”不自动等于统计显著。</p>
+<table>
+<thead><tr>
+<th>主张层级</th>
+<th>直接证据</th>
+<th>对照与统计</th>
+<th>可得结论／替代解释</th>
+<th>可信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>原文明确报告</td>
+<td>RTL链路利用率：约85%，片内AXI约95%</td>
+<td>Fig9，p7</td>
+<td>CH8/LN8/CRD128、大burst；仅在该实验范围内成立</td>
+<td>图表／文本可核对：高；独立复现：尚无</td>
+</tr>
+<tr>
+<td>作者解释</td>
+<td>所提架构／模型解释了性能或估计改善</td>
+<td>关键原图与方法见上文；统计边界见下节</td>
+<td>效果可能同时来自动作空间、平台特性与采样设置，因果归因需消融</td>
+<td>中</td>
+</tr>
+<tr>
+<td>AI分析／迁移假设</td>
+<td>用于E902的压缩候选负载</td>
+<td>本篇未直接验证该芯片与任务组合</td>
+<td>需三项后续实验；不能复制论文收益数字</td>
+<td>待验证，当前无法判断</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断<a class="anchor" href="#阶段910贡献与局限分开判断">#</a></h2>
+<p>CV32RT快速上下文处理、自动周期采样DMA、可参数化数字D2D与系统级时限分析。它强调硬件基础设施，不是新学习策略；DVFS案例采用MPC，是模型预测优化而非必然需要神经网络。</p>
+<table>
+<thead><tr>
+<th>来源</th>
+<th>严重程度</th>
+<th>局限及其影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>作者说明</td>
+<td>关键</td>
+<td>Kairos受QFN64限制使用窄链路，不等同先进2.5D封装；PMCA在硅片配置被省略。</td>
+</tr>
+<tr>
+<td>实验边界</td>
+<td>重要</td>
+<td>500MHz控制案例为RTL设置，不能称290MHz样片实测同一性能。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>重要</td>
+<td>大带宽D2D对单核E902毕设可能过度设计；应该先证明寄存器／UART/SPI等路径不足。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口<a class="anchor" href="#阶段11最小复现路线与缺口">#</a></h2>
+<p>从ControlPULPlet仓库锁定参数先跑RTL：区分CH/LN/CRD和不同内存延迟；复建Fig9吞吐及Fig10控制预算。硅片、先进封装与板级能量需专用设备，普通电脑无法复现流片实测。对你的项目可只复现预算分析与DMA状态机思想，不声称复现51Gbit/s。</p>
+<p><strong>代码／数据现状：</strong> <a href="https://github.com/pulp-platform/control-pulp">ControlPULPlet开源项目</a>。原文脚注将架构指向该项目；需要进一步核对相应分支／commit与Kairos配置，当前未运行。</p>
+<p><strong>质量控制顺序：</strong> 先验证程序输出和时间基准，再验证采样／模型，最后比较策略。保存输入文件哈希、平台配置、OPP、随机种子、温度与每次运行原始记录。失败时先回固定安全频点定位错误，再继续优化。复现可行性判断为“可开始部分方法复建，完整数值复现条件未齐”；这与“已完成复现”不同。</p>
+<h2 id="阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题<a class="anchor" href="#阶段12用于你的cpue902课题">#</a></h2>
+<p>值得你借鉴的是自动采样、快中断、计算与通信预算，不是做chiplet。单核SoC先用简单定时器和寄存器控制，积累完整时延分解。如果智能模型推理很慢，优化通信只能解决小部分；若采样／写PLL占主导，再考虑DMA或轻量硬件状态机。</p>
+<table>
+<thead><tr>
+<th>建议实验／优先级</th>
+<th>价值</th>
+<th>最低资源</th>
+<th>主要风险</th>
+<th>成功判据（设计目标，非已得结果）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P0：控制路径成本分解</td>
+<td>决定该优化哪里</td>
+<td>周期计数、采样／推理／切换日志</td>
+<td>只测局部函数</td>
+<td>建立完整预算，说明最大占比项</td>
+</tr>
+<tr>
+<td>P1：周期采样自动化</td>
+<td>减少控制核重复配置</td>
+<td>定时器＋DMA或小RTL状态机</td>
+<td>总线争用／数据陈旧</td>
+<td>同数据质量下控制占用下降，尾时延不增加</td>
+</tr>
+<tr>
+<td>P2：模型复杂度与周期预算</td>
+<td>选择可行智能算法</td>
+<td>小Q表、决策树、小MLP三组</td>
+<td>精度增加而期限失败</td>
+<td>同时报告参数RAM、推理周期、净能量、最大违约</td>
+</tr>
+</tbody>
+</table>
+<p>上述优先级是读者建议：P0先做，P1建立在基线可运行后，P2只在资源允许且前序实验证明有必要时开展。压缩应用仍是候选，尚未替你最终定题或证明已在E902运行。论文公开可读不自动授权任意复制数据；代码、图片和数据须分别核对许可。</p>
+<h2 id="阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查<a class="anchor" href="#阶段13读完后应掌握与继续核查">#</a></h2>
+<p><strong>五个知识点：</strong> 用快速中断、自动周期DMA和可配置D2D接口，减小RISC-V控制器的通信负担，并流片验证管理域。 你还应能解释输入输出表中的角色、两条公式的单位、首个结果指标的分母，以及局限表里的关键条件。</p>
+<p><strong>五个未决问题：</strong> 独立新输入是否成立？最差时延是否可接受？测量参考是否足够？控制与切换是否抵消收益？E902实际具有哪些接口和可观测量？这些是研究问题，不是对作者遗漏的无证据指控。</p>
+<p><strong>立即做：</strong> 按公式算例手算一次，选一张结果图复述“硬件—负载—基线—指标—边界”。<strong>后续核查：</strong> 补齐代码版本、训练数据和仪表设置。<strong>可复用：</strong> 上文明确标注的模型与接口思路。<strong>谨慎采用：</strong> 所有跨平台百分比。<strong>暂不采用：</strong> 尚未证实存在的电压控制和完整硬实时承诺。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#controlpulplet图文技术精读">ControlPULPlet：图文技术精读</a>
+<a class="toc-level-2" href="#阶段0材料与版本审计">阶段0：材料与版本审计</a>
+<a class="toc-level-2" href="#阶段1身份卡与整体概述">阶段1：身份卡与整体概述</a>
+<a class="toc-level-2" href="#阶段2问题假设与创新位置">阶段2：问题、假设与创新位置</a>
+<a class="toc-level-2" href="#阶段3必要术语与数学">阶段3：必要术语与数学</a>
+<a class="toc-level-3" href="#公式1控制时限余量原文iii-b">公式1：控制时限余量（原文§III-B）</a>
+<a class="toc-level-3" href="#公式2峰值链路与实际吞吐原文整理">公式2：峰值链路与实际吞吐（原文整理）</a>
+<a class="toc-level-2" href="#阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解</a>
+<a class="toc-level-3" href="#fig3架构与新增模块">Fig3：架构与新增模块</a>
+<a class="toc-level-3" href="#fig11kairos芯片照片和规格">Fig11：Kairos芯片照片和规格</a>
+<a class="toc-level-2" href="#阶段78实验统计及证据链">阶段7–8：实验、统计及证据链</a>
+<a class="toc-level-3" href="#fig9fifo与burst影响吞吐">Fig9：FIFO与burst影响吞吐</a>
+<a class="toc-level-3" href="#fig10通信对dvfs控制时长影响">Fig10：通信对DVFS控制时长影响</a>
+<a class="toc-level-3" href="#fig16芯片电压频率与功耗">Fig16：芯片电压频率与功耗</a>
+<a class="toc-level-3" href="#tablei控制器比较">TableI：控制器比较</a>
+<a class="toc-level-2" href="#阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断</a>
+<a class="toc-level-2" href="#阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口</a>
+<a class="toc-level-2" href="#阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题</a>
+<a class="toc-level-2" href="#阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查</a>
+    </aside>
+  </div>
+</body>
+</html>

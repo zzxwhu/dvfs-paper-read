@@ -1,0 +1,240 @@
+{
+  "short": "Runmeter",
+  "zh": "从离线功率模型走向内核在线监控：精度、定点数和采样窗口",
+  "authors": [
+    "Sergio Mazzola",
+    "Gabriele Ara",
+    "Thomas Benz",
+    "Björn Forsberg",
+    "Tommaso Cucinotta",
+    "Luca Benini"
+  ],
+  "venue": "Journal of Systems Architecture 167,103504 (2025)",
+  "version": "ETH仓储提供的正式出版版，12个PDF页面，第一页面是仓储封面；正文11页。存在2024及2025预印本，本文页码只针对本正式版。",
+  "identity": "作者关联ETH Zürich、Scuola Superiore Sant’Anna及博洛尼亚大学。正式版对应作者含Sergio Mazzola与Tommaso Cucinotta；作者声明无已知竞争性财务利益／相关个人关系。资助包括AMPERE/Fractal（正文末）。数据可向作者申请，不等于已公开原始轨迹。",
+  "one": "把小型、按频率索引的功率模型放进Linux内核，并设计更及时的计数器采样与移动窗口。",
+  "abstract_zh": "本文沿用并扩展按子系统和频率建模的方法，用自动筛选的计数器建立低开销线性功率估计，并提出Runmeter内核监控框架。框架在任务切换和调度tick时采样，聚合为可配置窗口统计，以定点数进行在线求值。Xavier实验分别验证离线模型、定点近似、在线估计和监控成本。它的重要增量是将模型变成可用于运行时控制的反馈基础设施；在线窗口误差明显大于离线整体能量误差，论文也未给出完整DVFS governor的净节能结果。",
+  "abstract_en": "Runmeter brings frequency-specific, counter-based power models into the Linux kernel. Hybrid sampling, moving observation windows and fixed-point evaluation enable low-cost online estimates. The evaluation separates offline model accuracy, numerical approximation, online error and monitoring overhead. The framework supplies feedback for future control policies rather than demonstrating a complete DVFS policy. This is a reader-written paraphrase.",
+  "question": "离线小模型即使算得快，计数器何时采、如何汇总、什么时候更新输出仍决定反馈是否及时。问题是能否把整套采样与求值放进OS而保持较低开销，且明确在线误差。",
+  "novel": "相对SAMOS2022，新增内核Runmeter实现、任务切换／tick混合触发、滑动观测窗口、频点切换时事件集合管理，以及定点数和在线验证。离线模型精度不是全部新增贡献，不能重复计作两个独立突破。",
+  "flow": "离线自动PMC选择和模型拟合 → 内核按切换／tick读取PMC → 移动窗口聚合任务与核心样本 → 按当前频点查权重 → 定点乘加输出功率／能量估计 → 可供调度或未来DVFS策略使用。",
+  "io": [
+    [
+      "输入",
+      "频率、各核PMC增量、任务／核身份、观察窗口T′和采样触发时刻。"
+    ],
+    [
+      "输出",
+      "估计CPU功率／能量与运行统计，非完整频率控制策略。"
+    ],
+    [
+      "实现",
+      "Jetson Linux4.9.253需内核hook补丁；模块基于PMCTrack部分基础重写。"
+    ],
+    [
+      "部署开销",
+      "10Hz实验监控配置，移动窗口与更新间隔应区分。"
+    ]
+  ],
+  "method": "§3（PDF p5–6）：每频点、每子系统拟合少量事件率的非负线性模型，以查表组合覆盖DVFS；这部分与2022前序有明显继承。§4（p6–7）：任务切出必采样，调度tick提供额外触发；对多个近期样本求滑动和，既保留较长窗口的稳定统计，又及时更新。不同频点用相应事件集合，不能把换事件后的计数混入旧模型。\n\n内核避免浮点，采用64位整数、29位小数部分。读者移植到32位E902时必须重新评估64位乘加、溢出、原子读取和执行时间，不能把Linux内核模块当裸机固件。调度tick不唤醒深空闲核是节能考虑，但“未运行期间的周期性硬上界”也不能无条件保证。\n\n§5：Xavier CPU选3档、GPU14档，Rodinia及合成程序每项采3遍；CPU随机70%样本训练、30%验证，存在同轨迹相邻样本进入两集合的风险。在线使用同类验证负载，响应快于INA3221不自动证明瞬态估计是真值。",
+  "equations": [
+    {
+      "title": "移动窗口与固定频点功率（§4整理）",
+      "tex": "S_j(t)=\\sum_{k\\in W(t)}\\Delta n_{j,k},\\qquad \\widehat P(t)=L_f+\\frac{1}{T'}\\sum_j w_{f,j}S_j(t)",
+      "symbols": "W(t)为最近采样组成的窗口；S为事件总数；T′为窗口秒数；L_f为常数功率W；w单位J/事件。固定频点公式要随实际状态切换；图示仅为单核简化。",
+      "example": "窗口20ms累积40000次事件，事件率2×10⁶/s；每5ms更新一次窗口不等于用5ms作分母。除错窗口会造成4倍误差。",
+      "source": "§4.1–4.2，Eq4，PDF p7。"
+    },
+    {
+      "title": "固定点权重与整体能量误差",
+      "tex": "w_q=\\operatorname{round}(2^{29}w),\\qquad \\epsilon_E=\\frac{|\\sum_k\\widehat P_k\\Delta t_k-\\sum_kP_k\\Delta t_k|}{\\sum_kP_k\\Delta t_k}",
+      "symbols": "w_q为整数编码；解码为w_q/2^29。ε_E无量纲；分窗口APE与整段能量误差的汇总顺序不同。",
+      "example": "一半时间高估、一半低估可相互抵消，使整体能量误差低，但每窗口误差仍大。必须同时报长期积分误差与在线误差分布。",
+      "source": "§5.3–5.4，PDF p9–10。"
+    }
+  ],
+  "metrics": [
+    [
+      "离线全部组合",
+      "功率MAPE8.6%；能量平均误差2.5%",
+      "不能只展示有利子集",
+      "§5.3，p9"
+    ],
+    [
+      "离线GPU>600MHz子集",
+      "功率MAPE7.5%；能量平均1.3%、最大3.1%",
+      "受限频率范围",
+      "§5.3，p9"
+    ],
+    [
+      "在线能量窗口APE",
+      "平均约9%；P90约20.8%；最大约29%",
+      "CPU内核在线实验，Fig4；不同于离线1.3%",
+      "§5.4.2，p9–10"
+    ],
+    [
+      "定点相对浮点",
+      "平均绝对误差约0.17mW，最大约17mW",
+      "数值实现误差，不是相对真实功率的总误差",
+      "§5.4.1，Fig3，p9–10"
+    ],
+    [
+      "监控开销",
+      "最坏约7ms/s=0.7%",
+      "密集上下文切换；2.3GHz最坏低于0.2%",
+      "§5.4.3，p10"
+    ]
+  ],
+  "stats": "随机样本分割只能评估相似数据分布内误差，不能替代按应用／文件划分的泛化测试。参考仪表200mW分辨率约占该实验功率3%，且有低带宽，在线尖峰偏差原因由作者解释为参考响应迟缓；没有独立高速电测时仍应保留替代解释。Fig4给APE分布而非置信区间。0.7%为时间开销，不是能量开销，更不是收益。 材料术语差异：Fig4横轴写Power Estimation Error，而图注及§5.4.2描述在线能量估计APE；本文9%、20.8%和29%按该正文／图注口径转述，不隐去图轴原标签。",
+  "limits": [
+    [
+      "作者承认",
+      "关键",
+      "低GPU频率导致跨域等待时独立模型失准；模拟传感器限制瞬态真实性验证。"
+    ],
+    [
+      "作者方向",
+      "重要",
+      "未来把power-aware governor接到Runmeter，跨平台与深空闲情形仍待扩展。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "同设备随机切分偏乐观；E902的32位运算与计数器不足可能抵消模型优势。"
+    ]
+  ],
+  "transfer": "把它当你系统的“观测／估计模块”参考最有价值。小型CPU上可以用环形缓冲保存周期、字节进度和活跃时间，用不同频点的整数线性权重估计能量，再由小Q表或回归选档。实际能量传感器与估计都应记录，不能只凭模型预测自证节能。",
+  "experiments": [
+    [
+      "P0：定点与浮点一致性",
+      "确定模型可部署精度",
+      "电脑浮点参考＋E902整数实现",
+      "64位溢出或缩放错误",
+      "相同轨迹输出误差、选档差异和最大执行周期均记录"
+    ],
+    [
+      "P1：窗口／更新周期解耦",
+      "兼顾稳定与响应",
+      "环形缓冲、两类定时参数",
+      "窗口过长掩盖突发",
+      "报告阶段切换响应、能量误差和控制开销"
+    ],
+    [
+      "P1：加入真实功耗反馈校准",
+      "避免模型自证",
+      "外部测能、不同温度／文件",
+      "参考仪表本身不准",
+      "留出整文件和独立重复测试，比较预测与实测净收益"
+    ]
+  ],
+  "reproduce": "作者开源Runmeter与对应Jetson kernel：先锁定commit、工具链和内核补丁，再复建事件表、权重和10Hz配置。先检查计数器换组、窗口长度和任务聚合正确，再比较定点与浮点，最后对独立仪表验证在线估计。原始实验数据需要申请，尚未取得；当前未编译模块或复现硬件数值。",
+  "code": "[Runmeter工具仓库](https://gitlab.retis.santannapisa.it/ampere/runmeter)；[Jetson内核](https://gitlab.retis.santannapisa.it/ampere/runmeter/kernel-jetson)。链接来自正式版脚注，当前未下载核验全部代码／commit。数据声明为可向作者申请。",
+  "glossary": [
+    [
+      "A",
+      "功率估计器",
+      "把计数器转成W，不自行决定频率。"
+    ],
+    [
+      "B",
+      "观察窗口",
+      "用于汇总特征的时段，可比更新间隔长。"
+    ],
+    [
+      "B",
+      "定点数",
+      "用整数及固定缩放因子表示小数，要检查位宽和溢出。"
+    ],
+    [
+      "C",
+      "在线APE",
+      "运行中每个估计窗口的相对绝对误差，与整段积分误差不同。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Table1",
+      "page": 4,
+      "title": "已有模型与运行框架比较",
+      "read": "分开看建模能力与runtime integration。",
+      "observation": "在线集成是新增维度。",
+      "limit": "跨平台MAPE不是直接排名。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig1",
+      "page": 6,
+      "title": "离线到在线总流程",
+      "read": "左侧建模，右侧在线受控系统与模型。",
+      "observation": "包含模型生成与部署。",
+      "limit": "箭头不等于论文已验证完整DVFS策略。",
+      "crop": [
+        0.06,
+        0.08,
+        0.96,
+        0.21
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 8,
+      "title": "离线合成功率",
+      "read": "左总量、右分项，横轴时间。",
+      "observation": "模型可分解CPU/GPU。",
+      "limit": "该图不是在线能量误差分布。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 10,
+      "title": "定点数值误差",
+      "read": "看绝对mW和百分比两个分布。",
+      "observation": "定点近似误差很小。",
+      "limit": "不能称相对实测总体误差仅0.015%。",
+      "crop": [
+        0.06,
+        0.07,
+        0.96,
+        0.23
+      ],
+      "stage": "result",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 10,
+      "title": "在线窗口能量APE分布",
+      "read": "横轴误差百分比、纵向分布，注意尾部。",
+      "observation": "均值约9%、P90约20.8%。",
+      "limit": "不得套用离线1.3%。",
+      "crop": [
+        0.055,
+        0.28,
+        0.51,
+        0.385
+      ],
+      "stage": "result",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 10,
+      "title": "在线功率与INA3221",
+      "read": "按频点对比尖锐边缘和慢响应。",
+      "observation": "参考传感器有平滑延迟。",
+      "limit": "更快变化不自动意味着绝对准确。",
+      "crop": [
+        0.055,
+        0.43,
+        0.51,
+        0.84
+      ],
+      "stage": "result",
+      "image": "original-fig5.png"
+    }
+  ]
+}

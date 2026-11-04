@@ -158,3 +158,15 @@ GLOBAL_STYLE_PROMPT += """
 必要公式必须给符号含义、单位/范围、直观解释和可核验代入例；区分原文公式、符号重排、背景近似和读者补充。
 论文入口给原文网址、PDF及可用DOI。保留技术、入门、图表、摘要/译读四报告结构。
 """
+
+# The user's revised research-reading contract overrides the earlier expert
+# profile and abbreviated style. Keep it in a reviewable, repository-local file.
+from pathlib import Path as _PromptPath
+_reader_contract = _PromptPath(__file__).resolve().parents[2] / "reader_requirements.md"
+if _reader_contract.is_file():
+    GLOBAL_STYLE_PROMPT += "\n【用户最新版阅读契约，优先于前文简略风格和内行读者假设】\n" + _reader_contract.read_text(encoding="utf-8")
+ELI5_ROLE_PROMPT += """
+本项目的实际读者是DVFS入门者。不要沿用上文‘用户已懂基础术语’的假设。
+先区分负载、CPU、策略、执行器与反馈；初次出现的缩写都解释。
+讲清与CPU/E902/RISC-V课题的联系，但不能假定用户已确定CV/LLM负载。
+"""

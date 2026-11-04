@@ -1,0 +1,294 @@
+{
+  "short": "JOSS",
+  "zh": "别只盯CPU功耗：同时预测任务时间、CPU能量与内存能量",
+  "authors": [
+    "Jing Chen",
+    "Madhavan Manivannan",
+    "Bhavishya Goel",
+    "Miquel Pericàs"
+  ],
+  "venue": "arXiv:2306.04615 (2023)，本笔记按预印本标注",
+  "version": "arXiv v1，11页。页眉Conference’17/2017属于未替换模板，不能视为真实会议元数据。",
+  "identity": "作者主要来自Chalmers University of Technology。当前版本未定位到明确通讯作者标记、完整资助或利益冲突栏目；这些字段保持未知，不由作者顺序推断。",
+  "one": "每个任务选择哪类核、几个核、CPU频率和内存频率，以最小化CPU加内存的总能量。",
+  "abstract_zh": "JOSS把任务映射与CPU／内存频率选择联合起来。它通过平台离线回归和运行时两档采样，预测每类任务的执行时间及CPU、内存功耗，搜索满足能量或相对性能目标的配置；再处理共享频域的并发冲突及短任务切换成本。Jetson TX2实验显示，只优化CPU能量可能增加内存驻留能量。该方法有助于建立“总能量而非单轨功率”的选频观念，但多核异构调度和内存DVFS并不是E902现成具备的条件。",
+  "abstract_en": "JOSS jointly chooses core type, parallelism, CPU frequency and memory frequency for task-based programs. Platform models and short runtime calibration predict latency and energy; a scheduler searches configurations and coordinates shared domains. The experiments emphasize CPU-plus-memory energy rather than CPU energy alone. Model error and shared-resource heuristics limit strict timing claims. This is a reader-written paraphrase.",
+  "question": "降低CPU功率会延长任务，内存也可能多耗一段时间；只优化CPU能量的配置可能不是系统总能量最优。假设是联合建模与联合选择能够获得更好折中，即便不能改变内存频率也有价值。",
+  "novel": "贡献是四旋钮联合、免PMC的任务特征估计、CPU和内存分项模型、运行时调度整合；学习成分为回归预测与模型引导搜索，不是强化学习。",
+  "flow": "离线合成计算／访存程序拟合模型 → 每个kernel在两档CPU频率采样 → 估计memory-boundness → 预测各配置的时间和两项功率 → 搜索最低能量／满足速度要求的配置 → 共享域协调、合并短任务 → 实际运行。",
+  "io": [
+    [
+      "输入",
+      "任务类型、两档执行时间、核类型／数量、可用CPU与内存频点、用户相对速度目标。"
+    ],
+    [
+      "输出",
+      "(TC,NC,f_C,f_M)四元组及调度位置；E902单核可缩减为f_C。"
+    ],
+    [
+      "约束",
+      "相对最低能量设置的1.2×/1.4×/1.8×性能目标，不等于任意绝对硬截止期。"
+    ],
+    [
+      "实验",
+      "TX2双Denver＋四A57，各cluster共享频率，INA3221测CPU和内存轨。"
+    ]
+  ],
+  "method": "§4（PDF p4–5）：时间拆成计算和等待，计算项按CPU频率近似反比缩放；等待项使用memory-boundness和CPU／内存频率比的多项式回归。两个功率模型分别预测CPU与内存，空闲功率在并发任务间分摊。核心特征不依赖硬件PMC，但依赖可重复任务采样和平台离线表征。\n\n§5：每类kernel在两种CPU频率、不同核类型／核数下采样。模型表生成后，四角筛选加最陡下降降低搜索量；共享域并发采用算术平均频率协调，而非证明全局最优。短任务先聚合，避免每几个微秒就切频。\n\n§6–7：十类任务基准，g++7.5.0、Linux4.9.253-tegra；5ms功率采样，每项重复10次取算术平均。Fig8汇总用Geo.Mean标识，不能把所有汇总统计笼统称算术平均。部分性能目标受预测误差或峰值能力限制而达不到。",
+  "equations": [
+    {
+      "title": "总能量选配置（对方法的紧凑整理）",
+      "tex": "\\widehat E(c)=[\\widehat P_C(c)+\\widehat P_M(c)]\\widehat T(c),\\quad c=(TC,NC,f_C,f_M)",
+      "symbols": "P_C/P_M为W，T为s，E为J；TC为核类型，NC为核数，频率Hz。依赖功率／时间模型准确、共享空闲功耗分摊合理。",
+      "example": "教学例：配置A CPU1W+内存1W运行10ms，20mJ；配置B CPU0.7W+内存1W运行15ms，25.5mJ。CPU功率降低了，总能量却增加。",
+      "source": "§4–5，PDF p4–6；数字为读者算例。"
+    },
+    {
+      "title": "计算项缩放与预测准确率",
+      "tex": "T_C'=T(1-MB)f_C/f_C',\\qquad A=1-|y-\\widehat y|/y",
+      "symbols": "MB无量纲，描述原始运行中等待占比；T_C′为新CPU频率下计算时间。A是本文用的相对误差反向分数，不是分类准确率。完整等待模型还包含内存频率，不能删掉。",
+      "example": "T=10ms、MB=0.4、CPU频率减半，则计算部分变成12ms；不能把整个任务直接说成20ms，还要加新配置等待项。若实际功率2W、预测1.6W，则A=80%。",
+      "source": "Eq1、§7.3，PDF p4/9。"
+    }
+  ],
+  "metrics": [
+    [
+      "相对GRWS总能量",
+      "JOSS降低40.7%；STEER降低19.5%",
+      "Fig8统一归一化到GRWS，含CPU＋内存",
+      "§7.1，p8–9"
+    ],
+    [
+      "论文所谓额外收益",
+      "作者称相对STEER额外21.2%",
+      "40.7−19.5=21.2个百分点；分母不同，不能直接当相对比值",
+      "§7.1，Fig8"
+    ],
+    [
+      "不控制内存频率",
+      "相对GRWS降低24.8%",
+      "仍考虑内存能量，证明目标边界重要",
+      "§7.1，p8"
+    ],
+    [
+      "平均模型分数",
+      "时间97%、CPU功率90%、内存功率80%",
+      "按1−相对绝对误差定义，不是三种分类正确率",
+      "§7.3，Fig10，p9"
+    ],
+    [
+      "运行时采样",
+      "约0.8%总时间",
+      "每kernel重复出现的测试场景",
+      "§5.1，p5"
+    ]
+  ],
+  "stats": "每项重复10次，但缺少完整原始重复数据／所有置信区间。性能目标并非全部达到：MC_4096在1.2×目标上约差3%，高访存任务可能达不到1.8×。模型误差不等于决策损失。读者对Fig8的百分数做分母审查：若直接拿已四舍五入汇总值估算，相对STEER约(0.805−0.593)/0.805≈26.3%，但这不是从逐任务原始数据重新算出的正式均值；保留原文数值并明确“百分点口径”。",
+  "limits": [
+    [
+      "作者报告",
+      "重要",
+      "部分速度目标受模型误差和平台能力限制；内存模型较不准确。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "两点采样依赖同类任务行为稳定，输入变化大时要检测失配并重新校准。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "平均频率合成与局部搜索无全局最优保证；小E902没有异构核和可调DRAM时应删减动作空间。"
+    ]
+  ],
+  "transfer": "你最应借鉴免PMC的两档标定、把非CPU固定功耗加入目标、用小查表替代复杂在线搜索。E902先只调CPU，测量SRAM/外设和板级功耗的边界；不要为了照搬四旋钮引入不存在的内存调压接口。",
+  "experiments": [
+    [
+      "P0：CPU能量与整板能量双目标",
+      "找出目标边界是否改变最优频点",
+      "两档计时与可获得的电源测量",
+      "测量噪声大于收益",
+      "同一输入画两套E–T曲线，给出选档是否变化"
+    ],
+    [
+      "P1：两频点预测压缩耗时",
+      "降低穷举标定成本",
+      "固定块大小、两档CPU频率",
+      "压缩熵变化破坏模型",
+      "留出文件预测误差和决策后违约率都达自定阈值"
+    ],
+    [
+      "P1：块合并摊薄切频成本",
+      "处理过短控制粒度",
+      "不同块数合并、相同到达期限",
+      "合并增加排队时间",
+      "把等待也计入端到端期限，报告净收益和尾时延"
+    ]
+  ],
+  "reproduce": "先跑XiTAO及论文Table1任务，离线复测平台功率表；在两档下采样而非完整测试集泄漏训练。复建共享域合成与短任务合并，统一基线是否可变核数／内存频率。记录每任务的CPU、内存能量和时限分布；论文链接提供框架，不等于JOSS完整扩展已可复现。当前未编译运行。",
+  "code": "论文引用[XiTAO基础运行时](https://github.com/CHART-Team/xitao)，当前材料中尚未确认完全对应JOSS扩展的发布commit。",
+  "glossary": [
+    [
+      "A",
+      "总能量",
+      "这里主要指CPU轨＋内存轨，不自动包括整板所有外设。"
+    ],
+    [
+      "B",
+      "Memory-boundness",
+      "等待访存对运行时间的影响，本文由模型估计。"
+    ],
+    [
+      "B",
+      "Moldable任务",
+      "同类任务可选择使用不同核数执行。"
+    ],
+    [
+      "C",
+      "最陡下降",
+      "邻域内逐步找更低预测能量；一般不保证全局最优。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 3,
+      "title": "四种资源配置的动机",
+      "read": "在同类任务内比较联合旋钮与单项。",
+      "observation": "配置的相互影响显著。",
+      "limit": "动机例子不是平均收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "能量性能目标",
+      "read": "先定位最低能量点，再看相对性能要求。",
+      "observation": "用户可以选择不同折中。",
+      "limit": "不是严格绝对deadline。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 3,
+      "title": "JOSS总架构",
+      "read": "模型提供预测，调度器选择四元组。",
+      "observation": "预测与调度是两个环节。",
+      "limit": "不使用深Q学习。",
+      "crop": [
+        0.53,
+        0.235,
+        0.91,
+        0.37
+      ],
+      "stage": "method",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "模型建立流程",
+      "read": "离线平台建模→在线任务采样→查表预测。",
+      "observation": "训练数据与部署采样分工明确。",
+      "limit": "平台更换必须重新标定。",
+      "crop": [
+        0.08,
+        0.094,
+        0.95,
+        0.192
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 4,
+      "title": "CPU与内存功率响应",
+      "read": "分辨两子图、频率组合和MB曲线。",
+      "observation": "内存功耗不能被CPU功耗代替。",
+      "limit": "TX2上的响应不适用于所有SRAM。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 6,
+      "title": "在线时间线",
+      "read": "读采样、建表、选配置与执行。",
+      "observation": "前期标定存在成本。",
+      "limit": "不是每任务都免费预测。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 6,
+      "title": "四角筛选与局部下降",
+      "read": "先选核类型／核数，再找频率邻居。",
+      "observation": "减少搜索比较次数。",
+      "limit": "局部收敛不证明全局最优。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 7,
+      "title": "十类任务与输入",
+      "read": "按任务类型、输入规模和任务数阅读。",
+      "observation": "具有多类计算／访存模式。",
+      "limit": "大量子任务不是同数量独立实验。",
+      "crop": [
+        0.08,
+        0.08,
+        0.95,
+        0.39
+      ],
+      "stage": "method",
+      "image": "original-table1.png"
+    },
+    {
+      "label": "Fig8",
+      "page": 9,
+      "title": "总能量对比",
+      "read": "横轴应用，堆叠CPU／内存，统一GRWS=1。",
+      "observation": "仅优化CPU会遗漏内存部分。",
+      "limit": "节能百分点与相对百分比不能混用。",
+      "crop": [
+        0.08,
+        0.085,
+        0.95,
+        0.21
+      ],
+      "stage": "result",
+      "image": "original-fig8.png"
+    },
+    {
+      "label": "Fig9",
+      "page": 9,
+      "title": "速度要求与能量代价",
+      "read": "上图时间、下图能量，均以JOSS无约束为参照。",
+      "observation": "更高速度通常需更多能量。",
+      "limit": "部分目标未满足，不是全范围硬保证。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 9,
+      "title": "模型准确率分布",
+      "read": "看三模型分布和虚线中位数。",
+      "observation": "内存预测比时间预测弱。",
+      "limit": "分数不是测试应用分类准确率。",
+      "crop": [
+        0.075,
+        0.445,
+        0.51,
+        0.58
+      ],
+      "stage": "result",
+      "image": "original-fig10.png"
+    }
+  ]
+}

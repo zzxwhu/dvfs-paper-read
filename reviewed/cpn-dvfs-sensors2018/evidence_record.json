@@ -1,0 +1,428 @@
+{
+  "short": "CPN-DVFS",
+  "zh": "用轻量学习模型给压缩程序选频率",
+  "authors": [
+    "Yen-Lin Chen",
+    "Ming-Feng Chang",
+    "Chao-Wei Yu",
+    "Xiu-Zhi Chen",
+    "Wen-Yew Liang"
+  ],
+  "venue": "Sensors 18(9),3068 (2018)",
+  "version": "MDPI正式版，25个PDF页面；部分文本层叠加了排版草稿文字，图表以可见页面为准。",
+  "identity": "主要单位为台北科技大学，Ming-Feng Chang来自MediaTek；通讯作者Yen-Lin Chen。首页说明是2011会议工作的扩展版。资助MOST-106-2628-E-027-001-MY3等，作者声明无利益冲突（p23）。",
+  "one": "把程序运行特征和用户能接受的性能损失交给CPN，预测应使用的CPU频率。",
+  "abstract_zh": "本文使用计数器特征和可调性能要求驱动轻量CPN模型，学习程序行为到CPU频率的映射，并在单核PXA270与四核Tegra K1上实际运行。论文比较执行时间、能量、EDP和控制开销，其中包含gzip与gunzip负载。更宽松的性能要求通常允许更低频率，但过度延长执行可能增加能量。其研究价值是把学习模型落实到可测的硬件执行路径；其性能分数、共享频域和测试划分必须仔细解释，不能直接当成严格截止时间保证。",
+  "abstract_en": "The paper learns a mapping from runtime characteristics and a requested performance level to CPU frequency using a counter-propagation network. Experiments cover a single-core embedded board and a multicore Tegra platform, including compression workloads. Energy, runtime, control overhead and energy-delay product are examined. Shared frequency domains and the performance-score definition constrain transfer to other CPUs. This is a reader-written paraphrase.",
+  "question": "固定阈值无法同时适应不同访存行为和不同可接受性能损失。问题是能否用比复杂分析模型更轻的学习器，输出满足用户要求的频率，并在真实平台获得净能量收益。",
+  "novel": "采用竞争层选原型、输出层给频率的CPN，自适应生成节点并近似查表；把可调性能要求、单核／多核选频和DAQ测能整合起来。它不是现代深度强化学习，输出频率标签主要来自训练数据及性能关系。",
+  "flow": "离线多频点运行训练程序 → 收集指令、cache miss和性能特征 → 训练原型及输出权重 → 在线特征+性能要求进入CPN → 预测频率 → Linux CPUFreq/PMIC执行 → 再观测。多核共享域把各核建议合成共同频率。",
+  "io": [
+    [
+      "输入",
+      "Fig4明确为执行指令数、数据cache miss、指令cache miss及性能要求；频率为预测输出／训练标签，不应把它误列为该图第五个输入。"
+    ],
+    [
+      "输出",
+      "单核建议频率；多核共享域取各核预测中的最大频率。"
+    ],
+    [
+      "平台",
+      "Creator PXA270/Linux2.6.25，外接MAXIM1586B与DAQ；另有Jetson Tegra K1四核A15。"
+    ],
+    [
+      "被控负载",
+      "MiBench与ParMiBench，含gzip_b、gzip、gunzip；不是模拟电机。"
+    ]
+  ],
+  "method": "§3（PDF p5–7）：输入归一化，竞争层计算与各原型的欧氏距离，最近节点获胜；距离不满足阈值Δ时增加节点，输出层学习期望标签。推理近似“找最近原型→读频率”，模型大小随Δ和训练数据增长，不能只说恒定开销。\n\n§4（p8–9）：论文用指令与cache miss表征计算／访存差异，并以最高频率下的表现构造性能目标。训练采用七类MiBench程序的80%指令样本；这不证明使用了完全独立的新程序测试，跨输入泛化仍需检验。§5（p10–11）扩展到共享频率多核，满足最繁忙核心需求会降低其他核心独立节能空间。\n\n§6（p12–22）：单核真实变压变频并对CPU/SDRAM用分流电阻及DAQ测量。Table5在156MHz行可见“10 V”，疑似排印错误；没有可靠佐证时不能自行改成1.0V，更不能拿10V当可用工作点。移植应查芯片与主板手册并实测。",
+  "equations": [
+    {
+      "title": "最近原型推理（对§3步骤的数学整理）",
+      "tex": "j^*=\\arg\\min_j\\|\\widetilde{x}-w_j\\|_2,\\qquad \\widehat f=\\pi_{j^*}",
+      "symbols": "x̃为归一化特征，无量纲；w_j是第j个原型；π_j是关联频率输出，Hz或归一化值；j*是节点编号。各维必须按同一训练尺度归一化。",
+      "example": "教学例：特征(0.2,0.8)，两个原型(0.1,0.9)、(0.9,0.1)，距离约0.141与0.990，选择第一个节点的频率。若把未归一化的百万指令数与0–1比例直接混用，距离会失真。",
+      "source": "§3，Fig2–3，PDF p5–7。"
+    },
+    {
+      "title": "原文性能分数与EDP",
+      "tex": "S(f)=1-\\frac{T_f-T_{\\max}}{T_{\\max}},\\qquad {\\rm EDP}=E\\,T_f",
+      "symbols": "T_max指最大频率下的执行时间而非最长执行时间，s；T_f为当前频率时间，s；S无量纲；EDP为J·s。S不是T_max/T_f。",
+      "example": "最大频率10ms、当前13ms，则S=0.7，而吞吐比例为10/13≈0.769。能量从10mJ降到8mJ但时间从10ms增至13ms，EDP从100变成104mJ·ms，反而变差。",
+      "source": "Eq6，PDF p8；EDP讨论§6，p15。"
+    }
+  ],
+  "metrics": [
+    [
+      "单核CPN_70能量",
+      "4.88%–42.63%降低",
+      "相对Performance基准、不同MiBench；不是平均42%",
+      "§6.1，Fig13，p15/17"
+    ],
+    [
+      "单核CPN_90能量",
+      "0.54%–20.93%降低",
+      "更严格性能要求，勿混入多核结论",
+      "§6.1，p15"
+    ],
+    [
+      "多核CPN_90能量",
+      "2.3%–8.8%降低",
+      "论文结论对10%性能损失设置的归纳",
+      "§7，p23"
+    ],
+    [
+      "多核CPN_70能量",
+      "3.9%–22%降低",
+      "论文结论对30%性能损失设置的归纳",
+      "§7，p23"
+    ]
+  ],
+  "stats": "单核和多核平台、独立程序类型与同程序运行样本是不同层级。当前正文未定位到统一的随机种子、每项重复次数和置信区间，柱状图差异不能自动称为统计显著。原文性能要求70/90允许不同延迟，不能只比较节能率就称同等服务质量下全面胜出。应同时读Fig12–14和Fig18–19。",
+  "limits": [
+    [
+      "作者讨论",
+      "重要",
+      "性能要求低于70%时能量开始反升；未来加入内存频率调节与HPC验证。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "80%指令样本训练不保证输入／程序独立，预测器可能记住同一执行轨迹。"
+    ],
+    [
+      "读者分析",
+      "重要",
+      "标签、归一化与Δ影响模型容量；E902可用特征不足时需重设计，不能复制cache指标。"
+    ],
+    [
+      "材料问题",
+      "次要",
+      "Table5存在可见10V异常，必须以硬件资料重建OPP，不据此配置电压。"
+    ]
+  ],
+  "transfer": "这篇与日志压缩候选最接近。可先用块大小、已处理字节数、历史每字节周期、近期忙闲比例替代昂贵cache事件，离线穷举频点找到满足期限且能量最低的标签，再训练小决策树／原型表。是否一定用CPN应由参数量、准确率和端到端净收益决定。",
+  "experiments": [
+    [
+      "P0：压缩块OPP扫描",
+      "生成真实训练标签",
+      "LZ4或heatshrink、不同熵文件、计时与测能",
+      "低频不一定最省能",
+      "每个OPP均正确解压；画完整周期能量—时延曲线"
+    ],
+    [
+      "P1：无cache计数器的轻量特征",
+      "适配E902资源",
+      "字节计数、周期计数器、块大小、原型表或树",
+      "可观测性不足",
+      "按文件划分训练测试；比较误差、违约率和模型字节数"
+    ],
+    [
+      "P1：CPN与小Q表公平比较",
+      "判断智能算法是否必要",
+      "相同输入／OPP／期限／测量边界",
+      "不同动作空间造成虚假优势",
+      "含推理和切换后优于阈值基线；报告最差输入而不只均值"
+    ]
+  ],
+  "reproduce": "先重建平台允许的OPP和Performance基线；用独立训练文件完成频率扫描、特征归一化和标签生成；保存Δ、学习率、节点数。测试时冻结模型，并加入与原文相同的性能评分及更直观的实际时延。能量覆盖CPU轨或整板二选一并说明，不混报。作者代码、精确超参数和部分重复设置当前未定位齐，不能宣称可一键复现。",
+  "code": "正文提供算法表和硬件测量方式；当前材料中尚未定位到完整配套源码／原始DAQ数据。PMC与MDPI提供公开全文。",
+  "glossary": [
+    [
+      "A",
+      "CPN",
+      "Counter Propagation Network，最近原型匹配加输出映射。"
+    ],
+    [
+      "A",
+      "性能分数",
+      "本论文特定的相对时间损失定义，不等于硬截止期保证。"
+    ],
+    [
+      "B",
+      "MAR",
+      "cache miss与执行指令数的比值，用于描述访存压力；与板上DRAM带宽不同。"
+    ],
+    [
+      "C",
+      "共享频域",
+      "多个核心使用同一时钟／电压设置，各核建议不能独立执行。"
+    ]
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 4,
+      "title": "三种DVFS控制粒度",
+      "read": "区分每芯片、每核、每cluster的PMIC连接。",
+      "observation": "物理域决定能否独立选档。",
+      "limit": "多核不代表每核独立DVFS。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 5,
+      "title": "CPN层次结构",
+      "read": "看输入→竞争层→输出层。",
+      "observation": "先找赢家再输出频率。",
+      "limit": "不是端到端深Q网络。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 7,
+      "title": "自适应查表",
+      "read": "把原型看成特征空间中的代表点。",
+      "observation": "相近输入共享一个输出。",
+      "limit": "距离近不等于满足时限。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 6,
+      "title": "CPN训练过程",
+      "read": "按距离阈值、节点增加和权重更新读。",
+      "observation": "容量由训练流程形成。",
+      "limit": "需补齐阈值和停止条件才能复现。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 8,
+      "title": "MiBench指令样本",
+      "read": "比较程序指令量和训练来源。",
+      "observation": "数据量在不同程序间不均衡。",
+      "limit": "不能把指令样本数当独立任务数。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 8,
+      "title": "学习选频架构",
+      "read": "先看四类输入，再看预测频率输出。",
+      "observation": "用户性能要求参与决策。",
+      "limit": "图中假定可观测特征不保证E902具备。",
+      "crop": [
+        0.2,
+        0.315,
+        0.79,
+        0.56
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Table3",
+      "page": 9,
+      "title": "性能分数示例",
+      "read": "比较指令、cache miss和分数。",
+      "observation": "分数是构造的代理指标。",
+      "limit": "不是直接的硬实时证明。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 9,
+      "title": "在线选频算法",
+      "read": "看训练完成后的取样与应用顺序。",
+      "observation": "推理需要持续观测。",
+      "limit": "控制开销不能遗漏。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 10,
+      "title": "四核控制框图",
+      "read": "比较各核预测与统一频率。",
+      "observation": "共享域采用最大预测值。",
+      "limit": "单核节能不能按4倍外推。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 11,
+      "title": "多核流程",
+      "read": "顺着观测、推理、取最大和切频阅读。",
+      "observation": "频率合成是明确的策略步骤。",
+      "limit": "不是自动的硬件独立调压。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 12,
+      "title": "CPUFreq调用关系",
+      "read": "从governor到驱动看执行层。",
+      "observation": "软件策略经内核接口落地。",
+      "limit": "裸机E902需替换该执行层。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 12,
+      "title": "DAQ测量结构",
+      "read": "看电源轨、分流电阻和采集。",
+      "observation": "有实际电测证据。",
+      "limit": "采样边界／带宽仍影响短任务结果。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table5",
+      "page": 13,
+      "title": "PXA270频点电压",
+      "read": "逐行核对单位与安全范围。",
+      "observation": "156MHz行可见10V异常。",
+      "limit": "该异常不能当真实可用OPP。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 13,
+      "title": "频率选择分布",
+      "read": "横轴频点、纵轴选择概率，对比70与90。",
+      "observation": "宽松目标更偏向低档。",
+      "limit": "选择低档本身不证明净能量降低。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 14,
+      "title": "gzip能量与时间",
+      "read": "左右图分别看能量与执行时间。",
+      "observation": "70设置更省能但更慢。",
+      "limit": "必须同时检查服务质量。",
+      "crop": [
+        0.13,
+        0.1,
+        0.9,
+        0.345
+      ],
+      "stage": "result",
+      "image": "original-fig10.png"
+    },
+    {
+      "label": "Fig11",
+      "page": 14,
+      "title": "控制器开销",
+      "read": "按程序和时间尺度看额外成本。",
+      "observation": "学习器本身消耗资源。",
+      "limit": "不能把图示平台开销复制到E902。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 16,
+      "title": "单核执行时间与性能表",
+      "read": "横向大图按应用逐项看。",
+      "observation": "70/90实际性能并非固定常数。",
+      "limit": "均值无法排除个别输入违约。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 17,
+      "title": "单核能量",
+      "read": "同一应用内对照Performance与其他governor。",
+      "observation": "节能因负载与目标不同。",
+      "limit": "最高值不等于平均值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 18,
+      "title": "单核EDP",
+      "read": "读归一化定义再比较柱高。",
+      "observation": "能量最少不一定EDP最好。",
+      "limit": "EDP也不能代替绝对截止期。",
+      "crop": [
+        0.065,
+        0.12,
+        0.97,
+        0.9
+      ],
+      "stage": "result",
+      "image": "original-fig14.png"
+    },
+    {
+      "label": "Table6",
+      "page": 19,
+      "title": "多核任务分配",
+      "read": "看四种MiBench组合，注意gzip/gunzip。",
+      "observation": "包含混合与同构压缩场景。",
+      "limit": "组合数不是独立板卡数。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 20,
+      "title": "多核组合1/2运行时间",
+      "read": "逐组合比较策略并看下方性能分数。",
+      "observation": "共享域产生共同延迟代价。",
+      "limit": "不能仅看一个核心。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 20,
+      "title": "多核组合3/4运行时间",
+      "read": "与Fig15对应，重点同构gzip组合。",
+      "observation": "同构任务也有可调性能权衡。",
+      "limit": "不证明任意并发压缩都如此。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig17",
+      "page": 21,
+      "title": "多核能量",
+      "read": "在相同组合内比较。",
+      "observation": "更宽松要求常有更多节能。",
+      "limit": "宽松与严格服务不可当同条件。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig18",
+      "page": 22,
+      "title": "ParMiBench运行时间",
+      "read": "横轴程序，纵轴秒，底表为性能。",
+      "observation": "显示实际时间而不只分数。",
+      "limit": "缺少分布时不能判断尾时延。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig19",
+      "page": 22,
+      "title": "ParMiBench能量与EDP",
+      "read": "左图能量，右图EDP并排比较。",
+      "observation": "策略排名随指标变化。",
+      "limit": "选择指标必须贴合课题期限。",
+      "crop": [
+        0.13,
+        0.505,
+        0.89,
+        0.71
+      ],
+      "stage": "result",
+      "image": "original-fig19.png"
+    }
+  ]
+}

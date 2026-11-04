@@ -1,0 +1,29 @@
+{
+  "index": "joss2023",
+  "paper_title": "JOSS: Joint Exploration of CPU-Memory DVFS and Task Scheduling for Energy Efficiency",
+  "description": "别只盯CPU功耗：同时预测任务时间、CPU能量与内存能量。每个任务选择哪类核、几个核、CPU频率和内存频率，以最小化CPU加内存的总能量。",
+  "authors": [
+    "Jing Chen",
+    "Madhavan Manivannan",
+    "Bhavishya Goel",
+    "Miquel Pericàs"
+  ],
+  "metadata": {
+    "venue": "arXiv:2306.04615 (2023)，本笔记按预印本标注",
+    "year": 2023,
+    "doi": "10.48550/arXiv.2306.04615"
+  },
+  "source_url": "https://arxiv.org/abs/2306.04615",
+  "pdf_url": "https://arxiv.org/pdf/2306.04615v1",
+  "source_version": "arXiv v1，11页。页眉Conference’17/2017属于未替换模板，不能视为真实会议元数据。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "150f8563ec048b2521bfe38bb8baea543170f4fd3379691395f5debb73baf797",
+  "figure_count": 11,
+  "embedded_figures": 5,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

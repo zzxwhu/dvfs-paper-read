@@ -1,0 +1,31 @@
+{
+  "index": "controlpulplet2025",
+  "paper_title": "ControlPULPlet: A Flexible Real-time Multi-core RISC-V Controller for 2.5D Systems-in-package",
+  "description": "控制器不仅要算得快，还要及时读传感器和写执行器。用快速中断、自动周期DMA和可配置D2D接口，减小RISC-V控制器的通信负担，并流片验证管理域。",
+  "authors": [
+    "Alessandro Ottaviano",
+    "Robert Balas",
+    "Tim Fischer",
+    "Thomas Benz",
+    "Andrea Bartolini",
+    "Luca Benini"
+  ],
+  "metadata": {
+    "venue": "IEEE TVLSI 33(11),3057–3070 (2025)",
+    "year": 2025,
+    "doi": "10.1109/TVLSI.2025.3596452"
+  },
+  "source_url": "https://arxiv.org/abs/2410.15985",
+  "pdf_url": "https://arxiv.org/pdf/2410.15985v2",
+  "source_version": "arXiv:2410.15985v2，2025-08-13，14页；有2024年v1，不把预印本首发年当期刊年。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "4cab1b4552d85f1135b152300d932de285eedfc2612aafb3abce04caf32e131f",
+  "figure_count": 19,
+  "embedded_figures": 6,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}
