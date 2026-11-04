@@ -5,7 +5,7 @@
 ## 已经能用的内容
 
 - `reviewed/jsa2023-temporal-dvfs/`：依据 21 页原文整理的第一份完整精读，先从频率、能量与控制闭环入门，再逐式推导状态、奖励与 DDQN；重要图表在正文对应位置，并有符号表、代入算例、中英文摘要、实验比较与改进。
-- 四个报告：`paper_notes.md`、`ELI5_notes.md`、`figs_notes.md`、`translation_notes.md`，附原文重要图表、八组公式与自绘闭环辅助图；图片可点击放大。
+- 四个报告：`paper_notes.md`、`ELI5_notes.md`、`figs_notes.md`、`translation_notes.md`，附原文重要图表、八组公式与自绘闭环辅助图；图片配有打开大图入口。
 - `preview/index.html`：可直接用浏览器打开的静态阅读入口，无需模型 API 或 Node。
 - `content/DVFS/`：同一份笔记已导入 Quartz 内容目录。
 - `reading_template.md`：后续每篇论文统一使用的阅读模板。
@@ -48,9 +48,9 @@ BlaBlaPaper 也支持已解析的正文目录，详见原模块 README；这可�
 
 ## GitHub 发布准备
 
-仓库：[zzxwhu/dvfs-paper-read](https://github.com/zzxwhu/dvfs-paper-read)。Pages 是否发布成功以 Actions 的部署结果为准；源码上传不等于网站已经上线。
+仓库：[zzxwhu/dvfs-paper-read](https://github.com/zzxwhu/dvfs-paper-read)。精读网站已发布：[zzxwhu.github.io/dvfs-paper-read](https://zzxwhu.github.io/dvfs-paper-read/)。GitHub Actions 构建和部署均已通过，首页 HTTP 检查返回 200。
 
-在 Settings → Pages 选择 GitHub Actions。`deploy.yml` 保留 Quartz 发布流程，需要 Node 22、依赖安装及 Quartz 插件；本地尚未完成 Quartz 构建验证。`reviewed-static.yml` 可无模型凭据生成静态预览下载包。
+在 Settings → Pages 选择 GitHub Actions。`deploy.yml` 保留 Quartz 发布流程，需要 Node 22、依赖安装及 Quartz 插件；已在 GitHub Actions 完成 Quartz 构建验证。`reviewed-static.yml` 可无模型凭据生成静态预览下载包。
 
 要在线自动分析 PDF，使用 Actions 的 `Generate and publish paper notes` 工作流，配置：
 

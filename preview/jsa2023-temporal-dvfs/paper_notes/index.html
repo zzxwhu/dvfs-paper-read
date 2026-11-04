@@ -286,7 +286,7 @@ figure em {
     <main class="content">
       <article><h1 id="jsa-2023-技术精读从观测到真实-cpu-dvfs-决策">JSA 2023 技术精读：从观测到真实 CPU DVFS 决策<a class="anchor" href="#jsa-2023-技术精读从观测到真实-cpu-dvfs-决策">#</a></h1>
 <p><strong>原文入口：</strong> <a href="https://arxiv.org/abs/2309.03779">论文页面</a> · <a href="https://arxiv.org/pdf/2309.03779">直接打开 PDF</a> · <a href="https://doi.org/10.1016/j.sysarc.2023.102955">期刊 DOI</a></p>
-<p><strong>初次阅读建议：</strong> 先打开左侧“从零入门”，建立频率、能量、截止时间和控制闭环的概念；本页再沿着状态、动作、奖励和实验逐步推导。图表在对应问题旁，点击网页中的图片可放大。</p>
+<p><strong>初次阅读建议：</strong> 先打开左侧“从零入门”，建立频率、能量、截止时间和控制闭环的概念；本页再沿着状态、动作、奖励和实验逐步推导。图表在对应问题旁；点击图下“打开大图”可查看原始尺寸。</p>
 <p>&gt; 阅读范围：已核对 arXiv:2309.03779v1 全文及实验图表，页码按该 21 页预印本。中文为整理与解释，英文摘要为改写概述。论文发表于 JSA 142 (2023), 102955。本文由当前 Codex 会话依据本地 PDF 整理，未声称运行了师兄的外部模型流水线。</p>
 <p>论文：CPU Frequency Scheduling of Real-Time Applications on Embedded Devices with Temporal Encoding-based Deep Reinforcement Learning。作者 Ti Zhou、Man Lin。<a href="https://arxiv.org/abs/2309.03779">原文与 PDF</a>，<a href="https://doi.org/10.1016/j.sysarc.2023.102955">期刊 DOI</a>，<a href="https://github.com/coladog/tinyagent">作者公开实现 tinyagent</a>。公开实现链接来自论文；本笔记没有完成其源码复现。</p>
 <h2 id="1-中英文摘要">1. 中英文摘要<a class="anchor" href="#1-中英文摘要">#</a></h2>
@@ -297,6 +297,7 @@ figure em {
 <h2 id="2-问题与创新点">2. 问题与创新点<a class="anchor" href="#2-问题与创新点">#</a></h2>
 <p>先把理想目标写清：选一串合法工作点，使任务能量尽量小，并尽量按时完成。下式是帮助理解的约束表达；本文通过软截止时间奖励实现，不能把它当成已证明的硬约束保证。</p>
 <figure><a class="image-link" href="../images/eq03-objective.png" target="_blank" rel="noopener"><img src="../images/eq03-objective.png" alt="理解控制目标：选动作最小化任务能量，并考虑截止时间" loading="lazy"></a></figure>
+<p><a href="../images/eq03-objective.png">打开大图</a></p>
 <p>这里 a_k 是第 k 个控制时段的动作，E 为能量，T_exec 为实际完成时间，D 为截止时间预算。频率 f 的单位为 Hz，电压 V 的单位为 V，利用率是 0 到 1 之间的比例。后文只用这些基础量逐步构造状态。</p>
 <p>论文解决的是“任务执行过程中什么时候用高频、什么时候用低频”，被控对象是运行真实程序的 CPU 系统。它没有通过减少识别精度、跳过帧或改变程序功能来冒充 DVFS。</p>
 <table>
@@ -327,6 +328,7 @@ figure em {
 <p>论文的 model-free 指不要求预先给出精确的任务执行模型，并不意味着不需要应用边界、截止时间、硬件档位或训练数据。</p>
 <h2 id="3-整体架构谁控制谁">3. 整体架构：谁控制谁<a class="anchor" href="#3-整体架构谁控制谁">#</a></h2>
 <figure><a class="image-link" href="../images/fig15.png" target="_blank" rel="noopener"><img src="../images/fig15.png" alt="原论文图15：用户态训练与内核态执行的完整架构" loading="lazy"></a> <em>原论文图 15，PDF 第 12 页；本节重点图。</em></figure>
+<p><a href="../images/fig15.png">打开大图</a></p>
 <p>先看底部 Hardware：真实程序在这里执行。观测向上经过 encoder，内核的 Quantized Q-Net 选频。右侧箭头导出训练数据，上方用户态负责更新网络，再把参数下传。用户态/内核态属于操作系统层次，不能与 CPU 核数混为一谈。</p>
 <pre><code>真实任务开始 / 给定截止时间
           |
@@ -401,13 +403,17 @@ CPUFreq 设置工作点 &lt;-- Q 网络选频 &lt;-- 紧凑时序编码
 <h2 id="4-方法编码ddqn-与内核部署">4. 方法：编码、DDQN 与内核部署<a class="anchor" href="#4-方法编码ddqn-与内核部署">#</a></h2>
 <h3 id="41-为什么保留执行历史">4.1 为什么保留执行历史<a class="anchor" href="#41-为什么保留执行历史">#</a></h3>
 <figure><a class="image-link" href="../images/fig08.png" target="_blank" rel="noopener"><img src="../images/fig08.png" alt="原论文图8：录音和计算中形成的内部余量" loading="lazy"></a> <em>原论文图 8，PDF 第 7 页。</em></figure>
+<p><a href="../images/fig08.png">打开大图</a></p>
 <figure><a class="image-link" href="../images/fig11.png" target="_blank" rel="noopener"><img src="../images/fig11.png" alt="原论文图11：按执行阶段安排高低频" loading="lazy"></a> <em>原论文图 11，PDF 第 7 页。</em></figure>
+<p><a href="../images/fig11.png">打开大图</a></p>
 <p>两图连起来看：有些计算可在不可缩短的等待期间完成，因此关键不是“处处降频”，而是“把低频放在哪里”。近期利用率相同，也可能处于不同阶段；历史信息正是用来帮助区分这些情形。</p>
 <p>单个采样点只能告诉控制器“刚才忙不忙”。对于有预处理、多线程计算和 I/O 等待的任务，这不足以区分当前处于哪一阶段。作者将近期状态与累计信息结合，使当前输入携带任务执行历史，同时让输入规模不随任务长度一直增长。</p>
 <figure><a class="image-link" href="../images/fig12.png" target="_blank" rel="noopener"><img src="../images/fig12.png" alt="原论文图12：从原始序列构造四组状态" loading="lazy"></a> <em>原论文图 12，PDF 第 8 页。</em></figure>
+<p><a href="../images/fig12.png">打开大图</a></p>
 <h4 id="先对照图理解状态公式">先对照图理解状态公式<a class="anchor" href="#先对照图理解状态公式">#</a></h4>
 <p>下面按照原文算法 2 重排符号：原文用 t 表示采样序号、T 表示截止时间、x 表示采样时长；本笔记改用 k、D、Δt_k，避免“第几个时段”和“经过多少秒”混淆。</p>
 <figure><a class="image-link" href="../images/eq04-state.png" target="_blank" rel="noopener"><img src="../images/eq04-state.png" alt="四组状态、频率归一化、累计利用率与时间、性能分配矩阵的更新公式" loading="lazy"></a></figure>
+<p><a href="../images/eq04-state.png">打开大图</a></p>
 <table>
 <thead><tr>
 <th>符号</th>
@@ -460,28 +466,35 @@ CPUFreq 设置工作点 &lt;-- Q 网络选频 &lt;-- 紧凑时序编码
 <p>未命中的 p_k 矩阵项保持不变，任务开始时累计项清零。利用率输入采用比例而非百分数：100% 写成 1，不是 100。</p>
 <h4 id="跟着原图算一次状态更新">跟着原图算一次状态更新<a class="anchor" href="#跟着原图算一次状态更新">#</a></h4>
 <figure><a class="image-link" href="../images/fig13-state-example.png" target="_blank" rel="noopener"><img src="../images/fig13-state-example.png" alt="原论文图13下半部分：第7个时段的状态编码算例" loading="lazy"></a> <em>原论文图 13 的下半部分，PDF 第 10 页。</em></figure>
+<p><a href="../images/fig13-state-example.png">打开大图</a></p>
 <p>用原图中的第 7 时段：D=1 s，Δt=0.02 s，CPU 在 0.307 GHz，平均与最大利用率都为 1。频率归一化为 0；u 从 0.07 加到 0.09；c 从 0.15 加到 0.17；低频、高利用率那一格从 0.02 加到 0.04。</p>
 <p>这个小算例揭示了两个容易混淆的量：c=0.17 表示用掉 17% 时间预算；u=0.09 表示累计忙碌时间按完整预算归一化后为 0.09。它们都不是“任务做完了多少”。</p>
 <p>原文正文报告六维状态、7→8→8→1 的 Q 网络，但图 13 展开示例与维数表述存在需要核对之处。概念上按上述四组状态理解即可；复现时必须用代码核对实际输入维度、冗余项处理和候选动作拼接，不能强行按图凑数。</p>
 <h3 id="42-ddqn-在这里做什么">4.2 DDQN 在这里做什么<a class="anchor" href="#42-ddqn-在这里做什么">#</a></h3>
 <figure><a class="image-link" href="../images/fig14.png" target="_blank" rel="noopener"><img src="../images/fig14.png" alt="原论文图14：状态、动作与奖励构成强化学习问题" loading="lazy"></a> <em>原论文图 14，PDF 第 11 页。</em></figure>
+<p><a href="../images/fig14.png">打开大图</a></p>
 <h4 id="在线选频同一个状态把两个动作分别打分">在线选频：同一个状态，把两个动作分别打分<a class="anchor" href="#在线选频同一个状态把两个动作分别打分">#</a></h4>
 <figure><a class="image-link" href="../images/eq05-action.png" target="_blank" rel="noopener"><img src="../images/eq05-action.png" alt="选频公式：在合法动作集合中选 Q 值最大的动作" loading="lazy"></a></figure>
+<p><a href="../images/eq05-action.png">打开大图</a></p>
 <p>A 是允许的动作集合，本实验主要为高频和低频两档；θ 是网络参数；argmax 的意思是“找出让后面的值最大的那个动作”，输出档位而非输出最大 Q 数字。</p>
 <p>教学假设：当前状态下网络给低频 Q=0.62、高频 Q=0.55，则控制器选低频。它并不是判断低频功耗为 0.62 W；这两个分数是预计回报。下一个采样点状态改变，选择也可能改变。</p>
 <h4 id="训练用下一状态的反馈修正当前分数">训练：用下一状态的反馈修正当前分数<a class="anchor" href="#训练用下一状态的反馈修正当前分数">#</a></h4>
 <figure><a class="image-link" href="../images/eq07-ddqn.png" target="_blank" rel="noopener"><img src="../images/eq07-ddqn.png" alt="DDQN 的下一动作选择、训练目标和平方误差" loading="lazy"></a></figure>
+<p><a href="../images/eq07-ddqn.png">打开大图</a></p>
 <p>这三式对应原文算法 5 的更新思路，参数记号作了重排。θ 是持续更新的在线网络参数，θ⁻ 是隔一段训练步数才复制更新的目标网络；γ 是未来回报的折扣系数，y_k 是学习目标，L 是当前预测与目标之间的平方误差。终止状态没有下一步，直接令 y_k=r_k。</p>
 <p>第一式由在线网络决定下一动作 a*，第二式让目标网络评价它，第三式让当前预测逐步靠近 y_k。暂时不必掌握梯度细节；需要理解的只是：网络的选频分数来自重复任务中的反馈，而不是人工预写好所有状态的答案。</p>
 <p>每个采样周期对候选频率计算 Q(s,a)，选择 Q 值较高的动作。Double DQN 将下一步动作选择与目标值评估分开，降低普通 DQN 中的过高估计倾向。这里的学习目标是长期回报，不是用一个分类器直接预测“这一帧要多久”。</p>
 <p>训练需要任务重复执行并形成状态、动作、奖励和下一状态的经验。论文在不同负载与截止时间下训练和评估；这不能自动解释为一个预训练模型能适应所有新应用。</p>
 <h3 id="43-奖励为什么要单独审视">4.3 奖励为什么要单独审视<a class="anchor" href="#43-奖励为什么要单独审视">#</a></h3>
 <figure><a class="image-link" href="../images/algorithm03.png" target="_blank" rel="noopener"><img src="../images/algorithm03.png" alt="原论文算法3：奖励定义的原始表述" loading="lazy"></a> <em>原论文算法 3，PDF 第 11 页。</em></figure>
+<p><a href="../images/algorithm03.png">打开大图</a></p>
 <p>下面把算法中的按时终端奖励重排成易读公式。中间步骤奖励为 0；如果超时，奖励也为 0，不能继续按按时公式计算。</p>
 <figure><a class="image-link" href="../images/eq06-reward.png" target="_blank" rel="noopener"><img src="../images/eq06-reward.png" alt="频率奖励是归一化频率三次方的时间加权和，再与利用率奖励各占一半" loading="lazy"></a></figure>
+<p><a href="../images/eq06-reward.png">打开大图</a></p>
 <p>F 是频率表；f_min、f_max 是相应最小与最大频率；τ_f 是任务窗口中在频率 f 停留的累计时间；D 是截止时间预算；r_f 奖励低频使用，r_u 是窗口中的平均 CPU 利用率，R 是最终得分。正文中的 r_t 是终端时刻的这个 R，其他时刻为零。</p>
 <h4 id="原论文的数字代入">原论文的数字代入<a class="anchor" href="#原论文的数字代入">#</a></h4>
 <figure><a class="image-link" href="../images/fig13-reward-example.png" target="_blank" rel="noopener"><img src="../images/fig13-reward-example.png" alt="原论文图13右上：终端奖励计算示例" loading="lazy"></a> <em>原论文图 13 的右上部分，PDF 第 10 页。</em></figure>
+<p><a href="../images/fig13-reward-example.png">打开大图</a></p>
 <p>此例 D=1 s，低频 0.307 GHz 与高频 1.479 GHz 各用了 0.5 s。最低频率对应括号项为 1，最高频率为 0，所以 r_f=1×0.5+0×0.5=0.5。若 r_u=0.85，则 R=0.5×0.5+0.5×0.85=0.675，约为图中 0.68。</p>
 <p>为什么这不是实测能量？因为得分仅从频率使用和利用率构造，未直接积分仪表功率。频率三次方来自简化背景与启发，真实平台的电压台阶、漏电和固定功耗可能不满足精确三次关系。因此论文还必须通过真实能量实验验证。</p>
 <p>实际能量通过独立板级实验比较。奖励与真实能量之间是否一致，是值得补充验证的内容；不能把奖励增大直接写成实测能耗降低。</p>
@@ -490,9 +503,11 @@ CPUFreq 设置工作点 &lt;-- Q 网络选频 &lt;-- 紧凑时序编码
 <p>论文报告采样编码与推理开销在高频下约 25.62 μs、低频下约 41.05 μs。它支持该 Jetson 实现的轻量性，但不能直接当成 E902 的开销。频率切换的电气稳定过程、驱动延迟与神经网络计算时间也应分别统计。</p>
 <h2 id="5-实验平台与可比性">5. 实验平台与可比性<a class="anchor" href="#5-实验平台与可比性">#</a></h2>
 <figure><a class="image-link" href="../images/table01.png" target="_blank" rel="noopener"><img src="../images/table01.png" alt="原论文表1：实验平台与训练参数" loading="lazy"></a> <em>原论文表 1，PDF 第 14 页。</em></figure>
+<p><a href="../images/table01.png">打开大图</a></p>
 <p>读这张表，先看硬件、OS 和测量边界，再看网络与训练设置。Adam 是训练时更新参数的优化器；learning rate 是每次更新的步长；batch size 是一批用于更新的数据量；Target Net updating frequency 是目标网络多久刷新一次。它们属于训练设置，不是 CPU 的调压参数。</p>
 <p>注意 Sampling rate 这一行自身有单位矛盾，后文单独标注，不能照抄到实现里。</p>
 <figure><a class="image-link" href="../images/table02.png" target="_blank" rel="noopener"><img src="../images/table02.png" alt="原论文表2：两项自建负载与四项MiBench程序" loading="lazy"></a> <em>原论文表 2，PDF 第 14 页。</em></figure>
+<p><a href="../images/table02.png">打开大图</a></p>
 <table>
 <thead><tr>
 <th>项目</th>
@@ -551,12 +566,16 @@ CPUFreq 设置工作点 &lt;-- Q 网络选频 &lt;-- 紧凑时序编码
 <h2 id="6-实验结果对比每个百分比都附参照">6. 实验结果对比：每个百分比都附参照<a class="anchor" href="#6-实验结果对比每个百分比都附参照">#</a></h2>
 <h4 id="先学会读归一化结果">先学会读归一化结果<a class="anchor" href="#先学会读归一化结果">#</a></h4>
 <figure><a class="image-link" href="../images/eq08-saving.png" target="_blank" rel="noopener"><img src="../images/eq08-saving.png" alt="节能率与截止时间违约率的定义" loading="lazy"></a></figure>
+<p><a href="../images/eq08-saving.png">打开大图</a></p>
 <p>归一化能量 0.88 意味着 E_method/E_baseline=0.88，节能 12%，不是节能 88%。N_late 是超时次数，N_total 是总次数。比较时，任务正确性、输入和测量边界也应相同。</p>
 <figure><a class="image-link" href="../images/fig22.png" target="_blank" rel="noopener"><img src="../images/fig22.png" alt="原论文图22：FaceRecog三种截止时间的对比" loading="lazy"></a> <em>原论文图 22，PDF 第 16 页。</em></figure>
+<p><a href="../images/fig22.png">打开大图</a></p>
 <p>先固定一组 deadline，再把本文方法与同组的 Linux 策略比较；然后才看 deadline 变宽是否带来更多收益。图上的柱高和下面括号中的运行时间需要一起读。</p>
 <figure><a class="image-link" href="../images/fig23.png" target="_blank" rel="noopener"><img src="../images/fig23.png" alt="原论文图23：AudioRecog三种截止时间的对比" loading="lazy"></a> <em>原论文图 23，PDF 第 16 页。</em></figure>
+<p><a href="../images/fig23.png">打开大图</a></p>
 <p>这是另一个包含录音和计算的应用，不能直接把结果当作所有音频任务的收益。</p>
 <figure><a class="image-link" href="../images/fig24.png" target="_blank" rel="noopener"><img src="../images/fig24.png" alt="原论文图24：四项MiBench程序的能量对比" loading="lazy"></a> <em>原论文图 24，PDF 第 17 页。每一行是一个程序，每列对应一个时限。</em></figure>
+<p><a href="../images/fig24.png">打开大图</a></p>
 <p>这张图可用来检查改善是否只发生在一个自建负载。仍须区分 Performance 的归一化参照与正文相对 Ondemand 的 3%–11% 改善。</p>
 <table>
 <thead><tr>
@@ -605,12 +624,15 @@ CPUFreq 设置工作点 &lt;-- Q 网络选频 &lt;-- 紧凑时序编码
 </tbody>
 </table>
 <figure><a class="image-link" href="../images/fig25.png" target="_blank" rel="noopener"><img src="../images/fig25.png" alt="原论文图25：各截止时间下的平均时间和超时分布" loading="lazy"></a> <em>原论文图 25，PDF 第 17 页。</em></figure>
+<p><a href="../images/fig25.png">打开大图</a></p>
 <p>先看第一行 mean execution time，再看最右侧 not exceed deadline。平均时间合格不代表每次合格。表内超过截止时间的不同区间占比之和，才揭示了平均值掩盖的风险。</p>
 <p>图 25 中，FaceRecog 在 0.6 s 截止时间下，违约分布约为：超时 0%–2.5% 占 11.2%，超时 2.5%–5% 占 4.7%，超时超过 5% 占 0.2%。平均时间 0.59 s 并没有排除尾部违约。</p>
 <p>原文摘要对两项自建应用使用了合并的 5%–14% 范围；正文再细分负载。引用时最好直接说明基线与负载，而不是抽取一个最大数字代表全系统表现。</p>
 <figure><a class="image-link" href="../images/fig16.png" target="_blank" rel="noopener"><img src="../images/fig16.png" alt="原论文图16：重复训练的奖励曲线" loading="lazy"></a> <em>原论文图 16，PDF 第 14 页。横轴 Episode 是任务重复执行形成的训练轮次，纵轴 Reward 是奖励，不是焦耳。</em></figure>
+<p><a href="../images/fig16.png">打开大图</a></p>
 <p>曲线上升表示学到更高奖励的策略；单看它不能断言实测节能，也不能证明硬实时。多条重复训练的均值与波动提示了学习过程的随机性。</p>
 <figure><a class="image-link" href="../images/fig31.png" target="_blank" rel="noopener"><img src="../images/fig31.png" alt="原论文图31：随输入规模增长的训练开销" loading="lazy"></a> <em>原论文图 31，PDF 第 19 页。</em></figure>
+<p><a href="../images/fig31.png">打开大图</a></p>
 <p>作者还比较了编码方法与 RNN：编码方式在给定结构和训练设置下收敛更快、更稳定，且随输入规模增长的训练开销较小。这不能推广为“RNN 都不适合 DVFS”。训练约 300 轮的设置以及部分实验约 100 轮出现良好行为，不构成对未知任务的收敛保证。</p>
 <h3 id="原文中需要复现时核查的细节">原文中需要复现时核查的细节<a class="anchor" href="#原文中需要复现时核查的细节">#</a></h3>
 <p>一处参数表把采样间隔写成 20000 ms，同时写每秒 50 次；两者不一致。50 Hz 对应约 20 ms，复现时应以作者代码和实际计时为准。</p>
