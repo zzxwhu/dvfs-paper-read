@@ -1,0 +1,29 @@
+{
+  "index": "2qosm2022",
+  "paper_title": "Low-Overhead Reinforcement Learning-Based Power Management Using 2QoSM",
+  "description": "用小Q表控制CPU性能状态，并用七种奖励展示省功率与服务质量的取舍。用小Q表控制CPU性能状态，并用七种奖励展示省功率与服务质量的取舍",
+  "authors": [
+    "Michael Giardino",
+    "Daniel Schwyn",
+    "Bonnie Ferri",
+    "Aldo Ferri"
+  ],
+  "metadata": {
+    "venue": "J. Low Power Electronics and Applications12(2),29 (2022)",
+    "year": 2022,
+    "doi": "10.3390/jlpea12020029"
+  },
+  "source_url": "https://doi.org/10.3390/jlpea12020029",
+  "pdf_url": "https://mdpi-res.com/d_attachment/jlpea/jlpea-12-00029/article_deploy/jlpea-12-00029.pdf",
+  "source_version": "MDPI正式版25页，MCSoC2021论文扩展；关注CPU资源管理，不作为电机课题建议。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "ea84698ad20b912cd69b4bd75fdc098fcfb783c587005ac8fcaad5121a106dcb",
+  "figure_count": 20,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

@@ -1,0 +1,346 @@
+{
+  "short": "GreenDVFS",
+  "zh": "先识别应用当前请求强度，再查其合适CPU频率，避免把CPU忙碌率误认为服务需求",
+  "authors": [
+    "Darong Huang",
+    "Luis Costero",
+    "David Atienza"
+  ],
+  "venue": "IEEE CCGrid2024，273–283",
+  "version": "EPFL机构仓储作者公开版11页；DOI 10.1109/CCGrid59990.2024.00039。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "先识别应用当前请求强度，再查其合适CPU频率，避免把CPU忙碌率误认为服务需求",
+  "abstract_zh": "本文研究虚拟机中的数据库/缓存/搜索服务，请求强度变化的运行时能效。具体程序包括CloudSuite Data Serving（YCSB+Cassandra）、Redis benchmark、CloudSuite Web Search（Nutch）。作者在HPE ProLiant DL380 Gen11，2×Xeon Gold6448Y，256GB DDR5；Ubuntu23.04/Linux6.2，KVM/QEMU/libvirt；perf/turbostat等监测package功率并积分能量上采用离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习。输入为每秒73项系统/应用指标时间序列；离线六档负载与各频点性能/功率/温度，输出为LSTM负载等级概率→各预选频率的加权期望→CPUFreq动作；合法频点取整细节待核。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。将应用服务需求、早期LSTM分类和离线多指标选频整合；关键不在LSTM越大越好，而是避免单纯利用率控制的观测混淆。",
+  "abstract_en": "GreenDVFS profiles application performance, package power, and temperature across workload levels and frequencies. An LSTM detects workload levels from system traces, and their predicted probabilities weight preselected frequency settings. Experiments use three cloud services on a dual-Xeon server; workload detection and offline profiling are essential costs. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：先识别应用当前请求强度，再查其合适CPU频率，避免把CPU忙碌率误认为服务需求。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "将应用服务需求、早期LSTM分类和离线多指标选频整合；关键不在LSTM越大越好，而是避免单纯利用率控制的观测混淆。",
+  "flow": "每秒73项系统/应用指标时间序列；离线六档负载与各频点性能/功率/温度 → 离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习 → LSTM负载等级概率→各预选频率的加权期望→CPUFreq动作；合法频点取整细节待核 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习"
+    ],
+    [
+      "被控负载类型",
+      "虚拟机中的数据库/缓存/搜索服务，请求强度变化"
+    ],
+    [
+      "具体被控程序",
+      "CloudSuite Data Serving（YCSB+Cassandra）、Redis benchmark、CloudSuite Web Search（Nutch）"
+    ],
+    [
+      "使用平台与测量",
+      "HPE ProLiant DL380 Gen11，2×Xeon Gold6448Y，256GB DDR5；Ubuntu23.04/Linux6.2，KVM/QEMU/libvirt；perf/turbostat等监测package功率并积分能量"
+    ],
+    [
+      "输入/状态",
+      "每秒73项系统/应用指标时间序列；离线六档负载与各频点性能/功率/温度"
+    ],
+    [
+      "输出/动作",
+      "LSTM负载等级概率→各预选频率的加权期望→CPUFreq动作；合法频点取整细节待核"
+    ],
+    [
+      "周期与运行位置",
+      "指标每秒采样；用户态工具链与CPU调频接口；不是微秒级硬件控制器"
+    ]
+  ],
+  "method": "§III–V（p3–10）：效用L=αPerf−βPower−γTemp，权重0.5/0.3/0.2为启发式选择。逐负载扫频寻找最大L；LSTM用截短轨迹训练，反复将训练长度减半，以便在执行早期就识别负载。在线保留概率分布而非只取argmax，按概率加权离线频率；输出仍需落入平台合法频率。训练/测试80/20。\n\n这篇学习的是负载类别，不是直接在线学习最优电压。功率通过pkgwatt采样，不能说整台服务器插座能量均降低18.3%。Table1的核/线程计数写法不清，比较表只采用明确的CPU型号与数量。性能、温度和功率有不同单位，复现应核对归一化再用权重，不能直接加原始数值。",
+  "metrics": [
+    [
+      "已知负载能量改善",
+      "WS4.6%、Redis6.5%、Data Serving18.3%",
+      "相对论文intel governor；package能量；不同应用分别报告",
+      "TableV，p10"
+    ],
+    [
+      "已知负载性能改善",
+      "0.9%、1.3%、1.3%",
+      "与上行同三应用和基线，不是所有负载无退化证明",
+      "TableV，p10"
+    ],
+    [
+      "分类准确率",
+      "94.1%、97.7%、90.0%",
+      "分别DS/Redis/WS，不是节能率",
+      "TableIV，p7"
+    ],
+    [
+      "未知负载",
+      "最高约19%能效改善",
+      "作者对未训练负载的概括，不能扩展成未知应用",
+      "§V-D/Fig9，p10"
+    ]
+  ],
+  "stats": "负载强度留出与全新应用留出不同；80/20如何按完整轨迹分割需核对以排除邻近样本泄漏。没有统一独立服务器重复和置信区间，不能把秒级样本当独立硬件样本。TableV中性能/能量各有分母，温度30.1%是原文摄氏指标比较，不应解读为热能减少30%。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "离线按应用负载扫频成本较高，服务/硬件升级需要重标定。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "73项指标和浮点LSTM不适合原样塞入E902；应先验证少量可用特征。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "无硬截止期或所有未知负载的保证；概率期望频率也不自动是混合场景最优动作。"
+    ]
+  ],
+  "transfer": "可把负载等级换成压缩块大小/熵和历史周期需求，用小树/原型表分类，再查合法频率；保留GreenDVFS的“先估需求、再选档”分工，不复制服务器LSTM成本。",
+  "experiments": [
+    [
+      "P0：块需求能否识别",
+      "检验观测是否比忙碌率有用",
+      "块长/进度/历史cycles-byte",
+      "同利用率输入仍难区分",
+      "整文件留出比较需求预测误差"
+    ],
+    [
+      "P1：概率混合与硬分类",
+      "验证加权频率是否有价值",
+      "小分类器和合法档位映射",
+      "平均频率未必满足期限",
+      "同时报违约率/能量/推理开销"
+    ],
+    [
+      "P1：新输入泛化",
+      "避免轨迹记忆",
+      "未见熵类型与块大小",
+      "分布漂移",
+      "冻结模型后仍优于规则基线"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "离线效用（原文Eq1）",
+      "tex": "L(f)=\\alpha\\,Perf(f)-\\beta\\,P(f)-\\gamma\\,Temp(f)",
+      "symbols": "α+β+γ=1；各指标须按论文归一化尺度使用，温度与功率不能直接当能量。",
+      "example": "权重0.5/0.3/0.2是本文选定值，不是E902理论最优权重。",
+      "source": "Eq1，p3"
+    },
+    {
+      "title": "在线频率期望",
+      "tex": "\\widehat f(t)=\\sum_i p_i(t) f_i",
+      "symbols": "p_i为负载类别概率，和为1；f_i为离线预选频率Hz；最终须投影至合法档位。",
+      "example": "p=(0.25,0.75)，f=(0.5,1.0)GHz，期望0.875GHz；硬件不支持时必须定义映射。教学例。",
+      "source": "Eq5，p5"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 1,
+      "title": "Data Serving扫频动机",
+      "observation": "不同负载最合适的频率不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不同负载最合适的频率不同。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "GreenDVFS整体框图",
+      "observation": "离线profiling/选频、LSTM训练与运行时选频分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。离线profiling/选频、LSTM训练与运行时选频分开。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.51,
+        0.07,
+        0.95,
+        0.23
+      ],
+      "stage": "method",
+      "image": "original-fig2.png"
+    },
+    {
+      "label": "Fig3",
+      "page": 4,
+      "title": "时间序列负载识别",
+      "observation": "连续输入与历史状态形成负载概率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。连续输入与历史状态形成负载概率。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "LSTM单元",
+      "observation": "记忆门处理历史，不是Q学习更新。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。记忆门处理历史，不是Q学习更新。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 5,
+      "title": "早期分类训练对照",
+      "observation": "只在序列末尾准确的模型对在线调频帮助有限。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。只在序列末尾准确的模型对在线调频帮助有限。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.06,
+        0.075,
+        0.95,
+        0.205
+      ],
+      "stage": "method",
+      "image": "original-fig5.png"
+    },
+    {
+      "label": "Fig6",
+      "page": 7,
+      "title": "负载/频率效用曲面",
+      "observation": "最优点随应用和负载变化；高度是加权效用。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。最优点随应用和负载变化；高度是加权效用。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 8,
+      "title": "分类轨迹",
+      "observation": "按应用与轻中重负载分别看概率，不只看末尾分类。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。按应用与轻中重负载分别看概率，不只看末尾分类。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 9,
+      "title": "频率/性能/功率/温度轨迹",
+      "observation": "同一列固定负载比较intel和GreenDVFS；收益因应用不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同一列固定负载比较intel和GreenDVFS；收益因应用不同。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "Fig9",
+      "page": 10,
+      "title": "未训练负载对照",
+      "observation": "未见负载强度不等于未见服务程序。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。未见负载强度不等于未见服务程序。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "TableI",
+      "page": 5,
+      "title": "服务器配置",
+      "observation": "双Xeon且表内核数/逻辑线程写法需核对。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。双Xeon且表内核数/逻辑线程写法需核对。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableII",
+      "page": 6,
+      "title": "训练负载等级",
+      "observation": "DS吞吐、Redis连接数、WS客户端数并非同一单位。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。DS吞吐、Redis连接数、WS客户端数并非同一单位。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableIII",
+      "page": 6,
+      "title": "指标来源",
+      "observation": "采集含perf/turbostat/libvirt，不能假设E902都有。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。采集含perf/turbostat/libvirt，不能假设E902都有。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableIV",
+      "page": 7,
+      "title": "分类准确率",
+      "observation": "分类结果不能充当能量测量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。分类结果不能充当能量测量。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableV",
+      "page": 10,
+      "title": "综合实验结果",
+      "observation": "能量降4.6/6.5/18.3%，与不同governor逐项比较。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。能量降4.6/6.5/18.3%，与不同governor逐项比较。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.06,
+        0.075,
+        0.95,
+        0.225
+      ],
+      "stage": "result",
+      "image": "original-tablev.png"
+    },
+    {
+      "label": "TableVI",
+      "page": 10,
+      "title": "未知负载配置",
+      "observation": "测试的是已知应用内的新强度。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。测试的是已知应用内的新强度。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 5,
+      "title": "截短序列训练",
+      "observation": "每轮训练后减半长度，改善早期预测。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。每轮训练后减半长度，改善早期预测。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。可把负载等级换成压缩块大小/熵和历史周期需求，用小树/原型表分类，再查合法频率；保留GreenDVFS的“先估需求、再选档”分工，不复制服务器LSTM成本。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "CloudSuite Data Serving（YCSB+Cassandra）、Redis benchmark、CloudSuite Web Search（Nutch）"
+    ],
+    [
+      "A",
+      "控制策略",
+      "离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习"
+    ],
+    [
+      "B",
+      "控制周期",
+      "指标每秒采样；用户态工具链与CPU调频接口；不是微秒级硬件控制器"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习",
+    "workload": "虚拟机中的数据库/缓存/搜索服务，请求强度变化",
+    "programs": "CloudSuite Data Serving（YCSB+Cassandra）、Redis benchmark、CloudSuite Web Search（Nutch）",
+    "platform": "HPE ProLiant DL380 Gen11，2×Xeon Gold6448Y，256GB DDR5；Ubuntu23.04/Linux6.2，KVM/QEMU/libvirt；perf/turbostat等监测package功率并积分能量",
+    "inputs": "每秒73项系统/应用指标时间序列；离线六档负载与各频点性能/功率/温度",
+    "outputs": "LSTM负载等级概率→各预选频率的加权期望→CPUFreq动作；合法频点取整细节待核",
+    "timing": "指标每秒采样；用户态工具链与CPU调频接口；不是微秒级硬件控制器"
+  }
+}

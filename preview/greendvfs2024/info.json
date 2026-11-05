@@ -1,0 +1,28 @@
+{
+  "index": "greendvfs2024",
+  "paper_title": "Is the powersave governor really saving power?",
+  "description": "先识别应用当前请求强度，再查其合适CPU频率，避免把CPU忙碌率误认为服务需求。先识别应用当前请求强度，再查其合适CPU频率，避免把CPU忙碌率误认为服务需求",
+  "authors": [
+    "Darong Huang",
+    "Luis Costero",
+    "David Atienza"
+  ],
+  "metadata": {
+    "venue": "IEEE CCGrid2024，273–283",
+    "year": 2024,
+    "doi": "10.1109/CCGrid59990.2024.00039"
+  },
+  "source_url": "https://doi.org/10.1109/CCGrid59990.2024.00039",
+  "pdf_url": "https://infoscience.epfl.ch/bitstreams/45739ef5-f6b4-47a7-8555-73e3dd17bf9f/download",
+  "source_version": "EPFL机构仓储作者公开版11页；DOI 10.1109/CCGrid59990.2024.00039。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "5c1331f66b66dd2dc53373ff4bad4414a561e146985fdb3459ae290f5538f09d",
+  "figure_count": 16,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

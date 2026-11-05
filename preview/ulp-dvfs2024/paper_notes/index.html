@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ULP MCU DVFS：图文技术精读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">ULP MCU DVFS：图文技术精读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link active" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="ulp-mcu-dvfs图文技术精读">ULP MCU DVFS：图文技术精读<a class="anchor" href="#ulp-mcu-dvfs图文技术精读">#</a></h1>
+<p><a href="https://doi.org/10.3390/electronics13050826">论文页面</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf">本笔记所用 PDF</a> · <a href="https://doi.org/10.3390/electronics13050826">标识符</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>一句话：</strong> 先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式</p>
+<p>阅读地图：先看问题与输入输出，再顺着架构图、公式和结果图阅读；最后检查统计边界与E902迁移。完整编号索引另见“图表索引”。下文“读者分析”是推断或建议，不是原文结果。</p>
+<h2 id="阶段0材料与版本审计">阶段0：材料与版本审计<a class="anchor" href="#阶段0材料与版本审计">#</a></h2>
+<table>
+<thead><tr>
+<th>材料</th>
+<th>当前可用程度</th>
+<th>影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>摘要、正文、方法、原图注</td>
+<td>已获取本地完整PDF、文本与逐页渲染</td>
+<td>可核查结构、实验及关键数字；可见页面优先于异常文本层</td>
+</tr>
+<tr>
+<td>分析版本</td>
+<td>MDPI正式版18页，DOI 10.3390/electronics13050826。</td>
+<td>引用页码以“PDF第几页”标识</td>
+</tr>
+<tr>
+<td>代码／原始数据</td>
+<td>当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</td>
+<td>公开链接不等于已构建或已拿到原始轨迹</td>
+</tr>
+<tr>
+<td>附件、独立原始重复与勘误</td>
+<td>当前未完成全渠道附件／勘误穷尽检索</td>
+<td>不能断言没有附件、没有勘误或没有其他版本</td>
+</tr>
+<tr>
+<td>本次工作范围</td>
+<td>材料阅读、图表裁取、证据整理、教学公式</td>
+<td>所有新实验均是建议，尚未执行</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段1身份卡与整体概述">阶段1：身份卡与整体概述<a class="anchor" href="#阶段1身份卡与整体概述">#</a></h2>
+<table>
+<thead><tr>
+<th>项目</th>
+<th>内容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>英文题名</td>
+<td>Dynamic Voltage and Frequency Scaling as a Method for Reducing Energy Consumption in Ultra-Low-Power Embedded Systems</td>
+</tr>
+<tr>
+<td>中文导读题名</td>
+<td>先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式</td>
+</tr>
+<tr>
+<td>作者</td>
+<td>Josip Zidar, Tomislav Matić, Ivan Aleksi, Željko Hocenski</td>
+</tr>
+<tr>
+<td>发表／版本</td>
+<td>Electronics 13(5),826 (2024)；MDPI正式版18页，DOI 10.3390/electronics13050826。</td>
+</tr>
+<tr>
+<td>类型与领域</td>
+<td>原始方法／工程系统研究；DVFS、CPU能效、运行时控制</td>
+</tr>
+<tr>
+<td>单位、通讯、资助与利益关系</td>
+<td>作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。</td>
+</tr>
+<tr>
+<td>核心对象与接口</td>
+<td>任务/事件边界选模式，Algorithm5无限循环；未给统一毫秒采样周期</td>
+</tr>
+<tr>
+<td>代码与数据</td>
+<td>当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</td>
+</tr>
+<tr>
+<td>与本课题关系</td>
+<td>可在E902执行CRC32/SHA256或候选压缩程序，逐档测每块能量与时延；先用任务类别查表，智能模型只在输入复杂度变化使查表不足时加入。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>约200字中文概述（改写）：</strong> 本文研究单核MCU计算内核；不同计算量与软/严格时限类别的运行时能效。具体程序包括32点/128点FFT、CRC32、MD5、SHA256（Algorithm1–4）。作者在STM32L0 ARM Cortex-M0+，STM32CubeIDE；Keysight34465A电流测量、GW INSTEK PSB-1400L供电；引用数据表为STM32L010K8，正文未把具体开发板型号写齐上采用离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络。输入为应用事件、预先分类的时限需求、测得的I/T和频率表，输出为工作模式/频率，以及指数拟合所得供电目标；完整在线DC–DC切换闭环未展示。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。贡献是低成本MCU操作级能量表、经验V–f曲线和按任务要求选模式的工程组织。它适合你建立基线；不是新的强化学习算法。</p>
+<p><strong>三句话定位：</strong> 问题是为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。 方法主线为应用事件、预先分类的时限需求、测得的I/T和频率表 → 离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络 → 工作模式/频率，以及指数拟合所得供电目标；完整在线DC–DC切换闭环未展示 → 执行与反馈。 主要证据见下方结果表，结论须与测量和版本范围一起使用。</p>
+<h2 id="阶段2问题假设与创新位置">阶段2：问题、假设与创新位置<a class="anchor" href="#阶段2问题假设与创新位置">#</a></h2>
+<p>为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。</p>
+<p><strong>创新判断（读者分析）：</strong> 贡献是低成本MCU操作级能量表、经验V–f曲线和按任务要求选模式的工程组织。它适合你建立基线；不是新的强化学习算法。 不依据作者自称“首次”断定整个领域绝无前例。</p>
+<h2 id="阶段3必要术语与数学">阶段3：必要术语与数学<a class="anchor" href="#阶段3必要术语与数学">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>被控程序</td>
+<td>32点/128点FFT、CRC32、MD5、SHA256（Algorithm1–4）</td>
+</tr>
+<tr>
+<td>A</td>
+<td>控制策略</td>
+<td>离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络</td>
+</tr>
+<tr>
+<td>B</td>
+<td>控制周期</td>
+<td>任务/事件边界选模式，Algorithm5无限循环；未给统一毫秒采样周期</td>
+</tr>
+<tr>
+<td>B</td>
+<td>证据边界</td>
+<td>实测、硬件仿真、功耗模型是不同证据，见平台与结果表。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="公式1操作级能量">公式1：操作级能量<a class="anchor" href="#公式1操作级能量">#</a></h3>
+<figure><a class="image-link" href="../images/equation-1.png" target="_blank" rel="noopener"><img src="../images/equation-1.png" alt="公式1" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> V为V，I为A，T为s，E为J；恒定量假设下成立，变动量须积分。</p>
+<p><strong>代入与检查：</strong> 3.3V×1mA×10ms=33µJ；0.5mA若执行30ms则49.5µJ，低电流未必省能。</p>
+<p><strong>来源：</strong> Eq1，p7</p>
+<h3 id="公式2作者经验电压曲线">公式2：作者经验电压曲线<a class="anchor" href="#公式2作者经验电压曲线">#</a></h3>
+<figure><a class="image-link" href="../images/equation-2.png" target="_blank" rel="noopener"><img src="../images/equation-2.png" alt="公式2" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> f必须用MHz，V输出为V；系数仅属于本文拟合，不是物理安全定律。</p>
+<p><strong>代入与检查：</strong> f=2.097MHz时约1.94V；不能将E902频率直接代入。</p>
+<p><strong>来源：</strong> Eq2，p10–11</p>
+<h2 id="阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解<a class="anchor" href="#阶段46架构关键图与方法拆解">#</a></h2>
+<p><strong>输入—处理—输出：</strong> 应用事件、预先分类的时限需求、测得的I/T和频率表 → 离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络 → 工作模式/频率，以及指数拟合所得供电目标；完整在线DC–DC切换闭环未展示 → 执行与反馈。</p>
+<table>
+<thead><tr>
+<th>系统角色</th>
+<th>具体设置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>具体控制算法</td>
+<td>离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络</td>
+</tr>
+<tr>
+<td>被控负载类型</td>
+<td>单核MCU计算内核；不同计算量与软/严格时限类别</td>
+</tr>
+<tr>
+<td>具体被控程序</td>
+<td>32点/128点FFT、CRC32、MD5、SHA256（Algorithm1–4）</td>
+</tr>
+<tr>
+<td>使用平台与测量</td>
+<td>STM32L0 ARM Cortex-M0+，STM32CubeIDE；Keysight34465A电流测量、GW INSTEK PSB-1400L供电；引用数据表为STM32L010K8，正文未把具体开发板型号写齐</td>
+</tr>
+<tr>
+<td>输入/状态</td>
+<td>应用事件、预先分类的时限需求、测得的I/T和频率表</td>
+</tr>
+<tr>
+<td>输出/动作</td>
+<td>工作模式/频率，以及指数拟合所得供电目标；完整在线DC–DC切换闭环未展示</td>
+</tr>
+<tr>
+<td>周期与运行位置</td>
+<td>任务/事件边界选模式，Algorithm5无限循环；未给统一毫秒采样周期</td>
+</tr>
+</tbody>
+</table>
+<p>§3.1–3.3（PDF p5–13）先在3.3V下测8档131kHz–16MHz，每项电流、电压、时间取100次平均，计算E=UIt。固定电压下降频会降低电流，但FFT等执行时间拉长，能量未必降低。作者以(0.131MHz,1.8V)与(16MHz,3.3V)拟合U=1.791011·exp(f/26.1804846)，给出Table3的DVFS能量，最小值位于2.097MHz/1.94V。§3.5的Algorithm5是任务类别规则：时间关键任务走高速，无期限轻任务保持省电模式，软期限任务使用能量效率模式。</p>
+<p>这是物理MCU上的测量与配置分析，但Table3称“calculated energy”，没有给完整在线调压驱动、稳压器瞬态或每任务实测切换轨迹。不能把静态频点表说成已经部署的学习闭环；指数曲线不是芯片通用的安全电压边界。</p>
+<h3 id="fig3电流测量连接">Fig3：电流测量连接<a class="anchor" href="#fig3电流测量连接">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3：电流测量连接" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=6">原文 Fig3，PDF p6</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。先分清电流表、供电与MCU，明确测能边界。</p>
+<p><strong>直接观察／原文报告：</strong> 先分清电流表、供电与MCU，明确测能边界。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<h3 id="fig5两点指数电压拟合">Fig5：两点指数电压拟合<a class="anchor" href="#fig5两点指数电压拟合">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig5.png" target="_blank" rel="noopener"><img src="../images/original-fig5.png" alt="Fig5：两点指数电压拟合" loading="lazy"></a></figure>
+<p><a href="../images/original-fig5.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=11">原文 Fig5，PDF p11</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。红点是拟合端点；曲线不是全工作范围可靠性认证。</p>
+<p><strong>直接观察／原文报告：</strong> 红点是拟合端点；曲线不是全工作范围可靠性认证。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段78实验统计及证据链">阶段7–8：实验、统计及证据链<a class="anchor" href="#阶段78实验统计及证据链">#</a></h2>
+<p>本节数字均是<strong>原文明确报告或原文数值的标注算例</strong>；没有按图柱高度臆造额外精确值。</p>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>同频点DVFS相对3.3V DFS能量</td>
+<td>降低27.74%–47.74%</td>
+<td>Table4各频率比较；不是相对最优DFS点统一降低47.74%</td>
+<td>Table4，PDF p13</td>
+</tr>
+<tr>
+<td>最低计算能量点</td>
+<td>2.097MHz，约1.94V</td>
+<td>本文8档/5程序与拟合曲线内；不是任意MCU最优点</td>
+<td>Table3/6，p13–14</td>
+</tr>
+<tr>
+<td>FFT128示例</td>
+<td>2285.48µJ</td>
+<td>2.097MHz下Table3；相同程序单位需统一</td>
+<td>Table3，p13</td>
+</tr>
+</tbody>
+</table>
+<h3 id="table3dvfs计算能量表">Table3：DVFS计算能量表<a class="anchor" href="#table3dvfs计算能量表">#</a></h3>
+<figure><a class="image-link" href="../images/original-table3.png" target="_blank" rel="noopener"><img src="../images/original-table3.png" alt="Table3：DVFS计算能量表" loading="lazy"></a></figure>
+<p><a href="../images/original-table3.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=13">原文 Table3，PDF p13</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。最低值2.097MHz；表中给的是计算能量。</p>
+<p><strong>直接观察／原文报告：</strong> 最低值2.097MHz；表中给的是计算能量。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<h3 id="table4同频dfs对dvfs节能率">Table4：同频DFS对DVFS节能率<a class="anchor" href="#table4同频dfs对dvfs节能率">#</a></h3>
+<figure><a class="image-link" href="../images/original-table4.png" target="_blank" rel="noopener"><img src="../images/original-table4.png" alt="Table4：同频DFS对DVFS节能率" loading="lazy"></a></figure>
+<p><a href="../images/original-table4.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=13">原文 Table4，PDF p13</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。各频率的对照分母是同频DFS，不是全局最优DFS。</p>
+<p><strong>直接观察／原文报告：</strong> 各频率的对照分母是同频DFS，不是全局最优DFS。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<p><strong>统计与公平性审查（读者分析）：</strong> Table1为100次测量平均，但没有为每项给原始100次离散度。§3.4把15个不同配置的能量值用于比较不同算法的t/Wilcoxon检验；这与“DVFS相对DFS在独立重复中显著节能”不是同一假设。FFT128与MD5的任务量也不同，不能用算法间P值证明某governor优越。Table4同一频率五程序的百分比相同，读者应要求原始电测和计算流程来区分共用缩放因素与各程序独立行为。</p>
+<p>工程实验中，设备、程序、输入文件、重复运行、时间窗口是不同统计层级，不能互相替代。本任务不涉及生物样本，细胞／动物／试剂等检查不适用。未注明的P值或置信区间不补造；“差了几个百分点”不自动等于统计显著。</p>
+<table>
+<thead><tr>
+<th>主张层级</th>
+<th>直接证据</th>
+<th>对照与统计</th>
+<th>可得结论／替代解释</th>
+<th>可信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>原文明确报告</td>
+<td>同频点DVFS相对3.3V DFS能量：降低27.74%–47.74%</td>
+<td>Table4，PDF p13</td>
+<td>Table4各频率比较；不是相对最优DFS点统一降低47.74%；仅在该实验范围内成立</td>
+<td>图表／文本可核对：高；独立复现：尚无</td>
+</tr>
+<tr>
+<td>作者解释</td>
+<td>所提架构／模型解释了性能或估计改善</td>
+<td>关键原图与方法见上文；统计边界见下节</td>
+<td>效果可能同时来自动作空间、平台特性与采样设置，因果归因需消融</td>
+<td>中</td>
+</tr>
+<tr>
+<td>AI分析／迁移假设</td>
+<td>用于E902的压缩候选负载</td>
+<td>本篇未直接验证该芯片与任务组合</td>
+<td>需三项后续实验；不能复制论文收益数字</td>
+<td>待验证，当前无法判断</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断<a class="anchor" href="#阶段910贡献与局限分开判断">#</a></h2>
+<p>贡献是低成本MCU操作级能量表、经验V–f曲线和按任务要求选模式的工程组织。它适合你建立基线；不是新的强化学习算法。</p>
+<table>
+<thead><tr>
+<th>来源</th>
+<th>严重程度</th>
+<th>局限及其影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>仅两端点拟合不足以证明全温度/全芯片批次电压安全，不能复制为E902的OPP。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>频点比较未完整计入动态DC–DC转换效率、切换延时与任务间空闲周期。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>未提供现代Linux governor公平对照；作者明确说明平台与源码差异阻碍直接对比。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口<a class="anchor" href="#阶段11最小复现路线与缺口">#</a></h2>
+<p>先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。可在E902执行CRC32/SHA256或候选压缩程序，逐档测每块能量与时延；先用任务类别查表，智能模型只在输入复杂度变化使查表不足时加入。</p>
+<p><strong>代码／数据现状：</strong> 当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</p>
+<p><strong>质量控制顺序：</strong> 先验证程序输出和时间基准，再验证采样／模型，最后比较策略。保存输入文件哈希、平台配置、OPP、随机种子、温度与每次运行原始记录。失败时先回固定安全频点定位错误，再继续优化。复现可行性判断为“可开始部分方法复建，完整数值复现条件未齐”；这与“已完成复现”不同。</p>
+<h2 id="阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题<a class="anchor" href="#阶段12用于你的cpue902课题">#</a></h2>
+<p>可在E902执行CRC32/SHA256或候选压缩程序，逐档测每块能量与时延；先用任务类别查表，智能模型只在输入复杂度变化使查表不足时加入。</p>
+<table>
+<thead><tr>
+<th>建议实验／优先级</th>
+<th>价值</th>
+<th>最低资源</th>
+<th>主要风险</th>
+<th>成功判据（设计目标，非已得结果）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P0：计算内核E–T扫描</td>
+<td>建立可解释物理基线</td>
+<td>CRC32/SHA256/压缩块与合法频点、计时器</td>
+<td>只有DFS时不可假称调压</td>
+<td>各档正确结果，记录J/块和ms/块</td>
+</tr>
+<tr>
+<td>P1：三模式规则</td>
+<td>验证复杂学习是否必要</td>
+<td>块大小/期限与模式表</td>
+<td>任务分类错误会违约</td>
+<td>同输入对比最大频率/最低可行档/规则</td>
+</tr>
+<tr>
+<td>P1：切换全成本</td>
+<td>检验静态最优能否在线成立</td>
+<td>ack时间戳、外部测能或明确能量模型</td>
+<td>短块的切换开销可能吃掉收益</td>
+<td>完整周期净能量改善并报告失败输入</td>
+</tr>
+</tbody>
+</table>
+<p>上述优先级是读者建议：P0先做，P1建立在基线可运行后，P2只在资源允许且前序实验证明有必要时开展。压缩应用仍是候选，尚未替你最终定题或证明已在E902运行。论文公开可读不自动授权任意复制数据；代码、图片和数据须分别核对许可。</p>
+<h2 id="阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查<a class="anchor" href="#阶段13读完后应掌握与继续核查">#</a></h2>
+<p><strong>五个知识点：</strong> 先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式 你还应能解释输入输出表中的角色、两条公式的单位、首个结果指标的分母，以及局限表里的关键条件。</p>
+<p><strong>五个未决问题：</strong> 独立新输入是否成立？最差时延是否可接受？测量参考是否足够？控制与切换是否抵消收益？E902实际具有哪些接口和可观测量？这些是研究问题，不是对作者遗漏的无证据指控。</p>
+<p><strong>立即做：</strong> 按公式算例手算一次，选一张结果图复述“硬件—负载—基线—指标—边界”。<strong>后续核查：</strong> 补齐代码版本、训练数据和仪表设置。<strong>可复用：</strong> 上文明确标注的模型与接口思路。<strong>谨慎采用：</strong> 所有跨平台百分比。<strong>暂不采用：</strong> 尚未证实存在的电压控制和完整硬实时承诺。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#ulp-mcu-dvfs图文技术精读">ULP MCU DVFS：图文技术精读</a>
+<a class="toc-level-2" href="#阶段0材料与版本审计">阶段0：材料与版本审计</a>
+<a class="toc-level-2" href="#阶段1身份卡与整体概述">阶段1：身份卡与整体概述</a>
+<a class="toc-level-2" href="#阶段2问题假设与创新位置">阶段2：问题、假设与创新位置</a>
+<a class="toc-level-2" href="#阶段3必要术语与数学">阶段3：必要术语与数学</a>
+<a class="toc-level-3" href="#公式1操作级能量">公式1：操作级能量</a>
+<a class="toc-level-3" href="#公式2作者经验电压曲线">公式2：作者经验电压曲线</a>
+<a class="toc-level-2" href="#阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解</a>
+<a class="toc-level-3" href="#fig3电流测量连接">Fig3：电流测量连接</a>
+<a class="toc-level-3" href="#fig5两点指数电压拟合">Fig5：两点指数电压拟合</a>
+<a class="toc-level-2" href="#阶段78实验统计及证据链">阶段7–8：实验、统计及证据链</a>
+<a class="toc-level-3" href="#table3dvfs计算能量表">Table3：DVFS计算能量表</a>
+<a class="toc-level-3" href="#table4同频dfs对dvfs节能率">Table4：同频DFS对DVFS节能率</a>
+<a class="toc-level-2" href="#阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断</a>
+<a class="toc-level-2" href="#阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口</a>
+<a class="toc-level-2" href="#阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题</a>
+<a class="toc-level-2" href="#阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查</a>
+    </aside>
+  </div>
+</body>
+</html>

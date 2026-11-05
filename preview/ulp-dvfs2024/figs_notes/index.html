@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ULP MCU DVFS：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">ULP MCU DVFS：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="ulp-mcu-dvfs原图原表阅读索引">ULP MCU DVFS：原图原表阅读索引<a class="anchor" href="#ulp-mcu-dvfs原图原表阅读索引">#</a></h1>
+<p><a href="https://doi.org/10.3390/electronics13050826">论文页面</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf">本笔记所用 PDF</a> · <a href="https://doi.org/10.3390/electronics13050826">标识符</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的17项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> Table1为100次测量平均，但没有为每项给原始100次离散度。§3.4把15个不同配置的能量值用于比较不同算法的t/Wilcoxon检验；这与“DVFS相对DFS在独立重复中显著节能”不是同一假设。FFT128与MD5的任务量也不同，不能用算法间P值证明某governor优越。Table4同一频率五程序的百分比相同，读者应要求原始电测和计算流程来区分共用缩放因素与各程序独立行为。</p>
+<h2 id="fig1测量用万用表">Fig1：测量用万用表<a class="anchor" href="#fig1测量用万用表">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=5">原文 Fig1，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 测量用万用表，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。仪器照片说明测量设备，不等于实际实验采样率就是其最高规格。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 仪器照片说明测量设备，不等于实际实验采样率就是其最高规格。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“仪器照片说明测量设备，不等于实际实验采样率就是其最高规格。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig2直流电源">Fig2：直流电源<a class="anchor" href="#fig2直流电源">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=6">原文 Fig2，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 直流电源，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。供电设备的规格不代表调压切换响应已验证。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 供电设备的规格不代表调压切换响应已验证。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“供电设备的规格不代表调压切换响应已验证。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig3电流测量连接">Fig3：电流测量连接<a class="anchor" href="#fig3电流测量连接">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=6">原文 Fig3，PDF p6</a></p>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 电流测量连接，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。先分清电流表、供电与MCU，明确测能边界。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 先分清电流表、供电与MCU，明确测能边界。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“先分清电流表、供电与MCU，明确测能边界。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig4固定33v的dfs能量曲线">Fig4：固定3.3V的DFS能量曲线<a class="anchor" href="#fig4固定33v的dfs能量曲线">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=9">原文 Fig4，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 固定3.3V的DFS能量曲线，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低频常增加每次运算能量，不能按电流单独排名。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 低频常增加每次运算能量，不能按电流单独排名。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“低频常增加每次运算能量，不能按电流单独排名。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig5两点指数电压拟合">Fig5：两点指数电压拟合<a class="anchor" href="#fig5两点指数电压拟合">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=11">原文 Fig5，PDF p11</a></p>
+<figure><a class="image-link" href="../images/original-fig5.png" target="_blank" rel="noopener"><img src="../images/original-fig5.png" alt="Fig5" loading="lazy"></a></figure>
+<p><a href="../images/original-fig5.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 两点指数电压拟合，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。红点是拟合端点；曲线不是全工作范围可靠性认证。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 红点是拟合端点；曲线不是全工作范围可靠性认证。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“红点是拟合端点；曲线不是全工作范围可靠性认证。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig6dfs与dvfs操作能量">Fig6：DFS与DVFS操作能量<a class="anchor" href="#fig6dfs与dvfs操作能量">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=12">原文 Fig6，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> DFS与DVFS操作能量，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。每个子图固定算法，比较同频率配置的能量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 每个子图固定算法，比较同频率配置的能量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“每个子图固定算法，比较同频率配置的能量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table1100次平均电流与时间">Table1：100次平均电流与时间<a class="anchor" href="#table1100次平均电流与时间">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=10">原文 Table1，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 100次平均电流与时间，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。以操作次数与时长区分独立测量和配置点。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 以操作次数与时长区分独立测量和配置点。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“以操作次数与时长区分独立测量和配置点。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table2固定电压能量表">Table2：固定电压能量表<a class="anchor" href="#table2固定电压能量表">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=10">原文 Table2，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 固定电压能量表，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。能量由电流与执行时间共同决定。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 能量由电流与执行时间共同决定。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“能量由电流与执行时间共同决定。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table3dvfs计算能量表">Table3：DVFS计算能量表<a class="anchor" href="#table3dvfs计算能量表">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=13">原文 Table3，PDF p13</a></p>
+<figure><a class="image-link" href="../images/original-table3.png" target="_blank" rel="noopener"><img src="../images/original-table3.png" alt="Table3" loading="lazy"></a></figure>
+<p><a href="../images/original-table3.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> DVFS计算能量表，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。最低值2.097MHz；表中给的是计算能量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 最低值2.097MHz；表中给的是计算能量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“最低值2.097MHz；表中给的是计算能量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table4同频dfs对dvfs节能率">Table4：同频DFS对DVFS节能率<a class="anchor" href="#table4同频dfs对dvfs节能率">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=13">原文 Table4，PDF p13</a></p>
+<figure><a class="image-link" href="../images/original-table4.png" target="_blank" rel="noopener"><img src="../images/original-table4.png" alt="Table4" loading="lazy"></a></figure>
+<p><a href="../images/original-table4.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 同频DFS对DVFS节能率，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。各频率的对照分母是同频DFS，不是全局最优DFS。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 各频率的对照分母是同频DFS，不是全局最优DFS。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“各频率的对照分母是同频DFS，不是全局最优DFS。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table5算法间显著性检验">Table5：算法间显著性检验<a class="anchor" href="#table5算法间显著性检验">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=13">原文 Table5，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 算法间显著性检验，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。比较不同算法能量，不直接证明DVFS策略的因果收益。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 比较不同算法能量，不直接证明DVFS策略的因果收益。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“比较不同算法能量，不直接证明DVFS策略的因果收益。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table6频率每瓦指标">Table6：频率每瓦指标<a class="anchor" href="#table6频率每瓦指标">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=14">原文 Table6，PDF p14</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 频率每瓦指标，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。PPW以频率作性能代理，不是直接测得应用吞吐。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> PPW以频率作性能代理，不是直接测得应用吞吐。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“PPW以频率作性能代理，不是直接测得应用吞吐。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm1fft负载伪代码">Algorithm1：FFT负载伪代码<a class="anchor" href="#algorithm1fft负载伪代码">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=7">原文 Algorithm1，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> FFT负载伪代码，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。这是被控计算任务，不能当控制器。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 这是被控计算任务，不能当控制器。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“这是被控计算任务，不能当控制器。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm2crc32负载伪代码">Algorithm2：CRC32负载伪代码<a class="anchor" href="#algorithm2crc32负载伪代码">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=7">原文 Algorithm2，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> CRC32负载伪代码，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。哈希/校验程序承担CPU工作。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 哈希/校验程序承担CPU工作。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“哈希/校验程序承担CPU工作。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm3md5负载伪代码">Algorithm3：MD5负载伪代码<a class="anchor" href="#algorithm3md5负载伪代码">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=8">原文 Algorithm3，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> MD5负载伪代码，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。相同输入正确性要独立验证。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 相同输入正确性要独立验证。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“相同输入正确性要独立验证。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm4sha256负载伪代码">Algorithm4：SHA256负载伪代码<a class="anchor" href="#algorithm4sha256负载伪代码">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=8">原文 Algorithm4，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> SHA256负载伪代码，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不同哈希工作量不能按一次调用简单公平排名。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不同哈希工作量不能按一次调用简单公平排名。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不同哈希工作量不能按一次调用简单公平排名。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm5按任务类别切换模式">Algorithm5：按任务类别切换模式<a class="anchor" href="#algorithm5按任务类别切换模式">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf#page=14">原文 Algorithm5，PDF p14</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 按任务类别切换模式，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。高性能/省电/能效三模式属于规则控制而非机器学习。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 高性能/省电/能效三模式属于规则控制而非机器学习。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“高性能/省电/能效三模式属于规则控制而非机器学习。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#ulp-mcu-dvfs原图原表阅读索引">ULP MCU DVFS：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1测量用万用表">Fig1：测量用万用表</a>
+<a class="toc-level-2" href="#fig2直流电源">Fig2：直流电源</a>
+<a class="toc-level-2" href="#fig3电流测量连接">Fig3：电流测量连接</a>
+<a class="toc-level-2" href="#fig4固定33v的dfs能量曲线">Fig4：固定3.3V的DFS能量曲线</a>
+<a class="toc-level-2" href="#fig5两点指数电压拟合">Fig5：两点指数电压拟合</a>
+<a class="toc-level-2" href="#fig6dfs与dvfs操作能量">Fig6：DFS与DVFS操作能量</a>
+<a class="toc-level-2" href="#table1100次平均电流与时间">Table1：100次平均电流与时间</a>
+<a class="toc-level-2" href="#table2固定电压能量表">Table2：固定电压能量表</a>
+<a class="toc-level-2" href="#table3dvfs计算能量表">Table3：DVFS计算能量表</a>
+<a class="toc-level-2" href="#table4同频dfs对dvfs节能率">Table4：同频DFS对DVFS节能率</a>
+<a class="toc-level-2" href="#table5算法间显著性检验">Table5：算法间显著性检验</a>
+<a class="toc-level-2" href="#table6频率每瓦指标">Table6：频率每瓦指标</a>
+<a class="toc-level-2" href="#algorithm1fft负载伪代码">Algorithm1：FFT负载伪代码</a>
+<a class="toc-level-2" href="#algorithm2crc32负载伪代码">Algorithm2：CRC32负载伪代码</a>
+<a class="toc-level-2" href="#algorithm3md5负载伪代码">Algorithm3：MD5负载伪代码</a>
+<a class="toc-level-2" href="#algorithm4sha256负载伪代码">Algorithm4：SHA256负载伪代码</a>
+<a class="toc-level-2" href="#algorithm5按任务类别切换模式">Algorithm5：按任务类别切换模式</a>
+    </aside>
+  </div>
+</body>
+</html>

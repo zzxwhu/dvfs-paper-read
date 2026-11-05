@@ -1,0 +1,29 @@
+{
+  "index": "ulp-dvfs2024",
+  "paper_title": "Dynamic Voltage and Frequency Scaling as a Method for Reducing Energy Consumption in Ultra-Low-Power Embedded Systems",
+  "description": "先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式。先扫描真实MCU程序的能量—频率曲线，再按任务时限选择三种工作模式",
+  "authors": [
+    "Josip Zidar",
+    "Tomislav Matić",
+    "Ivan Aleksi",
+    "Željko Hocenski"
+  ],
+  "metadata": {
+    "venue": "Electronics 13(5),826 (2024)",
+    "year": 2024,
+    "doi": "10.3390/electronics13050826"
+  },
+  "source_url": "https://doi.org/10.3390/electronics13050826",
+  "pdf_url": "https://mdpi-res.com/d_attachment/electronics/electronics-13-00826/article_deploy/electronics-13-00826.pdf",
+  "source_version": "MDPI正式版18页，DOI 10.3390/electronics13050826。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "be0430aebc6cda5502e10ba66c8129bf370ea54ce78da9812213c2c2f01d4f31",
+  "figure_count": 17,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

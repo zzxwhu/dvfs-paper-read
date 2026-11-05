@@ -5,6 +5,25 @@ date: "2026-11-05"
 
 从零理解CPU频率、能量与闭环，再结合原图、公式与实验边界选择自己的实现路线。
 
+## 新增第二批：20篇具体对比
+
+[20篇：具体算法、被控负载、执行程序、平台、结果](DVFS/comparison-20-papers.md) · [CSV](DVFS/data/dvfs-20.csv)
+
+两批共20篇，加原有独立JSA2023共21篇全文笔记。
+
+| 新增论文 | 从零入门 | 图文精读 | 图表索引 | 双语摘要 |
+| --- | --- | --- | --- | --- |
+| Ondemand原始设计 | [入门](DVFS/ondemand2006/ELI5_notes.md) | [精读](DVFS/ondemand2006/paper_notes.md) | [图表](DVFS/ondemand2006/figs_notes.md) | [摘要](DVFS/ondemand2006/translation_notes.md) |
+| ULP MCU DVFS | [入门](DVFS/ulp-dvfs2024/ELI5_notes.md) | [精读](DVFS/ulp-dvfs2024/paper_notes.md) | [图表](DVFS/ulp-dvfs2024/figs_notes.md) | [摘要](DVFS/ulp-dvfs2024/translation_notes.md) |
+| RP2040阶段DVFS | [入门](DVFS/embedded-apps2025/ELI5_notes.md) | [精读](DVFS/embedded-apps2025/paper_notes.md) | [图表](DVFS/embedded-apps2025/figs_notes.md) | [摘要](DVFS/embedded-apps2025/translation_notes.md) |
+| ATP Per-core DVFS | [入门](DVFS/percore-dvfs2025/ELI5_notes.md) | [精读](DVFS/percore-dvfs2025/paper_notes.md) | [图表](DVFS/percore-dvfs2025/figs_notes.md) | [摘要](DVFS/percore-dvfs2025/translation_notes.md) |
+| WLC＋MLR RTM | [入门](DVFS/lowcomplex-rtm2020/ELI5_notes.md) | [精读](DVFS/lowcomplex-rtm2020/paper_notes.md) | [图表](DVFS/lowcomplex-rtm2020/figs_notes.md) | [摘要](DVFS/lowcomplex-rtm2020/translation_notes.md) |
+| GreenDVFS | [入门](DVFS/greendvfs2024/ELI5_notes.md) | [精读](DVFS/greendvfs2024/paper_notes.md) | [图表](DVFS/greendvfs2024/figs_notes.md) | [摘要](DVFS/greendvfs2024/translation_notes.md) |
+| 多任务时序DDQN | [入门](DVFS/multitask-drl2024/ELI5_notes.md) | [精读](DVFS/multitask-drl2024/paper_notes.md) | [图表](DVFS/multitask-drl2024/figs_notes.md) | [摘要](DVFS/multitask-drl2024/translation_notes.md) |
+| 2QoSM表格Q | [入门](DVFS/2qosm2022/ELI5_notes.md) | [精读](DVFS/2qosm2022/paper_notes.md) | [图表](DVFS/2qosm2022/figs_notes.md) | [摘要](DVFS/2qosm2022/translation_notes.md) |
+| 数字分频＋DVFS | [入门](DVFS/divider-dvfs2023/ELI5_notes.md) | [精读](DVFS/divider-dvfs2023/paper_notes.md) | [图表](DVFS/divider-dvfs2023/figs_notes.md) | [摘要](DVFS/divider-dvfs2023/translation_notes.md) |
+| Ωkypous | [入门](DVFS/serverless-coreuncore2024/ELI5_notes.md) | [精读](DVFS/serverless-coreuncore2024/paper_notes.md) | [图表](DVFS/serverless-coreuncore2024/figs_notes.md) | [摘要](DVFS/serverless-coreuncore2024/translation_notes.md) |
+
 ## 新增十篇：先读路线图
 
 [十篇对比、推荐读序与CPU/E902设计建议](DVFS/reading-map-2026-11.md)

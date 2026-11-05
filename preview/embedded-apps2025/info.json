@@ -1,0 +1,28 @@
+{
+  "index": "embedded-apps2025",
+  "paper_title": "Reducing Energy Consumption in Embedded Systems Applications",
+  "description": "把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率。把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率",
+  "authors": [
+    "Ioannis Sofianidis",
+    "Vasileios Konstantakos",
+    "Spyridon Nikolaidis"
+  ],
+  "metadata": {
+    "venue": "Technologies 13(2),82 (2025)",
+    "year": 2025,
+    "doi": "10.3390/technologies13020082"
+  },
+  "source_url": "https://doi.org/10.3390/technologies13020082",
+  "pdf_url": "https://mdpi-res.com/d_attachment/technologies/technologies-13-00082/article_deploy/technologies-13-00082.pdf",
+  "source_version": "MDPI正式版18页，Table13标题疑似沿用Scenario1，实际处于Scenario2。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "9ee4607e5d88c794876f4435737c01c74463addb00221dc9828e8ad1b601da50",
+  "figure_count": 20,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

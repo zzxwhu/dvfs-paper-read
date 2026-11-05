@@ -1,0 +1,387 @@
+{
+  "short": "2QoSM表格Q",
+  "zh": "用小Q表控制CPU性能状态，并用七种奖励展示省功率与服务质量的取舍",
+  "authors": [
+    "Michael Giardino",
+    "Daniel Schwyn",
+    "Bonnie Ferri",
+    "Aldo Ferri"
+  ],
+  "venue": "J. Low Power Electronics and Applications12(2),29 (2022)",
+  "version": "MDPI正式版25页，MCSoC2021论文扩展；关注CPU资源管理，不作为电机课题建议。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "用小Q表控制CPU性能状态，并用七种奖励展示省功率与服务质量的取舍",
+  "abstract_zh": "本文研究导航/路径规划CPU软件，计算量、访存与重规划需求变化；本文CPU控制不是电机控制算法的运行时能效。具体程序包括Anytime Dynamic A*（ADA*）路径规划、地图与轨迹规划线程；低层PID/里程计由另一Arduino承担，不是用户课题要实现的内容。作者在ODROID-XU4 Exynos5422，4×A15/4×A7、2GB，Ubuntu18.04/Linux4.14.5-92；cluster级DVFS；ArduinoROMEO/ATmega328P独立处理低层动作上采用C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态。输入为路径误差、功率、重规划标志、通信校验错误、地图更新等离散状态；不只CPU利用率，输出为HAL定义的离散CPU性能状态（每状态5个动作Q条目）；具体频率映射需实现确认，线程迁核未作为本实验动作。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。用可替换软件抽象把应用性能指标、Q-learning与HAL组合，并系统展示七种reward如何改变策略。学习器本身是经典表格Q，研究价值在状态/奖励/架构取舍。",
+  "abstract_en": "2QoSM integrates tabular Q-learning with compute-aware applications and a hardware abstraction layer. A navigation application on an ODROID-XU4 supplies application metrics to the CPU power manager. Different reward functions emphasize power, path error, or replanning. The strongest power and error improvements belong to different policies and must not be combined. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：用小Q表控制CPU性能状态，并用七种奖励展示省功率与服务质量的取舍。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "用可替换软件抽象把应用性能指标、Q-learning与HAL组合，并系统展示七种reward如何改变策略。学习器本身是经典表格Q，研究价值在状态/奖励/架构取舍。",
+  "flow": "路径误差、功率、重规划标志、通信校验错误、地图更新等离散状态；不只CPU利用率 → C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态 → HAL定义的离散CPU性能状态（每状态5个动作Q条目）；具体频率映射需实现确认，线程迁核未作为本实验动作 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态"
+    ],
+    [
+      "被控负载类型",
+      "导航/路径规划CPU软件，计算量、访存与重规划需求变化；本文CPU控制不是电机控制算法"
+    ],
+    [
+      "具体被控程序",
+      "Anytime Dynamic A*（ADA*）路径规划、地图与轨迹规划线程；低层PID/里程计由另一Arduino承担，不是用户课题要实现的内容"
+    ],
+    [
+      "使用平台与测量",
+      "ODROID-XU4 Exynos5422，4×A15/4×A7、2GB，Ubuntu18.04/Linux4.14.5-92；cluster级DVFS；ArduinoROMEO/ATmega328P独立处理低层动作"
+    ],
+    [
+      "输入/状态",
+      "路径误差、功率、重规划标志、通信校验错误、地图更新等离散状态；不只CPU利用率"
+    ],
+    [
+      "输出/动作",
+      "HAL定义的离散CPU性能状态（每状态5个动作Q条目）；具体频率映射需实现确认，线程迁核未作为本实验动作"
+    ],
+    [
+      "周期与运行位置",
+      "用户态QoSM独立线程，10ms hrtimer周期；各reward先600s训练，每次试验从同训练矩阵起步，试验中仍可更新"
+    ]
+  ],
+  "method": "§4–5（p6–20）：compute-aware application向QoSM报告性能/应用提示，QoSM不知道具体物理含义也可打包状态并执行Q更新，HAL承担平台细节。Q表每项8B，文中1600状态×5动作=64KB；状态离散越细，空间相乘增长。Table2部分“离散级数—累计状态”乘积不完全一致，复现需从实现核对，不能照表盲算。\n\n七种reward分别关注功率、误差、两者相加、重规划标志/累积量、权重和移动平均。功率是动作立即影响的量，误差还受路径/环境影响，容易被功率项压倒。本文机器人场景用于提供丰富CPU需求，不应据此给你安排电机控制；借鉴的是Q表、应用提示与奖励消融。",
+  "metrics": [
+    [
+      "power-only策略",
+      "平均功率降低42.6% vs Ondemand",
+      "2.98W；相对situation-aware降低10.2%，但误差更大",
+      "Fig8/§5.4，p15"
+    ],
+    [
+      "power＋error策略",
+      "功率−38.7%、误差−4.6% vs Ondemand",
+      "同一reward可同时转述这两项；不是42.6%与6.1%同时获得",
+      "§5.4，p15"
+    ],
+    [
+      "error-only策略",
+      "误差改善6.1% vs Ondemand",
+      "属于另一策略；不能合并最高功率收益",
+      "§5.4，p15"
+    ],
+    [
+      "Q表存储",
+      "64KB",
+      "1600×5×8B，尚不含程序/栈/其他状态",
+      "§5.2/Table2，p10–11"
+    ]
+  ],
+  "stats": "600s训练不是600个独立实验。作者每次重置到同一训练后Q表以减少连续学习差异，但运行中仍在线更新。功率、路径误差、完成时间与能量不同，42.6%是W指标；物理误差受环境而非仅CPU动作影响，reward与控制因果联系应谨慎解释。状态表算术不一致和具体动作映射属于复现缺口。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "不能把机器人误差reward直接移植压缩应用；应以正确性、期限和净能量重定义。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "64KB表可能占E902系统较大RAM，状态压缩是关键。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "在线探索会导致服务质量下降，需要冻结策略/安全回退；不存在训练结束即严格保证。"
+    ]
+  ],
+  "transfer": "只借鉴CPU资源管理：用块进度/余量/历史成本作小Q表状态，动作是合法频档；任务正确性不应被当作可交易reward，出错必须失败。无需任何电机知识。",
+  "experiments": [
+    [
+      "P0：极小Q表",
+      "测E902资源可行性",
+      "例如3×3状态与合法频档",
+      "状态太粗丢需求",
+      "报告Q表/代码RAM与推理周期"
+    ],
+    [
+      "P1：reward消融",
+      "防只追求低频而超时",
+      "同输入和三个reward",
+      "尺度导致一项支配",
+      "比较净能量、期限违约和正确性"
+    ],
+    [
+      "P1：探索与冻结",
+      "区分训练代价和部署收益",
+      "固定训练文件/独立测试集",
+      "在线探索破坏服务",
+      "测试冻结策略并记录回退次数"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "表格Q更新",
+      "tex": "Q(s,a)\\leftarrow(1-\\alpha)Q(s,a)+\\alpha[r+\\gamma\\max_{a\\prime}Q(s\\prime,a\\prime)]",
+      "symbols": "α学习率、γ折扣均无量纲；状态/动作必须离散；不是神经网络反向传播。",
+      "example": "α=0.1、Q=1、r=0.5、γ=0.9、maxQ′=1时，新Q=1.04。教学例。",
+      "source": "Eq4，p7"
+    },
+    {
+      "title": "归一化功率/误差奖励",
+      "tex": "r=2-\\left(P/P_{max}+e/e_{max}\\right)",
+      "symbols": "P为W，e为任务误差；归一化后无量纲。压缩项目不使用物理路径误差。",
+      "example": "当功率比0.5、误差比0.2，r=1.3；必须同时检查绝对期限而非只最大化r。教学例。",
+      "source": "Table4，p13"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 7,
+      "title": "CAA/QoSM/HAL架构",
+      "observation": "应用提示、决策和执行器可替换。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。应用提示、决策和执行器可替换。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.27,
+        0.07,
+        0.945,
+        0.43
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 9,
+      "title": "实验机器人",
+      "observation": "说明原负载环境，不作为本课题硬件采购建议。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。说明原负载环境，不作为本课题硬件采购建议。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 9,
+      "title": "分层系统",
+      "observation": "ODROID运行计算，Arduino处理独立低层控制。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。ODROID运行计算，Arduino处理独立低层控制。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 11,
+      "title": "训练控制台",
+      "observation": "可观察Q学习状态，不等于收敛证明。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可观察Q学习状态，不等于收敛证明。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 12,
+      "title": "训练路线",
+      "observation": "随机目的地提供训练轨迹。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。随机目的地提供训练轨迹。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 13,
+      "title": "Q更新幅度",
+      "observation": "更新变小不等于全状态策略最优。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。更新变小不等于全状态策略最优。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 14,
+      "title": "Q矩阵分布",
+      "observation": "未访问状态与低Q值要区分。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。未访问状态与低Q值要区分。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 15,
+      "title": "七种reward综合指标",
+      "observation": "最佳功率和最佳误差属于不同reward。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。最佳功率和最佳误差属于不同reward。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.27,
+        0.075,
+        0.945,
+        0.63
+      ],
+      "stage": "result",
+      "image": "original-fig8.png"
+    },
+    {
+      "label": "Fig9",
+      "page": 17,
+      "title": "仅误差reward轨迹",
+      "observation": "物理误差受多种因素影响。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。物理误差受多种因素影响。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 17,
+      "title": "仅功率reward轨迹",
+      "observation": "易降低P-state但服务质量可能下降。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。易降低P-state但服务质量可能下降。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 18,
+      "title": "功率＋误差轨迹",
+      "observation": "展示相同策略的联合取舍。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。展示相同策略的联合取舍。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 18,
+      "title": "含重规划标志",
+      "observation": "应用提示加入reward改变行为。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。应用提示加入reward改变行为。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 19,
+      "title": "累积重规划",
+      "observation": "累积项可能主导reward。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。累积项可能主导reward。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 20,
+      "title": "加权误差",
+      "observation": "加大权重不自动解决因果可观测性。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。加大权重不自动解决因果可观测性。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 20,
+      "title": "移动平均功率",
+      "observation": "延迟反馈仍可学，但与瞬时信号不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。延迟反馈仍可学，但与瞬时信号不同。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 10,
+      "title": "平台分工",
+      "observation": "CPU与Arduino职责必须分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。CPU与Arduino职责必须分开。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 11,
+      "title": "状态空间/存储",
+      "observation": "64KB不包含全部系统内存；累计行算术待核。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。64KB不包含全部系统内存；累计行算术待核。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 12,
+      "title": "reward符号",
+      "observation": "P是功率，e是误差，不能混同E能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。P是功率，e是误差，不能混同E能量。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 13,
+      "title": "七种reward定义",
+      "observation": "逐项比较归一化与权重，不能拼接最优指标。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。逐项比较归一化与权重，不能拼接最优指标。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.275,
+        0.1,
+        0.945,
+        0.34
+      ],
+      "stage": "method",
+      "image": "original-table4.png"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 8,
+      "title": "表格Q策略更新",
+      "observation": "每次观测—选动作—取回报—更新Q。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。每次观测—选动作—取回报—更新Q。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。只借鉴CPU资源管理：用块进度/余量/历史成本作小Q表状态，动作是合法频档；任务正确性不应被当作可交易reward，出错必须失败。无需任何电机知识。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "Anytime Dynamic A*（ADA*）路径规划、地图与轨迹规划线程；低层PID/里程计由另一Arduino承担，不是用户课题要实现的内容"
+    ],
+    [
+      "A",
+      "控制策略",
+      "C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态"
+    ],
+    [
+      "B",
+      "控制周期",
+      "用户态QoSM独立线程，10ms hrtimer周期；各reward先600s训练，每次试验从同训练矩阵起步，试验中仍可更新"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态",
+    "workload": "导航/路径规划CPU软件，计算量、访存与重规划需求变化；本文CPU控制不是电机控制算法",
+    "programs": "Anytime Dynamic A*（ADA*）路径规划、地图与轨迹规划线程；低层PID/里程计由另一Arduino承担，不是用户课题要实现的内容",
+    "platform": "ODROID-XU4 Exynos5422，4×A15/4×A7、2GB，Ubuntu18.04/Linux4.14.5-92；cluster级DVFS；ArduinoROMEO/ATmega328P独立处理低层动作",
+    "inputs": "路径误差、功率、重规划标志、通信校验错误、地图更新等离散状态；不只CPU利用率",
+    "outputs": "HAL定义的离散CPU性能状态（每状态5个动作Q条目）；具体频率映射需实现确认，线程迁核未作为本实验动作",
+    "timing": "用户态QoSM独立线程，10ms hrtimer周期；各reward先600s训练，每次试验从同训练矩阵起步，试验中仍可更新"
+  }
+}

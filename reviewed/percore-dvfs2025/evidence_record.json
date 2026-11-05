@@ -1,0 +1,325 @@
+{
+  "short": "ATP Per-core DVFS",
+  "zh": "用随平均CPU利用率变化的阈值替代固定阈值，逐核升到最高档或下降一档",
+  "authors": [
+    "Kritwara Rattanaopas",
+    "Pichaya Tandayya"
+  ],
+  "venue": "ECTI-CIT 19(2),282–293 (2025)",
+  "version": "出版社正式版12页。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "用随平均CPU利用率变化的阈值替代固定阈值，逐核升到最高档或下降一档",
+  "abstract_zh": "本文研究虚拟机中并行通信负载，2/3/4核参与与不同不平衡程度的运行时能效。具体程序包括Charm++ Stream-All-to-All，TRAM（Topological Routing and Aggregation of Messages）；Type1/2/3三种并行配置。作者在物理Xeon E5630四核2.53GHz，CentOS7/KVM；4vCPU虚拟机；psutil/perf-kvm，APC UPS/apcupsd读取能耗；实际供电域独立性未由请求接口自动证明上采用阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络。输入为各核当前频率和利用率、平均利用率、45%/85%经验阈值界，输出为各核频率请求：最高档或下降一个支持频档；没有直接输出电压。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。基于静态阈值扫描得到自适应范围，在较低实现复杂度下改善一部分并行负载的阈值控制。贡献是政策和测评，不是复杂智能算法。",
+  "abstract_en": "ATP DVFS adapts an utilization threshold within a profiled range and applies a per-core frequency policy. A Xeon server running KVM and Charm++ workloads provides the evaluation. The method improves energy per instruction relative to Ondemand in the reported workloads, but does not dominate the Performance governor in every case. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：用随平均CPU利用率变化的阈值替代固定阈值，逐核升到最高档或下降一档。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "基于静态阈值扫描得到自适应范围，在较低实现复杂度下改善一部分并行负载的阈值控制。贡献是政策和测评，不是复杂智能算法。",
+  "flow": "各核当前频率和利用率、平均利用率、45%/85%经验阈值界 → 阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络 → 各核频率请求：最高档或下降一个支持频档；没有直接输出电压 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络"
+    ],
+    [
+      "被控负载类型",
+      "虚拟机中并行通信负载，2/3/4核参与与不同不平衡程度"
+    ],
+    [
+      "具体被控程序",
+      "Charm++ Stream-All-to-All，TRAM（Topological Routing and Aggregation of Messages）；Type1/2/3三种并行配置"
+    ],
+    [
+      "使用平台与测量",
+      "物理Xeon E5630四核2.53GHz，CentOS7/KVM；4vCPU虚拟机；psutil/perf-kvm，APC UPS/apcupsd读取能耗；实际供电域独立性未由请求接口自动证明"
+    ],
+    [
+      "输入/状态",
+      "各核当前频率和利用率、平均利用率、45%/85%经验阈值界"
+    ],
+    [
+      "输出/动作",
+      "各核频率请求：最高档或下降一个支持频档；没有直接输出电压"
+    ],
+    [
+      "周期与运行位置",
+      "100ms轮询；作者将监测器称Optimizer，控制物理层而负载在VM"
+    ]
+  ],
+  "method": "§4–6（p4–10）：先扫描10%–90%静态阈值，以UPS结果选45%–85%范围，再通过线性插值自适应阈值。该阈值是利用率平均值的函数，逐核比较当前负载。与原始Ondemand式阈值政策相比，改动小，易实现。\n\n作者列出含0.6GHz在内的8档和2.54GHz最大值；移植前应读取实际驱动支持表，不能照抄到别的Xeon或E902。功耗来自UPS，指标却按VM指令数归一，宿主机背景与其他设备可能进入分子。测得较低温度不是低功率的直接替代；分支/秒也不是完成整个任务的墙钟时间。\n\n复现审计：Eq3把n解释为核数，而Algorithm3写逐核average utilization(core)。平均范围（跨核或单核时间平均）表述不完全一致，须核对代码；本笔记不替作者猜定实现。",
+  "metrics": [
+    [
+      "Type1能量/指令",
+      "ATP79.06，Ondemand84.29，Performance75.74 J/Ginstr",
+      "ATP好于Ondemand，但差于Performance",
+      "Fig9/§6.2，p8–9"
+    ],
+    [
+      "Type2能量/指令",
+      "ATP57.88，Ondemand61.64，Performance57.48 J/Ginstr",
+      "同一负载内比较，不能说ATP全面第一",
+      "§6.2，p9"
+    ],
+    [
+      "Type3能量/指令",
+      "ATP44.81，Performance44.92 J/Ginstr",
+      "很小差距无置信区间，不自动显著",
+      "§6.2，p9"
+    ],
+    [
+      "温度",
+      "平均约低2.5°C",
+      "相对Performance；摄氏百分比非热能收益",
+      "§6.3，p10"
+    ]
+  ],
+  "stats": "论文用UPS/apcupsd能耗与perf-kvm指令数；UPS测量分辨率与采样积分细节、独立运行次数/误差线定义未定位齐。图9单项非常接近时不作显著优势判断。Type1相对Performance更耗J/Ginstr，必须与温度/服务质量一起做取舍，不能只引用摘要。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "平均利用率可能掩盖单核关键任务期限，阈值没有硬实时保证。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "每核写请求不代表物理电压可逐核独立控制。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "UPS与VM指令的测量范围不同，跨平台不能复制节能率。"
+    ]
+  ],
+  "transfer": "很适合作为E902简单基线：在固定任务到达与CPU利用率可观测条件下用少量比较和查表控制频率；压缩任务可能持续100%利用率，必须检验是否退化为一直最高档。",
+  "experiments": [
+    [
+      "P0：自适应阈值基线",
+      "获得低成本控制参照",
+      "忙闲计数与合法频率表",
+      "计算密集块长期饱和",
+      "报告阈值轨迹/频率与违约"
+    ],
+    [
+      "P1：进度特征增量",
+      "检验仅利用率的盲区",
+      "剩余字节、期限、历史周期",
+      "新增特征读取有成本",
+      "同忙碌率不同输入下更好决策"
+    ],
+    [
+      "P1：测量范围对齐",
+      "避免虚拟机指标误导",
+      "外部电测/CPU轨与字节数",
+      "背景噪声影响短块",
+      "固定全系统边界记录J/块"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "自适应阈值",
+      "tex": "\\theta=\\theta_{min}+u_{avg}(\\theta_{max}-\\theta_{min})",
+      "symbols": "利用率u以0–1表示，θ的单位需一致；本文界为0.45/0.85。",
+      "example": "u=0.5时θ=0.65；不能把50直接当0.5代入。",
+      "source": "Eq2–3，p5"
+    },
+    {
+      "title": "单位指令能量",
+      "tex": "e_{GI}=\\frac{E}{N_{inst}/10^9}",
+      "symbols": "E单位J，指令数无量纲，结果J/Ginstr；不是整任务J或W。",
+      "example": "Type1 ATP79.06比84.29低约6.2%，这是读者算例；仍高于Performance75.74。",
+      "source": "Fig9/§6.2，p8–9"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 4,
+      "title": "静态阈值能耗扫描",
+      "observation": "45%–85%来源于此平台经验，不是通用阈值。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。45%–85%来源于此平台经验，不是通用阈值。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.1,
+        0.08,
+        0.93,
+        0.325
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 5,
+      "title": "宿主机与VM架构",
+      "observation": "Optimizer操作物理CPU，程序在KVM虚拟机。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。Optimizer操作物理CPU，程序在KVM虚拟机。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.5,
+        0.73,
+        0.91,
+        0.91
+      ],
+      "stage": "method",
+      "image": "original-fig2.png"
+    },
+    {
+      "label": "Fig3",
+      "page": 6,
+      "title": "采样间隔开销",
+      "observation": "5ms轮询使CPU开销更大，作者选100ms。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。5ms轮询使CPU开销更大，作者选100ms。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 6,
+      "title": "三类并行工作负载",
+      "observation": "参与核数、均衡程度和并行行为不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。参与核数、均衡程度和并行行为不同。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 7,
+      "title": "Type1利用率轨迹",
+      "observation": "2执行核轮换，平均利用率较低。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。2执行核轮换，平均利用率较低。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 7,
+      "title": "Type2利用率轨迹",
+      "observation": "3核负载不均衡。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。3核负载不均衡。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 7,
+      "title": "Type3利用率轨迹",
+      "observation": "4核相对均衡，不能与Type1混作同输入。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。4核相对均衡，不能与Type1混作同输入。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 8,
+      "title": "温度对照",
+      "observation": "温度降低不能直接换算能量节省。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。温度降低不能直接换算能量节省。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "Fig9",
+      "page": 8,
+      "title": "每十亿指令能量",
+      "observation": "ATP并非所有类型都胜过Performance。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。ATP并非所有类型都胜过Performance。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.09,
+        0.325,
+        0.91,
+        0.495
+      ],
+      "stage": "result",
+      "image": "original-fig9.png"
+    },
+    {
+      "label": "Fig10",
+      "page": 8,
+      "title": "分支访问速率",
+      "observation": "分支/秒是性能代理，不能替代deadline成功率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。分支/秒是性能代理，不能替代deadline成功率。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "Table1",
+      "page": 3,
+      "title": "相关工作",
+      "observation": "这是研究定位表而非实验结果。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。这是研究定位表而非实验结果。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 3,
+      "title": "原始Ondemand示意",
+      "observation": "用于阈值策略参照，历史实现差异要分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。用于阈值策略参照，历史实现差异要分开。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm2",
+      "page": 4,
+      "title": "静态逐核策略",
+      "observation": "高负载升到最大，低负载降一档。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。高负载升到最大，低负载降一档。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm3",
+      "page": 5,
+      "title": "自适应逐核策略",
+      "observation": "多了平均利用率和阈值计算，复杂度较低。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。多了平均利用率和阈值计算，复杂度较低。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。很适合作为E902简单基线：在固定任务到达与CPU利用率可观测条件下用少量比较和查表控制频率；压缩任务可能持续100%利用率，必须检验是否退化为一直最高档。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "Charm++ Stream-All-to-All，TRAM（Topological Routing and Aggregation of Messages）；Type1/2/3三种并行配置"
+    ],
+    [
+      "A",
+      "控制策略",
+      "阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络"
+    ],
+    [
+      "B",
+      "控制周期",
+      "100ms轮询；作者将监测器称Optimizer，控制物理层而负载在VM"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络",
+    "workload": "虚拟机中并行通信负载，2/3/4核参与与不同不平衡程度",
+    "programs": "Charm++ Stream-All-to-All，TRAM（Topological Routing and Aggregation of Messages）；Type1/2/3三种并行配置",
+    "platform": "物理Xeon E5630四核2.53GHz，CentOS7/KVM；4vCPU虚拟机；psutil/perf-kvm，APC UPS/apcupsd读取能耗；实际供电域独立性未由请求接口自动证明",
+    "inputs": "各核当前频率和利用率、平均利用率、45%/85%经验阈值界",
+    "outputs": "各核频率请求：最高档或下降一个支持频档；没有直接输出电压",
+    "timing": "100ms轮询；作者将监测器称Optimizer，控制物理层而负载在VM"
+  }
+}

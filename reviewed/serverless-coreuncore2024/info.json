@@ -1,0 +1,29 @@
+{
+  "index": "serverless-coreuncore2024",
+  "paper_title": "Leveraging Core and Uncore Frequency Scaling for Power-Efficient Serverless Workflows",
+  "description": "先分配工作流时间预算，再用余量比例反馈与灰盒模型联合选择CPU核心和uncore频率。先分配工作流时间预算，再用余量比例反馈与灰盒模型联合选择CPU核心和uncore频率",
+  "authors": [
+    "Achilleas Tzenetopoulos",
+    "Dimosthenis Masouros",
+    "Sotirios Xydis",
+    "Dimitrios Soudris"
+  ],
+  "metadata": {
+    "venue": "arXiv2407.18386，首次2024、v3修订2025",
+    "year": 2024,
+    "doi": "10.48550/arXiv.2407.18386"
+  },
+  "source_url": "https://doi.org/10.48550/arXiv.2407.18386",
+  "pdf_url": "https://arxiv.org/pdf/2407.18386v3",
+  "source_version": "arXiv2407.18386v3，2025-04-21，13页；页眉Conference17和XXXX DOI为模板，不能当正式会议信息。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "104c8cbec7a5724c75de48a7248ebb611600584cc4653b9618e27fc1fcd26ddb",
+  "figure_count": 18,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

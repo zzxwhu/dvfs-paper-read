@@ -1,0 +1,27 @@
+{
+  "index": "divider-dvfs2023",
+  "paper_title": "Fine-Grained CPU Power Management Based on Digital Frequency Divider",
+  "description": "用快速数字分频处理短访存阶段，再由较慢的电压频率环处理持续阶段。用快速数字分频处理短访存阶段，再由较慢的电压频率环处理持续阶段",
+  "authors": [
+    "Fan Jia",
+    "Longbing Zhang"
+  ],
+  "metadata": {
+    "venue": "Electronics12(2),407 (2023)",
+    "year": 2023,
+    "doi": "10.3390/electronics12020407"
+  },
+  "source_url": "https://doi.org/10.3390/electronics12020407",
+  "pdf_url": "https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf",
+  "source_version": "MDPI正式版18页；摘要与Table4平均节能数值冲突，以下保留Table4的16.26%。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "3b63912deab4fd4cfa297f4c152e565be93a36cd1866c1a89cb991b302fe6a3d",
+  "figure_count": 20,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

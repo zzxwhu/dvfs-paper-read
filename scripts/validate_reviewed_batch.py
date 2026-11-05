@@ -1,9 +1,12 @@
 """Check a reviewed batch's report, figure, equation and source integrity."""
 from pathlib import Path
-import json,re,sys
+import argparse,json,re,sys
 from import_blablapaper import _quartz_document
 ROOT=Path(__file__).resolve().parents[1]
-batch=json.loads((ROOT/'reviewed/batch-2026-11-05.json').read_text(encoding='utf-8'))
+parser=argparse.ArgumentParser()
+parser.add_argument('--batch',default='reviewed/batch-2026-11-05.json')
+args=parser.parse_args()
+batch=json.loads((ROOT/args.batch).read_text(encoding='utf-8'))
 reports=['ELI5_notes.md','paper_notes.md','figs_notes.md','translation_notes.md']
 errors=[];n=0;images=set()
 for p in batch['papers']:
@@ -21,7 +24,7 @@ for p in batch['papers']:
             if not (a.parent/link).is_file() or not (b.parent/link).is_file():errors.append(f'broken image {slug}/{link}')
             images.add((slug,link))
     main=(source/'paper_notes.md').read_text(encoding='utf-8')
-    for token in ['阶段0','阶段1','阶段2','阶段3','阶段4','阶段7','阶段9','阶段11','阶段12','阶段13','DOI','未运行']:
+    for token in ['阶段0','阶段1','阶段2','阶段3','阶段4','阶段7','阶段9','阶段11','阶段12','阶段13','论文页面','未运行']:
         if token not in main:errors.append(f'{slug} missing {token}')
     if len(list((source/'images').glob('original-*.png')))!=info['embedded_figures']:errors.append(f'{slug} crop count mismatch')
     if len(list((source/'images').glob('equation-*.png')))!=info['equations_count']:errors.append(f'{slug} equation count mismatch')

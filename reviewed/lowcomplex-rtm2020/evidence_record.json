@@ -1,0 +1,429 @@
+{
+  "short": "WLC＋MLR RTM",
+  "zh": "先按计算/访存特征把任务分成四类，再缩小核分配和频率搜索空间",
+  "authors": [
+    "Ali Aalsaud",
+    "Fei Xia",
+    "Ashur Rafiev",
+    "Rishad Shafik",
+    "Alexander Romanovsky",
+    "Alex Yakovlev"
+  ],
+  "venue": "J. Low Power Electronics and Applications 10(3),25 (2020)",
+  "version": "MDPI正式版25页；2018 PATMOS工作的扩展，不能算同一实验重复的新贡献。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "先按计算/访存特征把任务分成四类，再缩小核分配和频率搜索空间",
+  "abstract_zh": "本文研究CPU密集、访存密集、混合与低活动并发多线程程序的运行时能效。具体程序包括mthreads整数/64MB随机内存混合合成负载；PARSEC bodytrack、ferret、fluidanimate、canneal、freqmine、streamcluster，单个及多程序组合。作者在ODROID-XU3 Exynos5422，4×A15＋4×A7、Ubuntu14.04与片上电流传感器；Intel Sandybridge Core i7，Ubuntu/Likwid/RAPL并用分流电阻初步交叉验证上采用WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类。输入为retired指令、unhalted cycles、内存访问、参考时钟；nnmipc区分计算/内存，urr区分活动程度，输出为各应用核亲和掩码、big/little核数和cluster频率；非单纯CPU频率唯一旋钮。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。分类先缩小搜索空间，再可选回归细化；用低成本决策替代在所有并发核/频组合上的昂贵搜索，并验证同一程序随阶段改变类别。",
+  "abstract_en": "The runtime manager uses hardware counters to classify concurrent workloads and selects task mappings and frequencies from a compact decision structure. Optional multivariate linear regression refines the restricted search. Measurements on an ODROID-XU3 and an Intel platform report instructions-per-joule improvements, rather than universal reductions in application energy under deadlines. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：先按计算/访存特征把任务分成四类，再缩小核分配和频率搜索空间。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "分类先缩小搜索空间，再可选回归细化；用低成本决策替代在所有并发核/频组合上的昂贵搜索，并验证同一程序随阶段改变类别。",
+  "flow": "retired指令、unhalted cycles、内存访问、参考时钟；nnmipc区分计算/内存，urr区分活动程度 → WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类 → 各应用核亲和掩码、big/little核数和cluster频率；非单纯CPU频率唯一旋钮 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类"
+    ],
+    [
+      "被控负载类型",
+      "CPU密集、访存密集、混合与低活动并发多线程程序"
+    ],
+    [
+      "具体被控程序",
+      "mthreads整数/64MB随机内存混合合成负载；PARSEC bodytrack、ferret、fluidanimate、canneal、freqmine、streamcluster，单个及多程序组合"
+    ],
+    [
+      "使用平台与测量",
+      "ODROID-XU3 Exynos5422，4×A15＋4×A7、Ubuntu14.04与片上电流传感器；Intel Sandybridge Core i7，Ubuntu/Likwid/RAPL并用分流电阻初步交叉验证"
+    ],
+    [
+      "输入/状态",
+      "retired指令、unhalted cycles、内存访问、参考时钟；nnmipc区分计算/内存，urr区分活动程度"
+    ],
+    [
+      "输出/动作",
+      "各应用核亲和掩码、big/little核数和cluster频率；非单纯CPU频率唯一旋钮"
+    ],
+    [
+      "周期与运行位置",
+      "控制周期500ms；每核监测线程异步采集；200MHz测得WLC循环约10ms，>90%耗于监测"
+    ]
+  ],
+  "method": "§5–7（p8–21）：mthreads的M控制整数和随机64MB访问比例，用于建立分类阈值。XU3选nnmipc，0.35以上CPU类、0.25–0.35混合、小于0.25内存类，urr≤0.11识别低活动；其他平台重新标定。分类后按查表偏好分配big/little核和频点，共享资源不足时分摊。MLR可在分类排除大量候选后寻找更高IPS/W配置。\n\nWLC是阈值/规则，不要叫它监督神经网络；MLR是多元线性回归，不是强化学习。总体目标IPS/W等于每焦耳指令吞吐，未直接约束任务截止期；任务迁移和核数改变都可能贡献收益，不能全部归因于DVFS。",
+  "metrics": [
+    [
+      "XU3 WLC-only",
+      "IPS/W改善约24%–127%",
+      "相对Ondemand，特定单/多程序场景",
+      "Fig10/Table10，p19"
+    ],
+    [
+      "XU3 WLC＋MLR",
+      "Fluidanimate139%；两不同类128.42%",
+      "是IPS/W相对改善，不是能量减少139%",
+      "Table10，p19"
+    ],
+    [
+      "Intel平台WLC＋MLR",
+      "IPS/W约20%–40%改善",
+      "同平台Ondemand，所有核分配给应用",
+      "Fig12，p20"
+    ],
+    [
+      "控制成本",
+      "10ms/500ms",
+      "WLC@200MHz；MLR-only对照约100ms",
+      "§7.1.3，p18"
+    ]
+  ],
+  "stats": "结果以不同程序组合和CPU域测量为单位；不要把程序数当独立硬件重复。原文测量/模型选择有交叉验证，但没有统一逐项置信区间，峰值139%不是跨场景平均。IPS/W=2.39倍仅表示该代理指标增幅，非每任务能量可节省139%。500ms分类可能振荡，作者讨论稳定性与配置行为互相影响。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "E902可能没有所需PMC、异构核或任务迁移资源；必须重做观测特征和动作空间。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "追求IPS/W不自动满足压缩块的绝对期限或公平性。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "分类边界受动作影响可能反复切换，移植要加入驻留/迟滞并测成本。"
+    ]
+  ],
+  "transfer": "可把四类改成E902可观测的压缩输入/阶段类别，先小表决定频率区间，再用轻量回归预测剩余时间。保留分类与回归分工，删除不存在的big/little分配。",
+  "experiments": [
+    [
+      "P0：压缩阶段分类",
+      "确认阶段变化可观测",
+      "字节进度/历史周期/等待占比",
+      "无PMC时类别不可辨",
+      "用独立文件检验分类稳定性"
+    ],
+    [
+      "P1：分类缩空间",
+      "减少频点穷举成本",
+      "小树/规则＋回归",
+      "粗分类排除真正最优档",
+      "对离线全档oracle比能量/违约"
+    ],
+    [
+      "P1：分类迟滞消融",
+      "限制抖动",
+      "最短驻留时间和双阈值",
+      "反应过慢",
+      "报告切换次数、净能量及尾时延"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "归一化非访存IPC",
+      "tex": "nnmipc=\\frac{N_{inst}-N_{mem}}{N_{cycles}\\,IPC_{max}}",
+      "symbols": "计数都必须同窗口，IPCmax为平台理论/参考上限；该指标是代理，非精确CPU工作占比。",
+      "example": "阈值0.25/0.35来自XU3标定，不能直接用到E902。",
+      "source": "Table5–6，p10–11"
+    },
+    {
+      "title": "能效指标",
+      "tex": "\\frac{IPS}{P}=\\frac{N_{inst}/T}{E/T}=\\frac{N_{inst}}{E}",
+      "symbols": "同一窗口功率W、时间s和能量J；IPS/W单位instructions/J。",
+      "example": "改善139%即2.39倍instructions/J，不能写成减少139%能量。",
+      "source": "Table10，p19"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 5,
+      "title": "RTM与应用/硬件架构",
+      "observation": "控制包含映射和DVFS双动作。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。控制包含映射和DVFS双动作。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.15,
+        0.71,
+        0.88,
+        0.9
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 9,
+      "title": "mthreads合成负载",
+      "observation": "M调CPU/访存比例，N调线程数。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。M调CPU/访存比例，N调线程数。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 9,
+      "title": "访存比例与IPS/W",
+      "observation": "更多核不总是更高能效。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。更多核不总是更高能效。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 10,
+      "title": "WLC运行时控制",
+      "observation": "阈值分类后查表决策，非深网络。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。阈值分类后查表决策，非深网络。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 11,
+      "title": "分类指标与访存率",
+      "observation": "nnmipc分布支撑本平台阈值选择。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。nnmipc分布支撑本平台阈值选择。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 13,
+      "title": "周期控制流程",
+      "observation": "采样、分类、动作、等待形成闭环。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。采样、分类、动作、等待形成闭环。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 16,
+      "title": "WLC与MLR组合",
+      "observation": "先分类可减少回归搜索候选。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。先分类可减少回归搜索候选。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 17,
+      "title": "多程序映射/频率轨迹",
+      "observation": "配置变化与功率/IPS同时画，检查迁移成本。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。配置变化与功率/IPS同时画，检查迁移成本。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 17,
+      "title": "同程序类别变化",
+      "observation": "Fluidanimate/ferret可随阶段重新分类。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。Fluidanimate/ferret可随阶段重新分类。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 19,
+      "title": "WLC对Ondemand",
+      "observation": "指标是IPS/W，非节能率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。指标是IPS/W，非节能率。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.15,
+        0.59,
+        0.88,
+        0.89
+      ],
+      "stage": "result",
+      "image": "original-fig10.png"
+    },
+    {
+      "label": "Fig11",
+      "page": 20,
+      "title": "WLC＋MLR对Ondemand",
+      "observation": "改善来自分类和配置联合控制。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。改善来自分类和配置联合控制。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "Fig12",
+      "page": 20,
+      "title": "Intel上的对照",
+      "observation": "跨平台阈值重标定，不是直接搬权重。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。跨平台阈值重标定，不是直接搬权重。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "result"
+    },
+    {
+      "label": "Table1",
+      "page": 2,
+      "title": "前序方法定位",
+      "observation": "比较贡献，不能作实测速度表。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。比较贡献，不能作实测速度表。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 3,
+      "title": "核分配组合数量",
+      "observation": "说明组合搜索为何昂贵。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。说明组合搜索为何昂贵。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 7,
+      "title": "PARSEC程序特征",
+      "observation": "程序名与应用领域分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。程序名与应用领域分开。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table4",
+      "page": 8,
+      "title": "硬件事件",
+      "observation": "PMC能力为迁移前置条件。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。PMC能力为迁移前置条件。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table5",
+      "page": 10,
+      "title": "分类指标公式",
+      "observation": "同窗口计数和归一化不可漏。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同窗口计数和归一化不可漏。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table6",
+      "page": 11,
+      "title": "XU3阈值",
+      "observation": "阈值依平台而定。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。阈值依平台而定。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table7",
+      "page": 12,
+      "title": "XU3程序特征",
+      "observation": "程序平均值不保证所有阶段同类。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。程序平均值不保证所有阶段同类。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table8",
+      "page": 12,
+      "title": "Intel程序特征",
+      "observation": "同指标需要不同阈值。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同指标需要不同阈值。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table9",
+      "page": 14,
+      "title": "按类别查表决策",
+      "observation": "核数/类型/频率共同决定能效。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。核数/类型/频率共同决定能效。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table10",
+      "page": 19,
+      "title": "IPS/W结果汇总",
+      "observation": "Fluidanimate139%是WLC＋MLR的指标改善。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。Fluidanimate139%是WLC＋MLR的指标改善。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": [
+        0.15,
+        0.27,
+        0.88,
+        0.445
+      ],
+      "stage": "result",
+      "image": "original-table10.png"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 12,
+      "title": "每周期RTM",
+      "observation": "每应用分类后协调资源。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。每应用分类后协调资源。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm2",
+      "page": 15,
+      "title": "核亲和映射",
+      "observation": "将MIN/MAX偏好转为实际核掩码。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。将MIN/MAX偏好转为实际核掩码。",
+      "limit": "本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "mthreads/PThreads来源 https://github.com/ashurrafiev/PThreads；PARSEC和Likwid是依赖，不代表完整RTM脚本已取得或已运行。",
+  "reproduce": "先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。可把四类改成E902可观测的压缩输入/阶段类别，先小表决定频率区间，再用轻量回归预测剩余时间。保留分类与回归分工，删除不存在的big/little分配。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "mthreads整数/64MB随机内存混合合成负载；PARSEC bodytrack、ferret、fluidanimate、canneal、freqmine、streamcluster，单个及多程序组合"
+    ],
+    [
+      "A",
+      "控制策略",
+      "WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类"
+    ],
+    [
+      "B",
+      "控制周期",
+      "控制周期500ms；每核监测线程异步采集；200MHz测得WLC循环约10ms，>90%耗于监测"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类",
+    "workload": "CPU密集、访存密集、混合与低活动并发多线程程序",
+    "programs": "mthreads整数/64MB随机内存混合合成负载；PARSEC bodytrack、ferret、fluidanimate、canneal、freqmine、streamcluster，单个及多程序组合",
+    "platform": "ODROID-XU3 Exynos5422，4×A15＋4×A7、Ubuntu14.04与片上电流传感器；Intel Sandybridge Core i7，Ubuntu/Likwid/RAPL并用分流电阻初步交叉验证",
+    "inputs": "retired指令、unhalted cycles、内存访问、参考时钟；nnmipc区分计算/内存，urr区分活动程度",
+    "outputs": "各应用核亲和掩码、big/little核数和cluster频率；非单纯CPU频率唯一旋钮",
+    "timing": "控制周期500ms；每核监测线程异步采集；200MHz测得WLC循环约10ms，>90%耗于监测"
+  }
+}

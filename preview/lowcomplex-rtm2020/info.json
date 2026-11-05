@@ -1,0 +1,31 @@
+{
+  "index": "lowcomplex-rtm2020",
+  "paper_title": "Low-Complexity Run-time Management of Concurrent Workloads for Energy-Efficient Multi-Core Systems",
+  "description": "先按计算/访存特征把任务分成四类，再缩小核分配和频率搜索空间。先按计算/访存特征把任务分成四类，再缩小核分配和频率搜索空间",
+  "authors": [
+    "Ali Aalsaud",
+    "Fei Xia",
+    "Ashur Rafiev",
+    "Rishad Shafik",
+    "Alexander Romanovsky",
+    "Alex Yakovlev"
+  ],
+  "metadata": {
+    "venue": "J. Low Power Electronics and Applications 10(3),25 (2020)",
+    "year": 2020,
+    "doi": "10.3390/jlpea10030025"
+  },
+  "source_url": "https://doi.org/10.3390/jlpea10030025",
+  "pdf_url": "https://mdpi-res.com/d_attachment/jlpea/jlpea-10-00025/article_deploy/jlpea-10-00025.pdf",
+  "source_version": "MDPI正式版25页；2018 PATMOS工作的扩展，不能算同一实验重复的新贡献。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "4d0e054a2421fa8ceba96269d4a7a7694b59df11189ec6e5a77e57a6dc833231",
+  "figure_count": 24,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

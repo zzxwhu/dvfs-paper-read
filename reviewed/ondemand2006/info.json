@@ -1,0 +1,27 @@
+{
+  "index": "ondemand2006",
+  "paper_title": "The Ondemand Governor: Past, Present, and Future",
+  "description": "用CPU忙闲比触发升频，并由内核与驱动协调共享频域，是后续智能算法必须面对的基线。用CPU忙闲比触发升频，并由内核与驱动协调共享频域，是后续智能算法必须面对的基线",
+  "authors": [
+    "Venkatesh Pallipadi",
+    "Alexey Starikovskiy"
+  ],
+  "metadata": {
+    "venue": "Ottawa Linux Symposium2006，Volume2",
+    "year": 2006,
+    "doi": ""
+  },
+  "source_url": "https://www.kernel.org/doc/ols/2006/",
+  "pdf_url": "https://www.kernel.org/doc/ols/2006/ols2006v2-pages-223-238.pdf",
+  "source_version": "kernel.org公开PDF18页；文件名页码与正文印刷页存在差异，本文一律按PDF页定位；历史设计，不代表当前内核默认。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "8399d934f5dc172b0351e6adb1255214616f556b887cf35a99ec4980cc707a23",
+  "figure_count": 9,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ondemand原始设计：中英文摘要与章节导读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">Ondemand原始设计：中英文摘要与章节导读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link active" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="ondemand原始设计中英文摘要与章节导读">Ondemand原始设计：中英文摘要与章节导读<a class="anchor" href="#ondemand原始设计中英文摘要与章节导读">#</a></h1>
+<p><a href="https://www.kernel.org/doc/ols/2006/">论文页面</a> · <a href="https://www.kernel.org/doc/ols/2006/ols2006v2-pages-223-238.pdf">本笔记所用 PDF</a> · <a href="https://www.kernel.org/doc/ols/2006/">标识符</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>范围说明：以下英文与中文都是读者改写，不是原文摘要逐字引用，也不是全文翻译。</strong> 原始摘要请打开论文页面或PDF首页。</p>
+<h2 id="english-abstract-paraphrase">English abstract paraphrase<a class="anchor" href="#english-abstract-paraphrase">#</a></h2>
+<p>This paper describes the original Ondemand governor, its evolution, and frequency coordination in Linux. An SSL web-server workload on a multiprocessor Xeon system illustrates the power-performance tradeoff. The design is deliberately simple and reactive, and its historical parameters and experimental variants should not be treated as current Linux defaults. This is a reader-written paraphrase, not the original abstract.</p>
+<h2 id="中文摘要改写">中文摘要改写<a class="anchor" href="#中文摘要改写">#</a></h2>
+<p>本文研究多处理器SSL Web服务，客户连接数由负载机递增的运行时能效。具体程序包括标准SSL Web server/client测试；当前材料未明确到可唯一复建的服务软件版本，不擅自补成Apache/Nginx。作者在4-socket Xeon MP，双核/HT共16逻辑CPU，8GB；Linux2.6时期cpufreq；12V CPU供电支路电流，CR5410S霍尔传感器＋PMD-1208LS USB采集上采用内核定时采样忙闲比：原版超过上阈值升MAX，低于下阈值逐步降；后续直接选可保持约80%忙碌的最低频率，共享域取最高核需求。输入为采样窗口CPU忙闲时间、up/down阈值、频率转换延迟、共享依赖CPU集合，输出为CPUFreq驱动目标频率请求；驱动/硬件匹配电压，不是governor直接写任意电压。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把轻量忙闲调频放入内核，利用快速P-state切换与多CPU依赖协调；这是一篇理解基线与软件执行路径的原始工程文献，不因年份旧而省略。</p>
+<h2 id="题名怎么理解">题名怎么理解<a class="anchor" href="#题名怎么理解">#</a></h2>
+<p><strong>原题：</strong> The Ondemand Governor: Past, Present, and Future</p>
+<p><strong>中文阅读题：</strong> 用CPU忙闲比触发升频，并由内核与驱动协调共享频域，是后续智能算法必须面对的基线</p>
+<h2 id="章节导读">章节导读<a class="anchor" href="#章节导读">#</a></h2>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阅读中英对照">阅读中英对照<a class="anchor" href="#阅读中英对照">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>被控程序</td>
+<td>标准SSL Web server/client测试；当前材料未明确到可唯一复建的服务软件版本，不擅自补成Apache/Nginx</td>
+</tr>
+<tr>
+<td>A</td>
+<td>控制策略</td>
+<td>内核定时采样忙闲比：原版超过上阈值升MAX，低于下阈值逐步降；后续直接选可保持约80%忙碌的最低频率，共享域取最高核需求</td>
+</tr>
+<tr>
+<td>B</td>
+<td>控制周期</td>
+<td>采样受HZ和P-state切换延迟影响；文中示例110000µs/up_threshold80，参数是历史示例非当前Linux建议</td>
+</tr>
+<tr>
+<td>B</td>
+<td>证据边界</td>
+<td>实测、硬件仿真、功耗模型是不同证据，见平台与结果表。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="原文数字应怎样转述">原文数字应怎样转述<a class="anchor" href="#原文数字应怎样转述">#</a></h2>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Performance与Powersave功率差</td>
+<td>约10%</td>
+<td>16逻辑CPU服务器SSL负载；CPU12V支路，不是任意整机能量节省</td>
+<td>§6.3，PDF p10–12</td>
+</tr>
+<tr>
+<td>动态策略性能</td>
+<td>相对静态低频退化更小</td>
+<td>原文描述dynamic性能损失barely visible；不从曲线虚构统一精确节能率</td>
+<td>Fig4–5，p12</td>
+</tr>
+<tr>
+<td>测量变化</td>
+<td>约1W run-to-run</td>
+<td>作者因此展示原始曲线未额外平均；不是置信区间</td>
+<td>§6.2，p10</td>
+</tr>
+</tbody>
+</table>
+<p>不要省去基线、平台、约束和测量边界。摘要级概述与全文结果不一致时，以明确标注版本的正文实验条件为准。</p>
+<h2 id="对你课题最有用的一句话">对你课题最有用的一句话<a class="anchor" href="#对你课题最有用的一句话">#</a></h2>
+<p>E902可实现一个忙闲比阈值控制器作最低复杂度对照，再验证进度/余量特征是否真正改善；无Linux时用裸机计时与安全寄存器接口替代CPUFreq。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#ondemand原始设计中英文摘要与章节导读">Ondemand原始设计：中英文摘要与章节导读</a>
+<a class="toc-level-2" href="#english-abstract-paraphrase">English abstract paraphrase</a>
+<a class="toc-level-2" href="#中文摘要改写">中文摘要改写</a>
+<a class="toc-level-2" href="#题名怎么理解">题名怎么理解</a>
+<a class="toc-level-2" href="#章节导读">章节导读</a>
+<a class="toc-level-2" href="#阅读中英对照">阅读中英对照</a>
+<a class="toc-level-2" href="#原文数字应怎样转述">原文数字应怎样转述</a>
+<a class="toc-level-2" href="#对你课题最有用的一句话">对你课题最有用的一句话</a>
+    </aside>
+  </div>
+</body>
+</html>

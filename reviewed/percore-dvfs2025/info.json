@@ -1,0 +1,27 @@
+{
+  "index": "percore-dvfs2025",
+  "paper_title": "Energy-Efficient Per-Core DVFS for Virtual Machine Management in Cloud Data Centers",
+  "description": "用随平均CPU利用率变化的阈值替代固定阈值，逐核升到最高档或下降一档。用随平均CPU利用率变化的阈值替代固定阈值，逐核升到最高档或下降一档",
+  "authors": [
+    "Kritwara Rattanaopas",
+    "Pichaya Tandayya"
+  ],
+  "metadata": {
+    "venue": "ECTI-CIT 19(2),282–293 (2025)",
+    "year": 2025,
+    "doi": "10.37936/ecti-cit.2025192.258820"
+  },
+  "source_url": "https://doi.org/10.37936/ecti-cit.2025192.258820",
+  "pdf_url": "https://ph01.tci-thaijo.org/index.php/ecticit/article/download/258820/174292",
+  "source_version": "出版社正式版12页。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "dfa8d334c213d29f86436d9000169c02a4681eeb3e839864684c32a925aed4cf",
+  "figure_count": 14,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

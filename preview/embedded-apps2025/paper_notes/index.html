@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RP2040阶段DVFS：图文技术精读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">RP2040阶段DVFS：图文技术精读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link active" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="rp2040阶段dvfs图文技术精读">RP2040阶段DVFS：图文技术精读<a class="anchor" href="#rp2040阶段dvfs图文技术精读">#</a></h1>
+<p><a href="https://doi.org/10.3390/technologies13020082">论文页面</a> · <a href="https://mdpi-res.com/d_attachment/technologies/technologies-13-00082/article_deploy/technologies-13-00082.pdf">本笔记所用 PDF</a> · <a href="https://doi.org/10.3390/technologies13020082">标识符</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>一句话：</strong> 把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率</p>
+<p>阅读地图：先看问题与输入输出，再顺着架构图、公式和结果图阅读；最后检查统计边界与E902迁移。完整编号索引另见“图表索引”。下文“读者分析”是推断或建议，不是原文结果。</p>
+<h2 id="阶段0材料与版本审计">阶段0：材料与版本审计<a class="anchor" href="#阶段0材料与版本审计">#</a></h2>
+<table>
+<thead><tr>
+<th>材料</th>
+<th>当前可用程度</th>
+<th>影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>摘要、正文、方法、原图注</td>
+<td>已获取本地完整PDF、文本与逐页渲染</td>
+<td>可核查结构、实验及关键数字；可见页面优先于异常文本层</td>
+</tr>
+<tr>
+<td>分析版本</td>
+<td>MDPI正式版18页，Table13标题疑似沿用Scenario1，实际处于Scenario2。</td>
+<td>引用页码以“PDF第几页”标识</td>
+</tr>
+<tr>
+<td>代码／原始数据</td>
+<td>当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</td>
+<td>公开链接不等于已构建或已拿到原始轨迹</td>
+</tr>
+<tr>
+<td>附件、独立原始重复与勘误</td>
+<td>当前未完成全渠道附件／勘误穷尽检索</td>
+<td>不能断言没有附件、没有勘误或没有其他版本</td>
+</tr>
+<tr>
+<td>本次工作范围</td>
+<td>材料阅读、图表裁取、证据整理、教学公式</td>
+<td>所有新实验均是建议，尚未执行</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段1身份卡与整体概述">阶段1：身份卡与整体概述<a class="anchor" href="#阶段1身份卡与整体概述">#</a></h2>
+<table>
+<thead><tr>
+<th>项目</th>
+<th>内容</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>英文题名</td>
+<td>Reducing Energy Consumption in Embedded Systems Applications</td>
+</tr>
+<tr>
+<td>中文导读题名</td>
+<td>把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率</td>
+</tr>
+<tr>
+<td>作者</td>
+<td>Ioannis Sofianidis, Vasileios Konstantakos, Spyridon Nikolaidis</td>
+</tr>
+<tr>
+<td>发表／版本</td>
+<td>Technologies 13(2),82 (2025)；MDPI正式版18页，Table13标题疑似沿用Scenario1，实际处于Scenario2。</td>
+</tr>
+<tr>
+<td>类型与领域</td>
+<td>原始方法／工程系统研究；DVFS、CPU能效、运行时控制</td>
+</tr>
+<tr>
+<td>单位、通讯、资助与利益关系</td>
+<td>作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。</td>
+</tr>
+<tr>
+<td>核心对象与接口</td>
+<td>阶段边界切换；20s/30s任务周期，采音约1.5s（含500ms稳定等待）</td>
+</tr>
+<tr>
+<td>代码与数据</td>
+<td>当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</td>
+</tr>
+<tr>
+<td>与本课题关系</td>
+<td>可以把声音处理换成日志分块压缩：采集/收包与发送阶段使用满足接口要求的低档，压缩阶段按剩余期限选档，再睡眠。若不具备真实电压调节，先实现DFS并标明能量模型。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>约200字中文概述（改写）：</strong> 本文研究周期性IoT声音采集→数字信号处理→无线发送→睡眠的运行时能效。具体程序包括4000点FFT、4000点自相关、50-tap FIR；4kHz采集4000样点；经ESP-01发送19字节标志/时间等。作者在RP2040双Cortex-M0+（264KB SRAM）＋PDM MEMS麦克风＋ESP-01；裸机；Nordic PPK2 100ksps，3.3V板级供电，GPIO四位标记阶段；ATmega328p补充泄漏实验上采用离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型。输入为当前阶段、20s或30s周期预算、离线各配置的耗时和能量，输出为RP2040软件设置Vreg与系统频率、进入睡眠；不是电机驱动。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。优势在于将真实应用的采样、处理、通信、睡眠和唤醒纳入统一时间/能量预算，并展示不同周期需要不同计算档。它提供测量驱动规则基线，不是新神经网络。</p>
+<p><strong>三句话定位：</strong> 问题是为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。 方法主线为当前阶段、20s或30s周期预算、离线各配置的耗时和能量 → 离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型 → RP2040软件设置Vreg与系统频率、进入睡眠；不是电机驱动 → 执行与反馈。 主要证据见下方结果表，结论须与测量和版本范围一起使用。</p>
+<h2 id="阶段2问题假设与创新位置">阶段2：问题、假设与创新位置<a class="anchor" href="#阶段2问题假设与创新位置">#</a></h2>
+<p>为什么相同CPU利用率未必对应相同的工作需求？本篇的可检验主张是：把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。</p>
+<p><strong>创新判断（读者分析）：</strong> 优势在于将真实应用的采样、处理、通信、睡眠和唤醒纳入统一时间/能量预算，并展示不同周期需要不同计算档。它提供测量驱动规则基线，不是新神经网络。 不依据作者自称“首次”断定整个领域绝无前例。</p>
+<h2 id="阶段3必要术语与数学">阶段3：必要术语与数学<a class="anchor" href="#阶段3必要术语与数学">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>被控程序</td>
+<td>4000点FFT、4000点自相关、50-tap FIR；4kHz采集4000样点；经ESP-01发送19字节标志/时间等</td>
+</tr>
+<tr>
+<td>A</td>
+<td>控制策略</td>
+<td>离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型</td>
+</tr>
+<tr>
+<td>B</td>
+<td>控制周期</td>
+<td>阶段边界切换；20s/30s任务周期，采音约1.5s（含500ms稳定等待）</td>
+</tr>
+<tr>
+<td>B</td>
+<td>证据边界</td>
+<td>实测、硬件仿真、功耗模型是不同证据，见平台与结果表。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="公式1完整周期能量">公式1：完整周期能量<a class="anchor" href="#公式1完整周期能量">#</a></h3>
+<figure><a class="image-link" href="../images/equation-1.png" target="_blank" rel="noopener"><img src="../images/equation-1.png" alt="公式1" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> E_j为每阶段能量J；必须使用相同周期长度；供电转换损耗按测量边界计入。</p>
+<p><strong>代入与检查：</strong> 20s Medium Optimized总量2.947J，不等于只报告计算阶段1.55J。</p>
+<p><strong>来源：</strong> Table10，p15</p>
+<h3 id="公式2计算时间预算教学整理">公式2：计算时间预算（教学整理）<a class="anchor" href="#公式2计算时间预算教学整理">#</a></h3>
+<figure><a class="image-link" href="../images/equation-2.png" target="_blank" rel="noopener"><img src="../images/equation-2.png" alt="公式2" loading="lazy"></a></figure>
+<p><strong>符号与前提：</strong> D为周期s，采集/传输/切换均用s；实际还需中断和安全余量。</p>
+<p><strong>代入与检查：</strong> D=20s，采集1.6s、发送4.5s、切换0.1s时，计算最多13.8s。此为算例，非原文切换测值。</p>
+<p><strong>来源：</strong> §4.1，p15–16</p>
+<h2 id="阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解<a class="anchor" href="#阶段46架构关键图与方法拆解">#</a></h2>
+<p><strong>输入—处理—输出：</strong> 当前阶段、20s或30s周期预算、离线各配置的耗时和能量 → 离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型 → RP2040软件设置Vreg与系统频率、进入睡眠；不是电机驱动 → 执行与反馈。</p>
+<table>
+<thead><tr>
+<th>系统角色</th>
+<th>具体设置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>具体控制算法</td>
+<td>离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型</td>
+</tr>
+<tr>
+<td>被控负载类型</td>
+<td>周期性IoT声音采集→数字信号处理→无线发送→睡眠</td>
+</tr>
+<tr>
+<td>具体被控程序</td>
+<td>4000点FFT、4000点自相关、50-tap FIR；4kHz采集4000样点；经ESP-01发送19字节标志/时间等</td>
+</tr>
+<tr>
+<td>使用平台与测量</td>
+<td>RP2040双Cortex-M0+（264KB SRAM）＋PDM MEMS麦克风＋ESP-01；裸机；Nordic PPK2 100ksps，3.3V板级供电，GPIO四位标记阶段；ATmega328p补充泄漏实验</td>
+</tr>
+<tr>
+<td>输入/状态</td>
+<td>当前阶段、20s或30s周期预算、离线各配置的耗时和能量</td>
+</tr>
+<tr>
+<td>输出/动作</td>
+<td>RP2040软件设置Vreg与系统频率、进入睡眠；不是电机驱动</td>
+</tr>
+<tr>
+<td>周期与运行位置</td>
+<td>阶段边界切换；20s/30s任务周期，采音约1.5s（含500ms稳定等待）</td>
+</tr>
+</tbody>
+</table>
+<p>§2–4（p3–16）先逐个Vreg寻找作者实验中的稳定频率，再把功能分成“固定持续时间”和“CPU工作量决定时间”。麦克风实际采样1s，加500ms稳定等待；采集与Wi-Fi发送的墙钟时间不随CPU频率同比缩短，故用Slow。FFT/FIR/自相关随算力变化，20s周期需计算在约14s内完成，选择Medium；30s周期可留约24s，选择Low。以GPIO标记并积分板级电流，完整周期包含睡眠与唤醒。</p>
+<p>Table1列140MHz/0.85V、260MHz/1.05V、416MHz/1.30V等作者实验点，§3.1还涉及brown-out阈值和Flash时钟调整。这些不能作为芯片额定安全保证，更不可移植到E902；本课题只借鉴阶段预算与测量方法。Table12分项的1.4900J与Table7 Low计算1.4J表述存在差异，不能无说明跨表拼算。</p>
+<h3 id="fig1ppk2与gpio测量">Fig1：PPK2与GPIO测量<a class="anchor" href="#fig1ppk2与gpio测量">#</a></h3>
+<figure><a class="image-link" href="../images/original-fig1.png" target="_blank" rel="noopener"><img src="../images/original-fig1.png" alt="Fig1：PPK2与GPIO测量" loading="lazy"></a></figure>
+<p><a href="../images/original-fig1.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/technologies/technologies-13-00082/article_deploy/technologies-13-00082.pdf#page=6">原文 Fig1，PDF p6</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可将电流波形与任务状态对齐。</p>
+<p><strong>直接观察／原文报告：</strong> 可将电流波形与任务状态对齐。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段78实验统计及证据链">阶段7–8：实验、统计及证据链<a class="anchor" href="#阶段78实验统计及证据链">#</a></h2>
+<p>本节数字均是<strong>原文明确报告或原文数值的标注算例</strong>；没有按图柱高度臆造额外精确值。</p>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>20s周期完整能量</td>
+<td>2.947J/周期</td>
+<td>Medium Optimized；High4.409J，Medium3.594J，High Optimized3.104J</td>
+<td>Table10–11，p15</td>
+</tr>
+<tr>
+<td>30s周期完整能量</td>
+<td>2.884J/周期</td>
+<td>Low Optimized；High4.503J，Medium3.676J，Low3.145J</td>
+<td>Table12–13，p16</td>
+</tr>
+<tr>
+<td>作者概括收益</td>
+<td>最高约33%/36%</td>
+<td>分别20s/30s、相对未优化高档；不是相对每一种基线均省36%</td>
+<td>§4.1，p15–16</td>
+</tr>
+</tbody>
+</table>
+<h3 id="table1020s周期阶段组合">Table10：20s周期阶段组合<a class="anchor" href="#table1020s周期阶段组合">#</a></h3>
+<figure><a class="image-link" href="../images/original-table10.png" target="_blank" rel="noopener"><img src="../images/original-table10.png" alt="Table10：20s周期阶段组合" loading="lazy"></a></figure>
+<p><a href="../images/original-table10.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/technologies/technologies-13-00082/article_deploy/technologies-13-00082.pdf#page=15">原文 Table10，PDF p15</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。采集通信Slow、计算Medium、余时睡眠。</p>
+<p><strong>直接观察／原文报告：</strong> 采集通信Slow、计算Medium、余时睡眠。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<h3 id="table1120s同周期基线">Table11：20s同周期基线<a class="anchor" href="#table1120s同周期基线">#</a></h3>
+<figure><a class="image-link" href="../images/original-table11.png" target="_blank" rel="noopener"><img src="../images/original-table11.png" alt="Table11：20s同周期基线" loading="lazy"></a></figure>
+<p><a href="../images/original-table11.png">打开大图</a> · <a href="https://mdpi-res.com/d_attachment/technologies/technologies-13-00082/article_deploy/technologies-13-00082.pdf#page=15">原文 Table11，PDF p15</a></p>
+<p><strong>怎样看：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。2.947J需与同20s配置比较。</p>
+<p><strong>直接观察／原文报告：</strong> 2.947J需与同20s配置比较。</p>
+<p><strong>读者判断：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</p>
+<p><strong>统计与公平性审查（读者分析）：</strong> PPK2 100ksps是时间采样率，不是独立重复次数。文中给任务分项与周期总能量，但当前未定位齐每个场景独立重复数、随机化顺序及置信区间；阶段采样不能冒充多个独立样本。Table13题名与章节不符，Low计算分项跨表差异也应保留。固定功能/同周期比较优于仅比较计算阶段，但超规格配置的长期可靠性仍未证明。</p>
+<p>工程实验中，设备、程序、输入文件、重复运行、时间窗口是不同统计层级，不能互相替代。本任务不涉及生物样本，细胞／动物／试剂等检查不适用。未注明的P值或置信区间不补造；“差了几个百分点”不自动等于统计显著。</p>
+<table>
+<thead><tr>
+<th>主张层级</th>
+<th>直接证据</th>
+<th>对照与统计</th>
+<th>可得结论／替代解释</th>
+<th>可信度</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>原文明确报告</td>
+<td>20s周期完整能量：2.947J/周期</td>
+<td>Table10–11，p15</td>
+<td>Medium Optimized；High4.409J，Medium3.594J，High Optimized3.104J；仅在该实验范围内成立</td>
+<td>图表／文本可核对：高；独立复现：尚无</td>
+</tr>
+<tr>
+<td>作者解释</td>
+<td>所提架构／模型解释了性能或估计改善</td>
+<td>关键原图与方法见上文；统计边界见下节</td>
+<td>效果可能同时来自动作空间、平台特性与采样设置，因果归因需消融</td>
+<td>中</td>
+</tr>
+<tr>
+<td>AI分析／迁移假设</td>
+<td>用于E902的压缩候选负载</td>
+<td>本篇未直接验证该芯片与任务组合</td>
+<td>需三项后续实验；不能复制论文收益数字</td>
+<td>待验证，当前无法判断</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断<a class="anchor" href="#阶段910贡献与局限分开判断">#</a></h2>
+<p>优势在于将真实应用的采样、处理、通信、睡眠和唤醒纳入统一时间/能量预算，并展示不同周期需要不同计算档。它提供测量驱动规则基线，不是新神经网络。</p>
+<table>
+<thead><tr>
+<th>来源</th>
+<th>严重程度</th>
+<th>局限及其影响</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>实验稳定不等于额定OPP安全；不应让E902实验从超频降压开始。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>对阶段可预测、固定工作量应用适用；突发输入/计算复杂度波动需要预测和回退。</td>
+</tr>
+<tr>
+<td>读者分析</td>
+<td>关键</td>
+<td>未完整穷尽OS/RTOS调度、中断、Flash等待和长期温漂对结果的影响。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口<a class="anchor" href="#阶段11最小复现路线与缺口">#</a></h2>
+<p>先重建原文固定安全档、输入文件和测量边界，再实现上述算法。逐档确认正确输出和执行时间，记录控制、监测、调频与空闲成本；冻结模型后用整文件留出的输入测试。原文未定位齐的参数须列入复现日志，不用猜测值伪装完整复现。可以把声音处理换成日志分块压缩：采集/收包与发送阶段使用满足接口要求的低档，压缩阶段按剩余期限选档，再睡眠。若不具备真实电压调节，先实现DFS并标明能量模型。</p>
+<p><strong>代码／数据现状：</strong> 当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。</p>
+<p><strong>质量控制顺序：</strong> 先验证程序输出和时间基准，再验证采样／模型，最后比较策略。保存输入文件哈希、平台配置、OPP、随机种子、温度与每次运行原始记录。失败时先回固定安全频点定位错误，再继续优化。复现可行性判断为“可开始部分方法复建，完整数值复现条件未齐”；这与“已完成复现”不同。</p>
+<h2 id="阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题<a class="anchor" href="#阶段12用于你的cpue902课题">#</a></h2>
+<p>可以把声音处理换成日志分块压缩：采集/收包与发送阶段使用满足接口要求的低档，压缩阶段按剩余期限选档，再睡眠。若不具备真实电压调节，先实现DFS并标明能量模型。</p>
+<table>
+<thead><tr>
+<th>建议实验／优先级</th>
+<th>价值</th>
+<th>最低资源</th>
+<th>主要风险</th>
+<th>成功判据（设计目标，非已得结果）</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>P0：压缩应用阶段剖面</td>
+<td>知道每个阶段是否CPU受限</td>
+<td>字节到达/压缩/发送/空闲GPIO或trace</td>
+<td>只测压缩可能错过整周期能量</td>
+<td>同周期、同压缩结果分阶段积分</td>
+</tr>
+<tr>
+<td>P1：周期变化实验</td>
+<td>验证规则能否自适应服务需求</td>
+<td>多周期/块大小与合法OPP表</td>
+<td>过松目标只会空闲不增加意义</td>
+<td>记录每周期能量和截止期违约</td>
+</tr>
+<tr>
+<td>P1：智能预测增量</td>
+<td>比较查表与小树/原型预测</td>
+<td>输入熵和历史cycles/byte</td>
+<td>模型收益小于开销</td>
+<td>按整文件留出；净能量优于阶段规则</td>
+</tr>
+</tbody>
+</table>
+<p>上述优先级是读者建议：P0先做，P1建立在基线可运行后，P2只在资源允许且前序实验证明有必要时开展。压缩应用仍是候选，尚未替你最终定题或证明已在E902运行。论文公开可读不自动授权任意复制数据；代码、图片和数据须分别核对许可。</p>
+<h2 id="阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查<a class="anchor" href="#阶段13读完后应掌握与继续核查">#</a></h2>
+<p><strong>五个知识点：</strong> 把采集、计算、通信和睡眠分开选档，满足整个IoT工作周期而不是只最小化CPU瞬时功率 你还应能解释输入输出表中的角色、两条公式的单位、首个结果指标的分母，以及局限表里的关键条件。</p>
+<p><strong>五个未决问题：</strong> 独立新输入是否成立？最差时延是否可接受？测量参考是否足够？控制与切换是否抵消收益？E902实际具有哪些接口和可观测量？这些是研究问题，不是对作者遗漏的无证据指控。</p>
+<p><strong>立即做：</strong> 按公式算例手算一次，选一张结果图复述“硬件—负载—基线—指标—边界”。<strong>后续核查：</strong> 补齐代码版本、训练数据和仪表设置。<strong>可复用：</strong> 上文明确标注的模型与接口思路。<strong>谨慎采用：</strong> 所有跨平台百分比。<strong>暂不采用：</strong> 尚未证实存在的电压控制和完整硬实时承诺。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#rp2040阶段dvfs图文技术精读">RP2040阶段DVFS：图文技术精读</a>
+<a class="toc-level-2" href="#阶段0材料与版本审计">阶段0：材料与版本审计</a>
+<a class="toc-level-2" href="#阶段1身份卡与整体概述">阶段1：身份卡与整体概述</a>
+<a class="toc-level-2" href="#阶段2问题假设与创新位置">阶段2：问题、假设与创新位置</a>
+<a class="toc-level-2" href="#阶段3必要术语与数学">阶段3：必要术语与数学</a>
+<a class="toc-level-3" href="#公式1完整周期能量">公式1：完整周期能量</a>
+<a class="toc-level-3" href="#公式2计算时间预算教学整理">公式2：计算时间预算（教学整理）</a>
+<a class="toc-level-2" href="#阶段46架构关键图与方法拆解">阶段4–6：架构、关键图与方法拆解</a>
+<a class="toc-level-3" href="#fig1ppk2与gpio测量">Fig1：PPK2与GPIO测量</a>
+<a class="toc-level-2" href="#阶段78实验统计及证据链">阶段7–8：实验、统计及证据链</a>
+<a class="toc-level-3" href="#table1020s周期阶段组合">Table10：20s周期阶段组合</a>
+<a class="toc-level-3" href="#table1120s同周期基线">Table11：20s同周期基线</a>
+<a class="toc-level-2" href="#阶段910贡献与局限分开判断">阶段9–10：贡献与局限分开判断</a>
+<a class="toc-level-2" href="#阶段11最小复现路线与缺口">阶段11：最小复现路线与缺口</a>
+<a class="toc-level-2" href="#阶段12用于你的cpue902课题">阶段12：用于你的CPU／E902课题</a>
+<a class="toc-level-2" href="#阶段13读完后应掌握与继续核查">阶段13：读完后应掌握与继续核查</a>
+    </aside>
+  </div>
+</body>
+</html>

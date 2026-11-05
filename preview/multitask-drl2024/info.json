@@ -1,0 +1,29 @@
+{
+  "index": "multitask-drl2024",
+  "paper_title": "Energy-Efficient Computation with DVFS using Deep Reinforcement Learning for Multi-Task Systems in Edge Computing",
+  "description": "把任务开始/完成标签和负载历史编码给DDQN，使共享CPU频率能考虑多个任务的软期限。把任务开始/完成标签和负载历史编码给DDQN，使共享CPU频率能考虑多个任务的软期限",
+  "authors": [
+    "Xinyi Li",
+    "Ti Zhou",
+    "Haoyu Wang",
+    "Man Lin"
+  ],
+  "metadata": {
+    "venue": "arXiv2409.19434，首次2024、v3修订2025",
+    "year": 2024,
+    "doi": "10.48550/arXiv.2409.19434"
+  },
+  "source_url": "https://doi.org/10.48550/arXiv.2409.19434",
+  "pdf_url": "https://arxiv.org/pdf/2409.19434v3",
+  "source_version": "arXiv2409.19434v3，2025-05-21，13页；不混用初版摘要。",
+  "review_date": "2026-11-05",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "c106cb9bf8b2503b16ccbadf8cc336b506eced4ccf86df1e971ea98f1bb1e548",
+  "figure_count": 26,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "CPU/E902/RISC-V DVFS thesis; compression is a candidate, not a confirmed implemented application"
+}

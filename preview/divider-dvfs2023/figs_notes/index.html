@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>数字分频＋DVFS：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">数字分频＋DVFS：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="数字分频dvfs原图原表阅读索引">数字分频＋DVFS：原图原表阅读索引<a class="anchor" href="#数字分频dvfs原图原表阅读索引">#</a></h1>
+<p><a href="https://doi.org/10.3390/electronics12020407">论文页面</a> · <a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf">本笔记所用 PDF</a> · <a href="https://doi.org/10.3390/electronics12020407">标识符</a></p>
+<p>整理日期：2026-11-05。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的20项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> 实验单位为SPEC trace与模拟配置，不是独立芯片电测重复。对照使用相同阈值但不同估计/时间粒度，收益包括更细采样与快分频贡献；须用消融分开。能量/性能/ED²P指标不可混成同一百分比；摘要与表格矛盾已视觉核对。</p>
+<h2 id="fig1mcf阶段示例">Fig1：mcf阶段示例<a class="anchor" href="#fig1mcf阶段示例">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=4">原文 Fig1，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> mcf阶段示例，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。100µs平均可能掩盖短片段。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 100µs平均可能掩盖短片段。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“100µs平均可能掩盖短片段。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig2lbm阶段示例">Fig2：lbm阶段示例<a class="anchor" href="#fig2lbm阶段示例">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=5">原文 Fig2，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> lbm阶段示例，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。突发访存与持续访存需要不同响应。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 突发访存与持续访存需要不同响应。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“突发访存与持续访存需要不同响应。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig3退出访存阶段">Fig3：退出访存阶段<a class="anchor" href="#fig3退出访存阶段">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=5">原文 Fig3，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 退出访存阶段，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。慢环返回高频太晚会损害性能。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 慢环返回高频太晚会损害性能。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“慢环返回高频太晚会损害性能。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig4数字分频器">Fig4：数字分频器<a class="anchor" href="#fig4数字分频器">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=6">原文 Fig4，PDF p6</a></p>
+<figure><a class="image-link" href="../images/original-fig4.png" target="_blank" rel="noopener"><img src="../images/original-fig4.png" alt="Fig4" loading="lazy"></a></figure>
+<p><a href="../images/original-fig4.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 数字分频器，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。三级触发器可分频，但不改变电压。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 三级触发器可分频，但不改变电压。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“三级触发器可分频，但不改变电压。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig5原crit短窗口误差">Fig5：原CRIT短窗口误差<a class="anchor" href="#fig5原crit短窗口误差">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=10">原文 Fig5，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 原CRIT短窗口误差，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。短窗口会受未完成miss边界影响。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 短窗口会受未完成miss边界影响。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“短窗口会受未完成miss边界影响。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig6改进关键路径误差">Fig6：改进关键路径误差<a class="anchor" href="#fig6改进关键路径误差">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=10">原文 Fig6，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 改进关键路径误差，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。选定间隔下误差改善，仍为模型比较。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 选定间隔下误差改善，仍为模型比较。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“选定间隔下误差改善，仍为模型比较。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig7逐程序能量降低">Fig7：逐程序能量降低<a class="anchor" href="#fig7逐程序能量降低">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=12">原文 Fig7，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 逐程序能量降低，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。并非每个程序都相对每基线最优。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 并非每个程序都相对每基线最优。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“并非每个程序都相对每基线最优。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig8逐程序性能损失">Fig8：逐程序性能损失<a class="anchor" href="#fig8逐程序性能损失">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=13">原文 Fig8，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 逐程序性能损失，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。必须与图7配对看代价。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 必须与图7配对看代价。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“必须与图7配对看代价。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig9edp能效">Fig9：ED²P能效<a class="anchor" href="#fig9edp能效">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=14">原文 Fig9，PDF p14</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> ED²P能效，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。能量和时间共同决定。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 能量和时间共同决定。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“能量和时间共同决定。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig10动态功率占比">Fig10：动态功率占比<a class="anchor" href="#fig10动态功率占比">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=14">原文 Fig10，PDF p14</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 动态功率占比，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。占比不是绝对瓦数。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 占比不是绝对瓦数。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“占比不是绝对瓦数。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig11采样间隔消融">Fig11：采样间隔消融<a class="anchor" href="#fig11采样间隔消融">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=15">原文 Fig11，PDF p15</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 采样间隔消融，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。粒度与硬件/管理成本权衡。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 粒度与硬件/管理成本权衡。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“粒度与硬件/管理成本权衡。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig12两种响应机制">Fig12：两种响应机制<a class="anchor" href="#fig12两种响应机制">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=15">原文 Fig12，PDF p15</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 两种响应机制，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。移动平均与dense sampling各有误差/开销。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 移动平均与dense sampling各有误差/开销。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“移动平均与dense sampling各有误差/开销。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="fig13dvfs切换次数">Fig13：DVFS切换次数<a class="anchor" href="#fig13dvfs切换次数">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=16">原文 Fig13，PDF p16</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> DVFS切换次数，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。多切换不自动更节能。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 多切换不自动更节能。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“多切换不自动更节能。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table1dvfs与分频功率估计">Table1：DVFS与分频功率估计<a class="anchor" href="#table1dvfs与分频功率估计">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=6">原文 Table1，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> DVFS与分频功率估计，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。静态/动态功率假设来自McPAT。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 静态/动态功率假设来自McPAT。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“静态/动态功率假设来自McPAT。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table2八档阈值">Table2：八档阈值<a class="anchor" href="#table2八档阈值">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=9">原文 Table2，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 八档阈值，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。性能容限用来推导规则。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 性能容限用来推导规则。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“性能容限用来推导规则。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table3模拟cpu参数">Table3：模拟CPU参数<a class="anchor" href="#table3模拟cpu参数">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=11">原文 Table3，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 模拟CPU参数，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。部分表格行有错位，复现要核对配置源。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 部分表格行有错位，复现要核对配置源。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“部分表格行有错位，复现要核对配置源。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="table4核心平均结果">Table4：核心平均结果<a class="anchor" href="#table4核心平均结果">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=12">原文 Table4，PDF p12</a></p>
+<figure><a class="image-link" href="../images/original-table4.png" target="_blank" rel="noopener"><img src="../images/original-table4.png" alt="Table4" loading="lazy"></a></figure>
+<p><a href="../images/original-table4.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 核心平均结果，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。视觉可见16.26%，与摘要16.36%冲突。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 视觉可见16.26%，与摘要16.36%冲突。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“视觉可见16.26%，与摘要16.36%冲突。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm1移动平均快慢环">Algorithm1：移动平均快慢环<a class="anchor" href="#algorithm1移动平均快慢环">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=7">原文 Algorithm1，PDF p7</a></p>
+<figure><a class="image-link" href="../images/original-algorithm1.png" target="_blank" rel="noopener"><img src="../images/original-algorithm1.png" alt="Algorithm1" loading="lazy"></a></figure>
+<p><a href="../images/original-algorithm1.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 移动平均快慢环，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。稳定时慢DVFS，否则快DFS。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 稳定时慢DVFS，否则快DFS。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“稳定时慢DVFS，否则快DFS。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm2密集采样控制">Algorithm2：密集采样控制<a class="anchor" href="#algorithm2密集采样控制">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=8">原文 Algorithm2，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 密集采样控制，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。减少历史但误差可能增大。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 减少历史但误差可能增大。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“减少历史但误差可能增大。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm3关键路径计数">Algorithm3：关键路径计数<a class="anchor" href="#algorithm3关键路径计数">#</a></h2>
+<p><a href="https://mdpi-res.com/d_attachment/electronics/electronics-12-00407/article_deploy/electronics-12-00407.pdf#page=11">原文 Algorithm3，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 关键路径计数，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。实现依赖MSHR能力，E902不能默认具备。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 实现依赖MSHR能力，E902不能默认具备。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“实现依赖MSHR能力，E902不能默认具备。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“本项只支撑原文所列平台和配置；不证明E902可直接复用这些数值。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#数字分频dvfs原图原表阅读索引">数字分频＋DVFS：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1mcf阶段示例">Fig1：mcf阶段示例</a>
+<a class="toc-level-2" href="#fig2lbm阶段示例">Fig2：lbm阶段示例</a>
+<a class="toc-level-2" href="#fig3退出访存阶段">Fig3：退出访存阶段</a>
+<a class="toc-level-2" href="#fig4数字分频器">Fig4：数字分频器</a>
+<a class="toc-level-2" href="#fig5原crit短窗口误差">Fig5：原CRIT短窗口误差</a>
+<a class="toc-level-2" href="#fig6改进关键路径误差">Fig6：改进关键路径误差</a>
+<a class="toc-level-2" href="#fig7逐程序能量降低">Fig7：逐程序能量降低</a>
+<a class="toc-level-2" href="#fig8逐程序性能损失">Fig8：逐程序性能损失</a>
+<a class="toc-level-2" href="#fig9edp能效">Fig9：ED²P能效</a>
+<a class="toc-level-2" href="#fig10动态功率占比">Fig10：动态功率占比</a>
+<a class="toc-level-2" href="#fig11采样间隔消融">Fig11：采样间隔消融</a>
+<a class="toc-level-2" href="#fig12两种响应机制">Fig12：两种响应机制</a>
+<a class="toc-level-2" href="#fig13dvfs切换次数">Fig13：DVFS切换次数</a>
+<a class="toc-level-2" href="#table1dvfs与分频功率估计">Table1：DVFS与分频功率估计</a>
+<a class="toc-level-2" href="#table2八档阈值">Table2：八档阈值</a>
+<a class="toc-level-2" href="#table3模拟cpu参数">Table3：模拟CPU参数</a>
+<a class="toc-level-2" href="#table4核心平均结果">Table4：核心平均结果</a>
+<a class="toc-level-2" href="#algorithm1移动平均快慢环">Algorithm1：移动平均快慢环</a>
+<a class="toc-level-2" href="#algorithm2密集采样控制">Algorithm2：密集采样控制</a>
+<a class="toc-level-2" href="#algorithm3关键路径计数">Algorithm3：关键路径计数</a>
+    </aside>
+  </div>
+</body>
+</html>
