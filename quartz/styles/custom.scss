@@ -19,3 +19,29 @@ article img {
     th:first-child, td:first-child { min-width: 84px; }
   }
 }
+
+// The six-column research comparison needs the full desktop reading width.
+@media (min-width: 1000px) {
+  body[data-slug="dvfs/comparison-20-papers"] {
+    .page { max-width: 1900px; padding: 0 24px; box-sizing: border-box; }
+    .page > #quartz-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "grid-header" "grid-center" "grid-footer";
+    }
+    .sidebar { display: none !important; }
+    .page-header { margin-top: 2rem !important; }
+    article table:has(th:nth-child(6)) {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+      font-size: .9rem;
+      th, td { min-width: 0; overflow-wrap: anywhere; }
+      th:nth-child(1) { width: 10%; }
+      th:nth-child(2) { width: 18%; }
+      th:nth-child(3) { width: 10%; }
+      th:nth-child(4) { width: 19%; }
+      th:nth-child(5) { width: 20%; }
+      th:nth-child(6) { width: 23%; }
+    }
+  }
+}
