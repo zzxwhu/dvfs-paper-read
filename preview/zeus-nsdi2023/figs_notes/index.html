@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zeus：训练能量优化：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">Zeus：训练能量优化：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="zeus训练能量优化原图原表阅读索引">Zeus：训练能量优化：原图原表阅读索引<a class="anchor" href="#zeus训练能量优化原图原表阅读索引">#</a></h1>
+<p><a href="https://www.usenix.org/conference/nsdi23/presentation/you">论文页面</a> · <a href="https://www.usenix.org/system/files/nsdi23-you.pdf">本笔记所用 PDF</a> · <a href="https://www.usenix.org/conference/nsdi23/presentation/you">标识符</a></p>
+<p>整理日期：2026-11-06。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的28项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> 区分4个训练seed、同seed的功率扫描、最后5次任务均值与Alibaba trace回放。大量回放任务不是同等数量独立物理训练重复。不同batch可能改变收敛轨迹；公平比较要固定目标质量和学习率规则，并计入探索失败/早停成本。GPU NVML不含CPU、网络与制冷，结论不是整机碳排放。</p>
+<h2 id="fig1单独与联合调节的机会">Fig1：单独与联合调节的机会<a class="anchor" href="#fig1单独与联合调节的机会">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=3">原文 Fig1，PDF p3</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 单独与联合调节的机会，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。各模型对batch与功率帽敏感性不同。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 各模型对batch与功率帽敏感性不同。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；各模型对batch与功率帽敏感性不同。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“各模型对batch与功率帽敏感性不同。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；各模型对batch与功率帽敏感性不同。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig2etatta-pareto前沿">Fig2：ETA–TTA Pareto前沿<a class="anchor" href="#fig2etatta-pareto前沿">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=4">原文 Fig2，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> ETA–TTA Pareto前沿，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。更省能点可能更慢；每个点是同质量配置。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 更省能点可能更慢；每个点是同质量配置。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；更省能点可能更慢；每个点是同质量配置。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“更省能点可能更慢；每个点是同质量配置。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；更省能点可能更慢；每个点是同质量配置。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig3zeus工作流">Fig3：Zeus工作流<a class="anchor" href="#fig3zeus工作流">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=5">原文 Fig3，PDF p5</a></p>
+<figure><a class="image-link" href="../images/original-fig3.png" target="_blank" rel="noopener"><img src="../images/original-fig3.png" alt="Fig3" loading="lazy"></a></figure>
+<p><a href="../images/original-fig3.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> Zeus工作流，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。bandit跨作业，profiler在作业内；输出不是同一时间尺度。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> bandit跨作业，profiler在作业内；输出不是同一时间尺度。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；bandit跨作业，profiler在作业内；输出不是同一时间尺度。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“bandit跨作业，profiler在作业内；输出不是同一时间尺度。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；bandit跨作业，profiler在作业内；输出不是同一时间尺度。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig4batch探索与利用">Fig4：batch探索与利用<a class="anchor" href="#fig4batch探索与利用">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=8">原文 Fig4，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> batch探索与利用，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。初期剪枝与后续TS行为分开读。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 初期剪枝与后续TS行为分开读。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；初期剪枝与后续TS行为分开读。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“初期剪枝与后续TS行为分开读。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；初期剪枝与后续TS行为分开读。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig5batch与eta关系">Fig5：batch与ETA关系<a class="anchor" href="#fig5batch与eta关系">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=8">原文 Fig5，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> batch与ETA关系，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。局部近凸趋势支持剪枝，不是严格全局凸证明。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 局部近凸趋势支持剪枝，不是严格全局凸证明。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；局部近凸趋势支持剪枝，不是严格全局凸证明。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“局部近凸趋势支持剪枝，不是严格全局凸证明。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；局部近凸趋势支持剪枝，不是严格全局凸证明。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig6收敛后能量与时间">Fig6：收敛后能量与时间<a class="anchor" href="#fig6收敛后能量与时间">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=11">原文 Fig6，PDF p11</a></p>
+<figure><a class="image-link" href="../images/original-fig6.png" target="_blank" rel="noopener"><img src="../images/original-fig6.png" alt="Fig6" loading="lazy"></a></figure>
+<p><a href="../images/original-fig6.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 收敛后能量与时间，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。上下图必须配对，同一Default归一化。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 上下图必须配对，同一Default归一化。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；上下图必须配对，同一Default归一化。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“上下图必须配对，同一Default归一化。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；上下图必须配对，同一Default归一化。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig7累计regret">Fig7：累计regret<a class="anchor" href="#fig7累计regret">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=11">原文 Fig7，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 累计regret，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。比较探索成本而非单次最终节能。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 比较探索成本而非单次最终节能。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；比较探索成本而非单次最终节能。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“比较探索成本而非单次最终节能。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；比较探索成本而非单次最终节能。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig8二维搜索路径">Fig8：二维搜索路径<a class="anchor" href="#fig8二维搜索路径">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=11">原文 Fig8，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 二维搜索路径，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。深色背景较好；路径深浅表示作业先后。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 深色背景较好；路径深浅表示作业先后。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；深色背景较好；路径深浅表示作业先后。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“深色背景较好；路径深浅表示作业先后。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；深色背景较好；路径深浅表示作业先后。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig9alibaba回放">Fig9：Alibaba回放<a class="anchor" href="#fig9alibaba回放">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=12">原文 Fig9，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> Alibaba回放，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。大规模任务流为trace-driven simulation。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 大规模任务流为trace-driven simulation。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；大规模任务流为trace-driven simulation。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“大规模任务流为trace-driven simulation。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；大规模任务流为trace-driven simulation。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig10数据漂移实验">Fig10：数据漂移实验<a class="anchor" href="#fig10数据漂移实验">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=12">原文 Fig10，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 数据漂移实验，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。单看初期曲线无法推出长期稳定。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 单看初期曲线无法推出长期稳定。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；单看初期曲线无法推出长期稳定。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“单看初期曲线无法推出长期稳定。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；单看初期曲线无法推出长期稳定。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig11偏好参数">Fig11：η偏好参数<a class="anchor" href="#fig11偏好参数">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=13">原文 Fig11，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> η偏好参数，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。偏好改变Pareto上的选择。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 偏好改变Pareto上的选择。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；偏好改变Pareto上的选择。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“偏好改变Pareto上的选择。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；偏好改变Pareto上的选择。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig12多gpu累计能量">Fig12：多GPU累计能量<a class="anchor" href="#fig12多gpu累计能量">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=13">原文 Fig12，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 多GPU累计能量，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。多卡同步与单卡最优不同。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 多卡同步与单卡最优不同。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；多卡同步与单卡最优不同。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“多卡同步与单卡最优不同。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；多卡同步与单卡最优不同。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig13开销拆分">Fig13：开销拆分<a class="anchor" href="#fig13开销拆分">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=13">原文 Fig13，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 开销拆分，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。控制成本需要相对完整训练时长看。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 控制成本需要相对完整训练时长看。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；控制成本需要相对完整训练时长看。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“控制成本需要相对完整训练时长看。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；控制成本需要相对完整训练时长看。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig14多代gpu比较">Fig14：多代GPU比较<a class="anchor" href="#fig14多代gpu比较">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=13">原文 Fig14，PDF p13</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 多代GPU比较，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。跨代归一化不是绝对J排名。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 跨代归一化不是绝对J排名。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；跨代归一化不是绝对J排名。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“跨代归一化不是绝对J排名。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；跨代归一化不是绝对J排名。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig15多代机会扫描">Fig15：多代机会扫描<a class="anchor" href="#fig15多代机会扫描">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=20">原文 Fig15，PDF p20</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 多代机会扫描，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。附录补充硬件迁移证据。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 附录补充硬件迁移证据。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；附录补充硬件迁移证据。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“附录补充硬件迁移证据。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；附录补充硬件迁移证据。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig16所有任务pareto">Fig16：所有任务Pareto<a class="anchor" href="#fig16所有任务pareto">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=20">原文 Fig16，PDF p20</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 所有任务Pareto，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。各任务前沿形状不同。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 各任务前沿形状不同。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；各任务前沿形状不同。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“各任务前沿形状不同。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；各任务前沿形状不同。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig17batch能量敏感性">Fig17：batch能量敏感性<a class="anchor" href="#fig17batch能量敏感性">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=21">原文 Fig17，PDF p21</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> batch能量敏感性，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。大batch不一定少能量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 大batch不一定少能量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；大batch不一定少能量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“大batch不一定少能量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；大batch不一定少能量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig18功率帽能量敏感性">Fig18：功率帽能量敏感性<a class="anchor" href="#fig18功率帽能量敏感性">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=21">原文 Fig18，PDF p21</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 功率帽能量敏感性，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。最低功率不必最低ETA。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 最低功率不必最低ETA。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；最低功率不必最低ETA。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“最低功率不必最低ETA。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；最低功率不必最低ETA。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig19所有任务累计regret">Fig19：所有任务累计regret<a class="anchor" href="#fig19所有任务累计regret">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=21">原文 Fig19，PDF p21</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 所有任务累计regret，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不能只挑优势最大任务。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不能只挑优势最大任务。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；不能只挑优势最大任务。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不能只挑优势最大任务。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；不能只挑优势最大任务。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig20zeus全任务路径">Fig20：Zeus全任务路径<a class="anchor" href="#fig20zeus全任务路径">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=22">原文 Fig20，PDF p22</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> Zeus全任务路径，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。探索效率是独立指标。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 探索效率是独立指标。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；探索效率是独立指标。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“探索效率是独立指标。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；探索效率是独立指标。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig21gridsearch路径">Fig21：GridSearch路径<a class="anchor" href="#fig21gridsearch路径">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=22">原文 Fig21，PDF p22</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> GridSearch路径，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。噪声可使一次搜索误判。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 噪声可使一次搜索误判。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；噪声可使一次搜索误判。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“噪声可使一次搜索误判。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；噪声可使一次搜索误判。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig22对etatta影响">Fig22：η对ETA/TTA影响<a class="anchor" href="#fig22对etatta影响">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=22">原文 Fig22，PDF p22</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> η对ETA/TTA影响，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。偏好变化会改变比较目标。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 偏好变化会改变比较目标。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；偏好变化会改变比较目标。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“偏好变化会改变比较目标。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；偏好变化会改变比较目标。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig23全部gpu结果">Fig23：全部GPU结果<a class="anchor" href="#fig23全部gpu结果">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=22">原文 Fig23，PDF p22</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 全部GPU结果，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。跨代结果仅代表所列设备。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 跨代结果仅代表所列设备。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；跨代结果仅代表所列设备。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“跨代结果仅代表所列设备。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；跨代结果仅代表所列设备。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="table1模型与目标质量">Table1：模型与目标质量<a class="anchor" href="#table1模型与目标质量">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=10">原文 Table1，PDF p10</a></p>
+<figure><a class="image-link" href="../images/original-table1.png" target="_blank" rel="noopener"><img src="../images/original-table1.png" alt="Table1" loading="lazy"></a></figure>
+<p><a href="../images/original-table1.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 模型与目标质量，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。WER/F1/accuracy/NDCG不可混成同一准确率。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> WER/F1/accuracy/NDCG不可混成同一准确率。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；WER/F1/accuracy/NDCG不可混成同一准确率。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“WER/F1/accuracy/NDCG不可混成同一准确率。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；WER/F1/accuracy/NDCG不可混成同一准确率。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="table2测试硬件">Table2：测试硬件<a class="anchor" href="#table2测试硬件">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=10">原文 Table2，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 测试硬件，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。默认V100，其他代际分开。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 默认V100，其他代际分开。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；默认V100，其他代际分开。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“默认V100，其他代际分开。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；默认V100，其他代际分开。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm1ts选动作">Algorithm1：TS选动作<a class="anchor" href="#algorithm1ts选动作">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=7">原文 Algorithm1，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> TS选动作，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。抽样均值，不是直接抽样一次训练能量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 抽样均值，不是直接抽样一次训练能量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；抽样均值，不是直接抽样一次训练能量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“抽样均值，不是直接抽样一次训练能量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；抽样均值，不是直接抽样一次训练能量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm2更新信念">Algorithm2：更新信念<a class="anchor" href="#algorithm2更新信念">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=7">原文 Algorithm2，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 更新信念，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。方差来自已观察代价。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 方差来自已观察代价。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；方差来自已观察代价。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“方差来自已观察代价。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；方差来自已观察代价。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="algorithm3剪枝与早停">Algorithm3：剪枝与早停<a class="anchor" href="#algorithm3剪枝与早停">#</a></h2>
+<p><a href="https://www.usenix.org/system/files/nsdi23-you.pdf#page=8">原文 Algorithm3，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 剪枝与早停，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。失败尝试也消耗真实成本。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 失败尝试也消耗真实成本。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；失败尝试也消耗真实成本。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“失败尝试也消耗真实成本。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；失败尝试也消耗真实成本。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#zeus训练能量优化原图原表阅读索引">Zeus：训练能量优化：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1单独与联合调节的机会">Fig1：单独与联合调节的机会</a>
+<a class="toc-level-2" href="#fig2etatta-pareto前沿">Fig2：ETA–TTA Pareto前沿</a>
+<a class="toc-level-2" href="#fig3zeus工作流">Fig3：Zeus工作流</a>
+<a class="toc-level-2" href="#fig4batch探索与利用">Fig4：batch探索与利用</a>
+<a class="toc-level-2" href="#fig5batch与eta关系">Fig5：batch与ETA关系</a>
+<a class="toc-level-2" href="#fig6收敛后能量与时间">Fig6：收敛后能量与时间</a>
+<a class="toc-level-2" href="#fig7累计regret">Fig7：累计regret</a>
+<a class="toc-level-2" href="#fig8二维搜索路径">Fig8：二维搜索路径</a>
+<a class="toc-level-2" href="#fig9alibaba回放">Fig9：Alibaba回放</a>
+<a class="toc-level-2" href="#fig10数据漂移实验">Fig10：数据漂移实验</a>
+<a class="toc-level-2" href="#fig11偏好参数">Fig11：η偏好参数</a>
+<a class="toc-level-2" href="#fig12多gpu累计能量">Fig12：多GPU累计能量</a>
+<a class="toc-level-2" href="#fig13开销拆分">Fig13：开销拆分</a>
+<a class="toc-level-2" href="#fig14多代gpu比较">Fig14：多代GPU比较</a>
+<a class="toc-level-2" href="#fig15多代机会扫描">Fig15：多代机会扫描</a>
+<a class="toc-level-2" href="#fig16所有任务pareto">Fig16：所有任务Pareto</a>
+<a class="toc-level-2" href="#fig17batch能量敏感性">Fig17：batch能量敏感性</a>
+<a class="toc-level-2" href="#fig18功率帽能量敏感性">Fig18：功率帽能量敏感性</a>
+<a class="toc-level-2" href="#fig19所有任务累计regret">Fig19：所有任务累计regret</a>
+<a class="toc-level-2" href="#fig20zeus全任务路径">Fig20：Zeus全任务路径</a>
+<a class="toc-level-2" href="#fig21gridsearch路径">Fig21：GridSearch路径</a>
+<a class="toc-level-2" href="#fig22对etatta影响">Fig22：η对ETA/TTA影响</a>
+<a class="toc-level-2" href="#fig23全部gpu结果">Fig23：全部GPU结果</a>
+<a class="toc-level-2" href="#table1模型与目标质量">Table1：模型与目标质量</a>
+<a class="toc-level-2" href="#table2测试硬件">Table2：测试硬件</a>
+<a class="toc-level-2" href="#algorithm1ts选动作">Algorithm1：TS选动作</a>
+<a class="toc-level-2" href="#algorithm2更新信念">Algorithm2：更新信念</a>
+<a class="toc-level-2" href="#algorithm3剪枝与早停">Algorithm3：剪枝与早停</a>
+    </aside>
+  </div>
+</body>
+</html>

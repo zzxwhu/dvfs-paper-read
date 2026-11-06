@@ -1,0 +1,30 @@
+{
+  "index": "dvfo2023",
+  "paper_title": "DVFO: Learning-Based DVFS for Energy-Efficient Edge-Cloud Collaborative Inference",
+  "description": "用并发DQN联合选择边缘CPU/GPU/内存频率与特征卸载比例，结合注意力和量化降低边缘推理成本。用并发DQN联合选择边缘CPU/GPU/内存频率与特征卸载比例，结合注意力和量化降低边缘推理成本",
+  "authors": [
+    "Ziyang Zhang",
+    "Yang Zhao",
+    "Huan Li",
+    "Changyao Lin",
+    "Jie Liu"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本2023",
+    "year": 2023,
+    "doi": "10.48550/arXiv.2306.01811"
+  },
+  "source_url": "https://arxiv.org/abs/2306.01811v3",
+  "pdf_url": "https://arxiv.org/pdf/2306.01811v3",
+  "source_version": "arXiv2306.01811v3，2023-06-23，16页。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "1a9e48c7242d3cdcea3a51bf6b487299c69948f449d272d0dcd082026602e2a6",
+  "figure_count": 21,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

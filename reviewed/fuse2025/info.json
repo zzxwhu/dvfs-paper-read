@@ -1,0 +1,31 @@
+{
+  "index": "fuse2025",
+  "paper_title": "Dissecting the Impact of Mobile DVFS Governors on LLM Inference Performance and Energy Efficiency",
+  "description": "解释手机CPU/GPU独立governor互相降频的恶性循环，再通过离线两步搜索为prefill/decode配置协同频率。解释手机CPU/GPU独立governor互相降频的恶性循环，再通过离线两步搜索为prefill/decode配置协同频率",
+  "authors": [
+    "Zongpu Zhang",
+    "Pranab Dash",
+    "Y. Charlie Hu",
+    "Qiang Xu",
+    "Jian Li",
+    "Haibing Guan"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本2025",
+    "year": 2025,
+    "doi": "10.48550/arXiv.2507.02135"
+  },
+  "source_url": "https://arxiv.org/abs/2507.02135v1",
+  "pdf_url": "https://arxiv.org/pdf/2507.02135v1",
+  "source_version": "arXiv2507.02135v1，2025-07-02，16页；与SparseDVFS同名缩写的FUSE不是同一系统。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "7805115c2cb1bab137a76f2416e1620119ddc741ff5fb09dc942a5f8a9a4fe28",
+  "figure_count": 19,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

@@ -1,0 +1,397 @@
+{
+  "short": "DVFO：边云协同推理",
+  "zh": "用并发DQN联合选择边缘CPU/GPU/内存频率与特征卸载比例，结合注意力和量化降低边缘推理成本",
+  "authors": [
+    "Ziyang Zhang",
+    "Yang Zhao",
+    "Huan Li",
+    "Changyao Lin",
+    "Jie Liu"
+  ],
+  "venue": "arXiv预印本2023",
+  "version": "arXiv2306.01811v3，2023-06-23，16页。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "用并发DQN联合选择边缘CPU/GPU/内存频率与特征卸载比例，结合注意力和量化降低边缘推理成本",
+  "abstract_zh": "本文研究边缘–云协同CV分类推理，网络带宽变化的运行时能效。具体程序包括主实验EfficientNet-B0与ViT-B16，CIFAR100/ImageNet2012；扩展ResNet18、Inception-v3、MobileNet-v2、MaxViT。作者在Jetson Nano/TX2/Xavier NX（默认NX）；云RTX3080＋Xeon6226R；PyTorch、nvpmodel、jetson-stats边缘设备遥测；云端能量未计入边缘ETI上采用离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合。输入为η能量/时延权重、融合权重λ、SCAM特征重要性分布、当前带宽B；历史reward/replay用于训练，输出为CPU/GPU/内存频率三元组＋特征分配比例ξ；另由SCAM确定重要特征和加权融合输出。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。同时处理应用特征、卸载动作和异构频域，突出决策延迟与任务执行重叠。智能控制器是DQN，CV网络是被控负载，两者角色独立。",
+  "abstract_en": "DVFO jointly controls edge frequencies and partial feature offloading for collaborative DNN inference. Spatial–channel attention keeps important features local and quantizes less important features for remote execution. A concurrent DQN reduces blocking decision overhead. Reported energy is measured on the edge device and should not be confused with combined edge-and-cloud energy. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：用并发DQN联合选择边缘CPU/GPU/内存频率与特征卸载比例，结合注意力和量化降低边缘推理成本。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "同时处理应用特征、卸载动作和异构频域，突出决策延迟与任务执行重叠。智能控制器是DQN，CV网络是被控负载，两者角色独立。",
+  "flow": "η能量/时延权重、融合权重λ、SCAM特征重要性分布、当前带宽B；历史reward/replay用于训练 → 离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合 → CPU/GPU/内存频率三元组＋特征分配比例ξ；另由SCAM确定重要特征和加权融合输出 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合"
+    ],
+    [
+      "被控负载类型",
+      "边缘–云协同CV分类推理，网络带宽变化"
+    ],
+    [
+      "具体被控程序",
+      "主实验EfficientNet-B0与ViT-B16，CIFAR100/ImageNet2012；扩展ResNet18、Inception-v3、MobileNet-v2、MaxViT"
+    ],
+    [
+      "使用平台与测量",
+      "Jetson Nano/TX2/Xavier NX（默认NX）；云RTX3080＋Xeon6226R；PyTorch、nvpmodel、jetson-stats边缘设备遥测；云端能量未计入边缘ETI"
+    ],
+    [
+      "输入/状态",
+      "η能量/时延权重、融合权重λ、SCAM特征重要性分布、当前带宽B；历史reward/replay用于训练"
+    ],
+    [
+      "输出/动作",
+      "CPU/GPU/内存频率三元组＋特征分配比例ξ；另由SCAM确定重要特征和加权融合输出"
+    ],
+    [
+      "周期与运行位置",
+      "以推理任务为动作边界；策略推理与正在执行的动作并发，不是CPU利用率固定周期阈值"
+    ]
+  ],
+  "method": "§4–5，PDF p4–8：用端到端TTI与边缘ETI构造加权cost，reward=−cost。状态S={λ,η,特征重要性分布,B}；DQN联合输出频率向量与卸载比例。网络三隐藏层128/64/32、学习率10⁻⁴、buffer10⁶、minibatch256，prioritized replay与target network。thinking-while-moving针对推理期间环境已变化的问题修改Q估计，不是新造应用负载。\n\nSCAM先通道再空间注意力，重要top-k保留边缘，次要特征INT8压缩后卸载，最后边缘加权融合。ξ在文字称offloading proportion，但p6示例写0.3表示30%本地，复现时应回查代码统一约定。§4的串行时延简模和§5的并发实现也须对齐。p8称100频率levels/10⁶组合，p6又说离散10值；这些版本内描述不能默默修成确定动作数。",
+  "metrics": [
+    [
+      "主推理能量降低",
+      "18.4%/31.2%/39.7%/43.4%",
+      "分别相对DRLDO/AppealNet/Cloud-only/Edge-only；NX、5Mbps、两模型×两数据集平均，边缘能量",
+      "§6.3/Fig8，p9"
+    ],
+    [
+      "端到端时延降低",
+      "28.6%–59.1%",
+      "相对上述不同基线；不是纯DVFS消融收益",
+      "Fig8，p9"
+    ],
+    [
+      "准确率边界",
+      "§6.3称相对Edge-only损失within2%；融合例0.68/0.56个百分点",
+      "摘要within1%与主实验within2%不能合并；Table4只比较融合实现",
+      "Fig9/Table4，p10/12"
+    ]
+  ],
+  "stats": "作者说所有结果在测试集平均，但图像数不是独立设备运行重复。带宽固定5Mbps的主结果与带宽敏感性分开。jetson-stats估边缘整体功耗，云GPU/网络设施能量未包含。改量化、特征分配、网络与调频多组件共同作用，比较必须看相同QAT和模型条件。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "依赖云端足够算力与带宽，边缘省能不等于全链路省能。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "特征分支/量化可能改变精度；输入难度与带宽移位影响DQN泛化。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "动作离散描述、ξ方向及Table6交叉引用存在核对缺口，不能给出未经代码验证的唯一配置。"
+    ],
+    [
+      "读者核查",
+      "次要",
+      "正文p12提Table6，但该PDF可见实际表编号到Table4；保留交叉引用缺口，不虚构Table5/6。"
+    ]
+  ],
+  "transfer": "若选CV且有Jetson与云GPU，可做联合卸载；若只有CPU，先缩成“本地CPU推理＋离散频率”并保留质量约束。E902不能默认接DQN或跑ViT；可迁移“状态—动作—reward表”和异步控制开销测量。",
+  "experiments": [
+    [
+      "P0：固定模型本地推理基线",
+      "先验证应用与执行器，建立同边界基线",
+      "Jetson/可调频Linux CPU，小型分类模型；卸载版本另需云端与带宽控制",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：只DVFS/只卸载/联合的消融",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "Jetson/可调频Linux CPU，小型分类模型；卸载版本另需云端与带宽控制",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "状态与动作",
+      "tex": "s_t=(\\lambda,\\eta,p(a),B),\\quad a_t=(f_C,f_G,f_M,\\xi)",
+      "symbols": "λ/η与ξ无量纲，p(a)为特征重要性分布，B为bit/s，频率单位必须统一MHz。",
+      "example": "教学例B减半会拉长传输；即使本地CPU占用不变，也可能需要减少卸载。",
+      "source": "§5.1，p6"
+    },
+    {
+      "title": "任务代价与reward（整理）",
+      "tex": "C=\\eta E+(1-\\eta)P_{\\max}T,\\quad r_t=-C",
+      "symbols": "E为边缘J/任务，T为端到端s，Pmax将时间转成能量尺度；云端J不在此E内。",
+      "example": "同E而T翻倍，η<1时成本会上升；仅最小化E可能偏向很慢策略。",
+      "source": "§4.2 Eq4/§5.1 Eq14，p4/6"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 1,
+      "title": "边缘能量组成",
+      "observation": "CPU/GPU/内存都消耗能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。CPU/GPU/内存都消耗能量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；CPU/GPU/内存都消耗能量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "频率组合影响",
+      "observation": "多频域不能只看GPU。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。多频域不能只看GPU。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；多频域不能只看GPU。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 4,
+      "title": "DRL角色",
+      "observation": "agent不同于推理DNN。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。agent不同于推理DNN。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；agent不同于推理DNN。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 5,
+      "title": "系统架构",
+      "observation": "区分边缘、云、压缩与融合。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。区分边缘、云、压缩与融合。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；区分边缘、云、压缩与融合。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.05,
+        0.94,
+        0.21
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 6,
+      "title": "阻塞与并发策略",
+      "observation": "并发动作存在观测滞后。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。并发动作存在观测滞后。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；并发动作存在观测滞后。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 8,
+      "title": "SCAM结构",
+      "observation": "通道与空间注意力筛特征。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。通道与空间注意力筛特征。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；通道与空间注意力筛特征。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 8,
+      "title": "特征贡献",
+      "observation": "重要性排序不等于严格因果必要性。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。重要性排序不等于严格因果必要性。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；重要性排序不等于严格因果必要性。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 9,
+      "title": "时延和边缘能量",
+      "observation": "彩色堆叠时延与能量折线单位不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。彩色堆叠时延与能量折线单位不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；彩色堆叠时延与能量折线单位不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.505,
+        0.27,
+        0.94,
+        0.565
+      ],
+      "stage": "result",
+      "image": "original-fig8.png"
+    },
+    {
+      "label": "Fig9",
+      "page": 10,
+      "title": "分类精度",
+      "observation": "压缩/卸载的质量代价不能隐藏。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。压缩/卸载的质量代价不能隐藏。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；压缩/卸载的质量代价不能隐藏。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 10,
+      "title": "频率动态",
+      "observation": "实际动作不是恒定最高频。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。实际动作不是恒定最高频。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；实际动作不是恒定最高频。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 10,
+      "title": "带宽变化",
+      "observation": "慢链路与云计算耗时分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。慢链路与云计算耗时分开。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；慢链路与云计算耗时分开。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 11,
+      "title": "融合权重λ",
+      "observation": "质量/时延受融合影响。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。质量/时延受融合影响。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；质量/时延受融合影响。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 11,
+      "title": "η权衡",
+      "observation": "权重改变优化目标，非统一排行榜。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。权重改变优化目标，非统一排行榜。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；权重改变优化目标，非统一排行榜。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 12,
+      "title": "融合实现开销",
+      "observation": "加权和与NN融合不等成本。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。加权和与NN融合不等成本。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；加权和与NN融合不等成本。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 12,
+      "title": "并发训练曲线",
+      "observation": "训练收敛不等独立部署收益。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。训练收敛不等独立部署收益。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；训练收敛不等独立部署收益。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 12,
+      "title": "策略运行开销",
+      "observation": "报告推理/计算各部分。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。报告推理/计算各部分。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；报告推理/计算各部分。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 2,
+      "title": "相关工作维度",
+      "observation": "功能覆盖不证明性能最优。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。功能覆盖不证明性能最优。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；功能覆盖不证明性能最优。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 6,
+      "title": "符号",
+      "observation": "核对ξ语义方向。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。核对ξ语义方向。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；核对ξ语义方向。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 10,
+      "title": "边云平台",
+      "observation": "默认NX；非三板相同频档。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。默认NX；非三板相同频档。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；默认NX；非三板相同频档。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.045,
+        0.94,
+        0.15
+      ],
+      "stage": "result",
+      "image": "original-table3.png"
+    },
+    {
+      "label": "Table4",
+      "page": 12,
+      "title": "融合准确率",
+      "observation": "0.68/0.56为百分点损失。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。0.68/0.56为百分点损失。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；0.68/0.56为百分点损失。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 7,
+      "title": "DVFO优化过程",
+      "observation": "离线训练与在线动作分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。离线训练与在线动作分开。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；离线训练与在线动作分开。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。若选CV且有Jetson与云GPU，可做联合卸载；若只有CPU，先缩成“本地CPU推理＋离散频率”并保留质量约束。E902不能默认接DQN或跑ViT；可迁移“状态—动作—reward表”和异步控制开销测量。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "主实验EfficientNet-B0与ViT-B16，CIFAR100/ImageNet2012；扩展ResNet18、Inception-v3、MobileNet-v2、MaxViT"
+    ],
+    [
+      "A",
+      "控制策略",
+      "离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合"
+    ],
+    [
+      "B",
+      "控制周期",
+      "以推理任务为动作边界；策略推理与正在执行的动作并发，不是CPU利用率固定周期阈值"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合",
+    "workload": "边缘–云协同CV分类推理，网络带宽变化",
+    "programs": "主实验EfficientNet-B0与ViT-B16，CIFAR100/ImageNet2012；扩展ResNet18、Inception-v3、MobileNet-v2、MaxViT",
+    "platform": "Jetson Nano/TX2/Xavier NX（默认NX）；云RTX3080＋Xeon6226R；PyTorch、nvpmodel、jetson-stats边缘设备遥测；云端能量未计入边缘ETI",
+    "inputs": "η能量/时延权重、融合权重λ、SCAM特征重要性分布、当前带宽B；历史reward/replay用于训练",
+    "outputs": "CPU/GPU/内存频率三元组＋特征分配比例ξ；另由SCAM确定重要特征和加权融合输出",
+    "timing": "以推理任务为动作边界；策略推理与正在执行的动作并发，不是CPU利用率固定周期阈值"
+  }
+}

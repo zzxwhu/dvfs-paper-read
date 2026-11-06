@@ -1,0 +1,262 @@
+{
+  "short": "E4：视频早退出＋DVFS",
+  "zh": "先通过时序注意力确定视频动作识别所需的退出位置，再用坐标下降为退出前各层选CPU/GPU频率",
+  "authors": [
+    "Ziyang Zhang",
+    "Yang Zhao",
+    "Ming-Ching Chang",
+    "Changyao Lin",
+    "Jie Liu"
+  ],
+  "venue": "AAAI 2025，1165–1173",
+  "version": "作者托管正式会议PDF9页；PDF p1为印刷p1165，非arXiv版页码。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "先通过时序注意力确定视频动作识别所需的退出位置，再用坐标下降为退出前各层选CPU/GPU频率",
+  "abstract_zh": "本文研究边缘视频动作识别，多帧/多出口DNN推理的运行时能效。具体程序包括EfficientNet-B0、MobileNet-v2特征骨干＋5出口；ActivityNet-v1.3、Mini-Kinetics；ImageNet预训练。作者在Jetson Nano/TX2/Xavier NX/Orin Nano/AGX Orin五设备；Python3.6、nvpmodel；jetson-stats整设备遥测；早退网络另用4×RTX3080离线训练上采用两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor。输入为历史与当前帧累计特征、注意力权重、gate置信/退出条件、可用CPU/GPU频档、剖析每层配置能量，输出为DNN退出位置（改变执行量）＋退出前逐层CPU/GPU频率pair；视频类别。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把时序视频复杂度、退出位置与逐层频率搜索结合；优化空间既有少算几层，也有每层硬件运行档。",
+  "abstract_en": "E4 combines temporal feature accumulation, attention-based early exits and joint CPU/GPU frequency search for edge video analytics. Neural gates decide how much inference work to execute, while a just-in-time coordinate search profiles frequency schedules. Energy and latency gains must be interpreted alongside recognition quality and the reduced amount of executed work. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：先通过时序注意力确定视频动作识别所需的退出位置，再用坐标下降为退出前各层选CPU/GPU频率。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "把时序视频复杂度、退出位置与逐层频率搜索结合；优化空间既有少算几层，也有每层硬件运行档。",
+  "flow": "历史与当前帧累计特征、注意力权重、gate置信/退出条件、可用CPU/GPU频档、剖析每层配置能量 → 两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor → DNN退出位置（改变执行量）＋退出前逐层CPU/GPU频率pair；视频类别 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor"
+    ],
+    [
+      "被控负载类型",
+      "边缘视频动作识别，多帧/多出口DNN推理"
+    ],
+    [
+      "具体被控程序",
+      "EfficientNet-B0、MobileNet-v2特征骨干＋5出口；ActivityNet-v1.3、Mini-Kinetics；ImageNet预训练"
+    ],
+    [
+      "使用平台与测量",
+      "Jetson Nano/TX2/Xavier NX/Orin Nano/AGX Orin五设备；Python3.6、nvpmodel；jetson-stats整设备遥测；早退网络另用4×RTX3080离线训练"
+    ],
+    [
+      "输入/状态",
+      "历史与当前帧累计特征、注意力权重、gate置信/退出条件、可用CPU/GPU频档、剖析每层配置能量"
+    ],
+    [
+      "输出/动作",
+      "DNN退出位置（改变执行量）＋退出前逐层CPU/GPU频率pair；视频类别"
+    ],
+    [
+      "周期与运行位置",
+      "按视频帧/网络层动作；频率执行毫秒级，JIT搜索开销需单计；不是逐周期硬实时保证"
+    ]
+  ],
+  "method": "PDF p3–5：两层LSTM实现累积特征Ψ，attention与64/32单元MLP gate选最早满足条件的出口；没有gate满足则跑完整模型。训练包括classifier CE、gate BCE与attention CE三项loss。随后Algorithm1按出口前的每层作坐标，固定其他层频率、采样该层CPU/GPU pair并测能量，迭代更新缓存，输出低能耗schedule。论文称CDS能近似高效找配置，不能由普通坐标下降推导非凸全局最优保证。\n\np5实验是动作识别数据集，不因示意图含车就改写为实时目标检测。频率搜索和智能early-exit不同：学习的是质量相关的gate/attention，频率搜索本身没有DQN训练。p6 Fig3纵轴Power(W)却标题称energy，需以Table2给出的功率与时延推导能量对照，而不把W直接写J。",
+  "metrics": [
+    [
+      "主要正文结果",
+      "EfficientNet能量−20%–37%、速度1.3–2.2×；MobileNet−18%–30%、1.4–1.9×",
+      "五Jetson/两数据集，与EENet/zTT/Ring比较；摘要最高2.8×不冒充所有主图结果",
+      "§Performance/Fig3，p5–6"
+    ],
+    [
+      "摘要总体",
+      "平均节能26%，最高速度2.8×",
+      "联合早退和调频；保留正文分组与精度条件",
+      "摘要，p1"
+    ],
+    [
+      "能量换算示例",
+      "约217.98mJ→164.01mJ",
+      "Table2 Eff-B0无策略6.3ms/34.6W，单DVFS7.1ms/23.1W；乘积教学换算，约−24.8%，不是新实测",
+      "Table2，p7"
+    ]
+  ],
+  "stats": "Fig3用W轴展示功率，不能直接按柱差称能量降幅；E=P·T需同一任务。Table2消融同时报告DVFS/early-exit，可检查联合贡献。跨模型精度损失和输入帧数互相影响；图像/帧不是运行独立重复。当前材料未定位到每个配置的独立运行数/CI，不能补造显著性。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "early-exit改变计算与潜在识别质量，必须同精度/同帧数比较。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "逐层频率切换毫秒开销可能接近层时长；不同板的可用OPP与权限需验证。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "论文功率/能量标注、摘要与分组最高加速不同，不能只摘2.8×作为纯DVFS效果。"
+    ]
+  ],
+  "transfer": "若选CV应用，建议先CPU小型分类模型固定网络/固定精度做DFS，再加早退作为独立实验变量。E902可尝试小型模型或前处理；Jetson更适合复建完整E4，不能把大平台频率表直接复制到E902。",
+  "experiments": [
+    [
+      "P0：固定网络与早退质量基线",
+      "先验证应用与执行器，建立同边界基线",
+      "Linux CPU/Jetson、轻量图像或短视频模型、带标注输入",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：固定计算量下调频与联合早退分别比较",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "Linux CPU/Jetson、轻量图像或短视频模型、带标注输入",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "累积时序特征",
+      "tex": "z_t=\\Psi(z_{t-1},\\Phi(x_t;\\theta))",
+      "symbols": "xt是第t帧，Φ提取特征，Ψ累计历史；z无物理单位，不是CPU利用率。",
+      "example": "同一帧可因之前帧信息不同而在不同出口结束；不能只按图像大小选频。",
+      "source": "Eq1，p3"
+    },
+    {
+      "title": "同任务能量与功率",
+      "tex": "E\\approx\\overline{P}\\,T",
+      "symbols": "P单位W，T用s，E为J；6.3ms必须写0.0063s。",
+      "example": "34.6W×6.3ms=0.21798J=217.98mJ，绝不是217.98µJ。",
+      "source": "能量核查公式；Table2，p7"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 1,
+      "title": "频率影响热图",
+      "observation": "CPU/GPU交互，不只GPU单轴。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。CPU/GPU交互，不只GPU单轴。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；CPU/GPU交互，不只GPU单轴。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "E4整体结构",
+      "observation": "先退出策略，再逐层频率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。先退出策略，再逐层频率。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；先退出策略，再逐层频率。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.05,
+        0.94,
+        0.45
+      ],
+      "stage": "method",
+      "image": "original-fig2.png"
+    },
+    {
+      "label": "Fig3",
+      "page": 6,
+      "title": "五设备结果",
+      "observation": "柱轴W是功率，折线ms是时延；不可同单位相减。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。柱轴W是功率，折线ms是时延；不可同单位相减。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；柱轴W是功率，折线ms是时延；不可同单位相减。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.045,
+        0.94,
+        0.505
+      ],
+      "stage": "method",
+      "image": "original-fig3.png"
+    },
+    {
+      "label": "Fig4",
+      "page": 7,
+      "title": "帧数与质量",
+      "observation": "更多帧不无限提高精度。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。更多帧不无限提高精度。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；更多帧不无限提高精度。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 7,
+      "title": "内存占用",
+      "observation": "高内存节省不等同GPU节能。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。高内存节省不等同GPU节能。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；高内存节省不等同GPU节能。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 5,
+      "title": "五板配置",
+      "observation": "设备算力和频档不一样。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。设备算力和频档不一样。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；设备算力和频档不一样。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 7,
+      "title": "DVFS与early-exit消融",
+      "observation": "功率、时延必须配对，分开组件。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。功率、时延必须配对，分开组件。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；功率、时延必须配对，分开组件。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.065,
+        0.94,
+        0.325
+      ],
+      "stage": "result",
+      "image": "original-table2.png"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 4,
+      "title": "CDS搜索",
+      "observation": "优化层间坐标，不是强化学习。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。优化层间坐标，不是强化学习。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；优化层间坐标，不是强化学习。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。若选CV应用，建议先CPU小型分类模型固定网络/固定精度做DFS，再加早退作为独立实验变量。E902可尝试小型模型或前处理；Jetson更适合复建完整E4，不能把大平台频率表直接复制到E902。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "EfficientNet-B0、MobileNet-v2特征骨干＋5出口；ActivityNet-v1.3、Mini-Kinetics；ImageNet预训练"
+    ],
+    [
+      "A",
+      "控制策略",
+      "两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor"
+    ],
+    [
+      "B",
+      "控制周期",
+      "按视频帧/网络层动作；频率执行毫秒级，JIT搜索开销需单计；不是逐周期硬实时保证"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor",
+    "workload": "边缘视频动作识别，多帧/多出口DNN推理",
+    "programs": "EfficientNet-B0、MobileNet-v2特征骨干＋5出口；ActivityNet-v1.3、Mini-Kinetics；ImageNet预训练",
+    "platform": "Jetson Nano/TX2/Xavier NX/Orin Nano/AGX Orin五设备；Python3.6、nvpmodel；jetson-stats整设备遥测；早退网络另用4×RTX3080离线训练",
+    "inputs": "历史与当前帧累计特征、注意力权重、gate置信/退出条件、可用CPU/GPU频档、剖析每层配置能量",
+    "outputs": "DNN退出位置（改变执行量）＋退出前逐层CPU/GPU频率pair；视频类别",
+    "timing": "按视频帧/网络层动作；频率执行毫秒级，JIT搜索开销需单计；不是逐周期硬实时保证"
+  }
+}

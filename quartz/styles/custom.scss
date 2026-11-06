@@ -22,7 +22,8 @@ article img {
 
 // The six-column research comparison needs the full desktop reading width.
 @media (min-width: 1000px) {
-  body[data-slug="dvfs/comparison-20-papers"] {
+  body[data-slug="dvfs/comparison-20-papers"],
+  body[data-slug="dvfs/comparison-30-papers"] {
     .page { max-width: 1900px; padding: 0 24px; box-sizing: border-box; }
     .page > #quartz-body {
       grid-template-columns: minmax(0, 1fr);

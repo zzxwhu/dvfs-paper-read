@@ -17,7 +17,7 @@ for p in batch['papers']:
         a=source/report;b=dest/report;n+=1
         if not a.is_file() or not b.is_file():errors.append(f'missing {slug}/{report}');continue
         text=a.read_text(encoding='utf-8')
-        expected=_quartz_document(text,info,report,'DVFS,CPU,E902',p['sha256'])
+        expected=_quartz_document(text,info,report,batch.get('tags','DVFS,CPU,E902'),p['sha256'])
         if expected!=b.read_text(encoding='utf-8'):errors.append(f'stale import {slug}/{report}')
         if '\ufffd' in text:errors.append(f'encoding replacement {slug}/{report}')
         for link in re.findall(r'!\[[^\]]*\]\(([^)]+)\)',text):

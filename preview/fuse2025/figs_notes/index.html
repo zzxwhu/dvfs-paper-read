@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FUSE：手机LLM协同频率：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">FUSE：手机LLM协同频率：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="fuse手机llm协同频率原图原表阅读索引">FUSE：手机LLM协同频率：原图原表阅读索引<a class="anchor" href="#fuse手机llm协同频率原图原表阅读索引">#</a></h1>
+<p><a href="https://arxiv.org/abs/2507.02135v1">论文页面</a> · <a href="https://arxiv.org/pdf/2507.02135v1">本笔记所用 PDF</a> · <a href="https://doi.org/10.48550/arXiv.2507.02135">标识符</a></p>
+<p>整理日期：2026-11-06。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的19项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> ShareGPT随机200请求，prompt≤512/output≤256，TTFT不含排队，不能套服务端SLO。Monsoon有高频设备测量，但请求数不同于重复设备样本。文中mAh是电量单位，若未给恒定供电电压，不应直接写等值J；近似iso-energy例也有小幅差异。</p>
+<h2 id="fig1gpu利用率目标表">Fig1：GPU利用率目标表<a class="anchor" href="#fig1gpu利用率目标表">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=3">原文 Fig1，PDF p3</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> GPU利用率目标表，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。governor根据目标区间调节。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> governor根据目标区间调节。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；governor根据目标区间调节。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“governor根据目标区间调节。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；governor根据目标区间调节。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig2cpugpu推理对比">Fig2：CPU/GPU推理对比<a class="anchor" href="#fig2cpugpu推理对比">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=5">原文 Fig2，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> CPU/GPU推理对比，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。执行设备不同会改变最优策略。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 执行设备不同会改变最优策略。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；执行设备不同会改变最优策略。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“执行设备不同会改变最优策略。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；执行设备不同会改变最优策略。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig3e2e分解">Fig3：E2E分解<a class="anchor" href="#fig3e2e分解">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=5">原文 Fig3，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> E2E分解，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。CPU框架开销即使GPU推理也存在。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> CPU框架开销即使GPU推理也存在。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；CPU框架开销即使GPU推理也存在。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“CPU框架开销即使GPU推理也存在。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；CPU框架开销即使GPU推理也存在。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig4decode-gpu扫描">Fig4：decode GPU扫描<a class="anchor" href="#fig4decode-gpu扫描">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=6">原文 Fig4，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> decode GPU扫描，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。能量/时延Pareto而非越低频越好。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 能量/时延Pareto而非越低频越好。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；能量/时延Pareto而非越低频越好。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“能量/时延Pareto而非越低频越好。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；能量/时延Pareto而非越低频越好。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig5prefill-gpu扫描">Fig5：prefill GPU扫描<a class="anchor" href="#fig5prefill-gpu扫描">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=6">原文 Fig5，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> prefill GPU扫描，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。prefill与decode需不同配置。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> prefill与decode需不同配置。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；prefill与decode需不同配置。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“prefill与decode需不同配置。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；prefill与decode需不同配置。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig6内存扫描">Fig6：内存扫描<a class="anchor" href="#fig6内存扫描">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=7">原文 Fig6，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 内存扫描，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。支持保留默认内存governor的条件。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 支持保留默认内存governor的条件。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；支持保留默认内存governor的条件。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“支持保留默认内存governor的条件。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；支持保留默认内存governor的条件。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig7cpu与gpu利用率耦合">Fig7：CPU与GPU利用率耦合<a class="anchor" href="#fig7cpu与gpu利用率耦合">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=7">原文 Fig7，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> CPU与GPU利用率耦合，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。降低CPU可让GPU更空闲。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 降低CPU可让GPU更空闲。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；降低CPU可让GPU更空闲。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“降低CPU可让GPU更空闲。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；降低CPU可让GPU更空闲。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig8cpu扫描与eas">Fig8：CPU扫描与EAS<a class="anchor" href="#fig8cpu扫描与eas">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=8">原文 Fig8，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> CPU扫描与EAS，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低CPU利用率不等无需提高CPU频率。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 低CPU利用率不等无需提高CPU频率。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；低CPU利用率不等无需提高CPU频率。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“低CPU利用率不等无需提高CPU频率。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；低CPU利用率不等无需提高CPU频率。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig9频率cdf">Fig9：频率CDF<a class="anchor" href="#fig9频率cdf">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=9">原文 Fig9，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 频率CDF，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。看默认频率驻留分布。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 看默认频率驻留分布。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；看默认频率驻留分布。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“看默认频率驻留分布。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；看默认频率驻留分布。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig10耦合频率时序">Fig10：耦合频率时序<a class="anchor" href="#fig10耦合频率时序">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=9">原文 Fig10，PDF p9</a></p>
+<figure><a class="image-link" href="../images/original-fig10.png" target="_blank" rel="noopener"><img src="../images/original-fig10.png" alt="Fig10" loading="lazy"></a></figure>
+<p><a href="../images/original-fig10.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 耦合频率时序，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。需与单独钉住组件对照。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 需与单独钉住组件对照。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；需与单独钉住组件对照。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“需与单独钉住组件对照。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；需与单独钉住组件对照。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig11两种目标的候选点">Fig11：两种目标的候选点<a class="anchor" href="#fig11两种目标的候选点">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=10">原文 Fig11，PDF p10</a></p>
+<figure><a class="image-link" href="../images/original-fig11.png" target="_blank" rel="noopener"><img src="../images/original-fig11.png" alt="Fig11" loading="lazy"></a></figure>
+<p><a href="../images/original-fig11.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 两种目标的候选点，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。G1与G2选择规则不同。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> G1与G2选择规则不同。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；G1与G2选择规则不同。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“G1与G2选择规则不同。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；G1与G2选择规则不同。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig12g1固定长度结果">Fig12：G1固定长度结果<a class="anchor" href="#fig12g1固定长度结果">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=11">原文 Fig12，PDF p11</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> G1固定长度结果，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。iso-energy速度改善不是节能。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> iso-energy速度改善不是节能。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；iso-energy速度改善不是节能。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“iso-energy速度改善不是节能。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；iso-energy速度改善不是节能。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig13g2固定长度结果">Fig13：G2固定长度结果<a class="anchor" href="#fig13g2固定长度结果">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=12">原文 Fig13，PDF p12</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> G2固定长度结果，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同阶段时延比较能量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 同阶段时延比较能量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；同阶段时延比较能量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“同阶段时延比较能量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；同阶段时延比较能量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig14真实sharegpt回放">Fig14：真实ShareGPT回放<a class="anchor" href="#fig14真实sharegpt回放">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=12">原文 Fig14，PDF p12</a></p>
+<figure><a class="image-link" href="../images/original-fig14.png" target="_blank" rel="noopener"><img src="../images/original-fig14.png" alt="Fig14" loading="lazy"></a></figure>
+<p><a href="../images/original-fig14.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 真实ShareGPT回放，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。200请求、三模型与两个目标。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 200请求、三模型与两个目标。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；200请求、三模型与两个目标。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“200请求、三模型与两个目标。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；200请求、三模型与两个目标。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig15prefill-cpu补充">Fig15：prefill CPU补充<a class="anchor" href="#fig15prefill-cpu补充">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=15">原文 Fig15，PDF p15</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> prefill CPU补充，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。正文decode结论的补充证据。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 正文decode结论的补充证据。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；正文decode结论的补充证据。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“正文decode结论的补充证据。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；正文decode结论的补充证据。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig16解除cpu锁定">Fig16：解除CPU锁定<a class="anchor" href="#fig16解除cpu锁定">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=15">原文 Fig16，PDF p15</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 解除CPU锁定，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。事件触发的频率变化揭示耦合。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 事件触发的频率变化揭示耦合。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；事件触发的频率变化揭示耦合。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“事件触发的频率变化揭示耦合。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；事件触发的频率变化揭示耦合。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig17g2频率表">Fig17：G2频率表<a class="anchor" href="#fig17g2频率表">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=15">原文 Fig17，PDF p15</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> G2频率表，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。离线结果不是在线神经策略。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 离线结果不是在线神经策略。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；离线结果不是在线神经策略。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“离线结果不是在线神经策略。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；离线结果不是在线神经策略。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="table1可用档位">Table1：可用档位<a class="anchor" href="#table1可用档位">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=3">原文 Table1，PDF p3</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 可用档位，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可锁档范围由设备决定。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 可锁档范围由设备决定。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；可锁档范围由设备决定。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“可锁档范围由设备决定。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；可锁档范围由设备决定。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="table2六模型配置">Table2：六模型配置<a class="anchor" href="#table2六模型配置">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2507.02135v1#page=11">原文 Table2，PDF p11</a></p>
+<figure><a class="image-link" href="../images/original-table2.png" target="_blank" rel="noopener"><img src="../images/original-table2.png" alt="Table2" loading="lazy"></a></figure>
+<p><a href="../images/original-table2.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 六模型配置，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。参数规模不等运行工作量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 参数规模不等运行工作量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；参数规模不等运行工作量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“参数规模不等运行工作量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；参数规模不等运行工作量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#fuse手机llm协同频率原图原表阅读索引">FUSE：手机LLM协同频率：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1gpu利用率目标表">Fig1：GPU利用率目标表</a>
+<a class="toc-level-2" href="#fig2cpugpu推理对比">Fig2：CPU/GPU推理对比</a>
+<a class="toc-level-2" href="#fig3e2e分解">Fig3：E2E分解</a>
+<a class="toc-level-2" href="#fig4decode-gpu扫描">Fig4：decode GPU扫描</a>
+<a class="toc-level-2" href="#fig5prefill-gpu扫描">Fig5：prefill GPU扫描</a>
+<a class="toc-level-2" href="#fig6内存扫描">Fig6：内存扫描</a>
+<a class="toc-level-2" href="#fig7cpu与gpu利用率耦合">Fig7：CPU与GPU利用率耦合</a>
+<a class="toc-level-2" href="#fig8cpu扫描与eas">Fig8：CPU扫描与EAS</a>
+<a class="toc-level-2" href="#fig9频率cdf">Fig9：频率CDF</a>
+<a class="toc-level-2" href="#fig10耦合频率时序">Fig10：耦合频率时序</a>
+<a class="toc-level-2" href="#fig11两种目标的候选点">Fig11：两种目标的候选点</a>
+<a class="toc-level-2" href="#fig12g1固定长度结果">Fig12：G1固定长度结果</a>
+<a class="toc-level-2" href="#fig13g2固定长度结果">Fig13：G2固定长度结果</a>
+<a class="toc-level-2" href="#fig14真实sharegpt回放">Fig14：真实ShareGPT回放</a>
+<a class="toc-level-2" href="#fig15prefill-cpu补充">Fig15：prefill CPU补充</a>
+<a class="toc-level-2" href="#fig16解除cpu锁定">Fig16：解除CPU锁定</a>
+<a class="toc-level-2" href="#fig17g2频率表">Fig17：G2频率表</a>
+<a class="toc-level-2" href="#table1可用档位">Table1：可用档位</a>
+<a class="toc-level-2" href="#table2六模型配置">Table2：六模型配置</a>
+    </aside>
+  </div>
+</body>
+</html>

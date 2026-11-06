@@ -1,0 +1,393 @@
+{
+  "short": "Perseus：训练流水线频率调度",
+  "zh": "将训练计算DAG的关键路径转成最小割问题，给不同前向/反向计算安排GPU频率以回收流水线等待能量",
+  "authors": [
+    "Jae-Won Chung",
+    "Yile Gu",
+    "Insu Jang",
+    "Luoxi Meng",
+    "Nikhil Bansal",
+    "Mosharaf Chowdhury"
+  ],
+  "venue": "SOSP 2024相关论文；本笔记分析arXiv v3",
+  "version": "arXiv2312.06902v3，2024-09-23，24页；不能把大规模emulation写成同规模硬件实验。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "将训练计算DAG的关键路径转成最小割问题，给不同前向/反向计算安排GPU频率以回收流水线等待能量",
+  "abstract_zh": "本文研究GPU流水线并行与数据并行训练，含stage不均衡和straggler的运行时能效。具体程序包括GPT3、Bloom、BERT、T5、Wide-ResNet；真实平台约1.3B–6.7B配置，大规模emulation扩到176B。作者在真实A40-48GB集群与4×A100-80GB节点；NVML锁SM时钟、异步进程执行；大规模GPU数为基于剖析的emulation上采用离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度。输入为前向/反向计算DAG、各计算频率–时间–能量曲线、阻塞功率、目标iteration time/straggler迭代时间，输出为每个前向/反向计算的GPU频率schedule；不改变网络质量目标与global batch。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把全局DAG时间约束与GPU E–T曲线连接，通过关键图最小割高效生成前沿；控制智能来自结构优化，不是RL。",
+  "abstract_en": "Perseus identifies intrinsic pipeline imbalance and extrinsic straggler slack in large-model training. It profiles computation time–energy curves and traces a relaxed Pareto frontier through critical-DAG minimum cuts. An asynchronous client applies per-computation GPU clocks. Real testbed experiments and separately labelled large-scale emulation establish different levels of evidence. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：将训练计算DAG的关键路径转成最小割问题，给不同前向/反向计算安排GPU频率以回收流水线等待能量。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "把全局DAG时间约束与GPU E–T曲线连接，通过关键图最小割高效生成前沿；控制智能来自结构优化，不是RL。",
+  "flow": "前向/反向计算DAG、各计算频率–时间–能量曲线、阻塞功率、目标iteration time/straggler迭代时间 → 离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度 → 每个前向/反向计算的GPU频率schedule；不改变网络质量目标与global batch → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度"
+    ],
+    [
+      "被控负载类型",
+      "GPU流水线并行与数据并行训练，含stage不均衡和straggler"
+    ],
+    [
+      "具体被控程序",
+      "GPT3、Bloom、BERT、T5、Wide-ResNet；真实平台约1.3B–6.7B配置，大规模emulation扩到176B"
+    ],
+    [
+      "使用平台与测量",
+      "真实A40-48GB集群与4×A100-80GB节点；NVML锁SM时钟、异步进程执行；大规模GPU数为基于剖析的emulation"
+    ],
+    [
+      "输入/状态",
+      "前向/反向计算DAG、各计算频率–时间–能量曲线、阻塞功率、目标iteration time/straggler迭代时间"
+    ],
+    [
+      "输出/动作",
+      "每个前向/反向计算的GPU频率schedule；不改变网络质量目标与global batch"
+    ],
+    [
+      "周期与运行位置",
+      "启动时逐频率约5迭代剖析；服务端算前沿，客户端在forward/backward边界异步set_speed；不是逐token反馈"
+    ]
+  ],
+  "method": "§2–5，p2–9：intrinsic bloat来自stage不均衡与流水线气泡；extrinsic bloat来自非慢者等待straggler。原离散Pipeline Energy Minimization为NP-hard；用每计算E(t)=a·exp(bt)+c连续拟合松弛。从每计算最低能量schedule出发，每步缩短τ（例1ms），只保留关键路径计算，将加速计算的能量边际成本作图容量，s-t最小割同时缩短所有关键路径。只加速一条并行关键路径不够。连续解映射回“能比计划t更快的最慢合法档”，避免向下舍入破坏迭代时限。\n\nNVML异步频率控制在另一进程，不阻塞主训练；仍需计算短于切换时间的可实现性。默认global batch和分割相同，基线EnvPipe、最大频率以及Zeus衍生前沿。Table3–4明示Experiment；Table5–6/Fig7–8明示Emulation。",
+  "metrics": [
+    [
+      "真实GPU intrinsic能量降低",
+      "最高28.5%",
+      "8stage A40/T5-3B，对最大频率；同项slowdown0.0%；各模型不全相同",
+      "Table3，p10"
+    ],
+    [
+      "A100 GPT3-1.3B例",
+      "能量−13.2%，时间＋0.1%",
+      "4stage；EnvPipe−8.8%，＋0.1%",
+      "Table3a，p10"
+    ],
+    [
+      "大规模结果",
+      "最高约30%",
+      "是emulation，不是几千张实体卡全部实测",
+      "§6.3/Fig7–8，p11"
+    ]
+  ],
+  "stats": "同GPU资源、同任务schedule对照，但跨模型和跨GPU的百分比不构成独立重复。真实小规模测试与大规模emulation必须分列。松弛所得前沿为近似，不应宣传原离散问题全局精确最优；低开销控制也不表示无需profiling。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "剖析稳定性与拟合误差影响期限；原文承认低估时间会拖慢DAG。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "小GPU集群结论与大规模emulation有不同外部有效性。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "单核E902没有多GPU pipeline slack，不能原样移植或套用28.5%。"
+    ]
+  ],
+  "transfer": "若选择GPU训练，可以研究小型pipeline的阶段频率调度；E902可迁移“找真正关键路径、给非关键段用余量、离散动作保守取整”，在压缩/预处理/通信流水线重新测E–T。",
+  "experiments": [
+    [
+      "P0：小DAG阶段E–T测量",
+      "先验证应用与执行器，建立同边界基线",
+      "2–4GPU或明确标注的DAG仿真；固定模型/输入",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：关键路径规则与最小割调度对照",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "2–4GPU或明确标注的DAG仿真；固定模型/输入",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "受时间约束的能量最小化",
+      "tex": "\\min_F E(F)\\quad\\mathrm{s.t.}\\ T(F)\\leq D",
+      "symbols": "F为所有计算的频率向量；E为GPU J/迭代，T与D为s。不是每个算子各自满足同一个D。",
+      "example": "教学例两条路径10ms和8ms，第二条可慢2ms；第一条若慢则总迭代变慢。",
+      "source": "Eq5，p6"
+    },
+    {
+      "title": "关键割的边际成本（教学整理）",
+      "tex": "c_i=E_i(t_i-\\tau)-E_i(t_i),\\quad C^*=\\arg\\min_C\\sum_{i\\in C}c_i",
+      "symbols": "τ与t为s，ci为加速τ增加的J；C是关键DAG合法s-t割。",
+      "example": "两条并行关键路径需要各切一条边；只加速一个最快节点可能完全不提速。",
+      "source": "§4.3/Fig6，p7"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 2,
+      "title": "原训练流水线",
+      "observation": "相同迭代下计算时间不均衡。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。相同迭代下计算时间不均衡。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；相同迭代下计算时间不均衡。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "intrinsic/extrinsic等待",
+      "observation": "stage等待与straggler等待来自不同结构。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。stage等待与straggler等待来自不同结构。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；stage等待与straggler等待来自不同结构。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 4,
+      "title": "慢者约束三情况",
+      "observation": "目标时间受最小能量点与慢者时间共同限制。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。目标时间受最小能量点与慢者时间共同限制。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；目标时间受最小能量点与慢者时间共同限制。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 5,
+      "title": "服务端/客户端架构",
+      "observation": "剖析、图优化和异步控制角色不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。剖析、图优化和异步控制角色不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；剖析、图优化和异步控制角色不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.075,
+        0.49,
+        0.455
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 6,
+      "title": "从低能量端追踪前沿",
+      "observation": "不是从全最高频schedule逐项贪心降频。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不是从全最高频schedule逐项贪心降频。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不是从全最高频schedule逐项贪心降频。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 7,
+      "title": "关键图与最小割",
+      "observation": "需同时缩短所有关键路径。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。需同时缩短所有关键路径。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；需同时缩短所有关键路径。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.075,
+        0.94,
+        0.35
+      ],
+      "stage": "result",
+      "image": "original-fig6.png"
+    },
+    {
+      "label": "Fig7",
+      "page": 11,
+      "title": "大规模收益拆分",
+      "observation": "明确是Emulation。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。明确是Emulation。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；明确是Emulation。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 11,
+      "title": "慢者比例扫描",
+      "observation": "每条曲线对应不同慢者条件。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。每条曲线对应不同慢者条件。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；每条曲线对应不同慢者条件。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 12,
+      "title": "真实E–T前沿",
+      "observation": "同一目标迭代时间比较能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同一目标迭代时间比较能量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；同一目标迭代时间比较能量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 18,
+      "title": "最优目标时间示意",
+      "observation": "附录解释straggler与最低能量点。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。附录解释straggler与最低能量点。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；附录解释straggler与最低能量点。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 21,
+      "title": "E–T剖析拟合",
+      "observation": "连续曲线拟合不保证离散原问题精确。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。连续曲线拟合不保证离散原问题精确。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；连续曲线拟合不保证离散原问题精确。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 23,
+      "title": "A40完整前沿",
+      "observation": "模型间差异保留。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。模型间差异保留。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；模型间差异保留。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 24,
+      "title": "A100完整前沿",
+      "observation": "硬件频率范围不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。硬件频率范围不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；硬件频率范围不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 3,
+      "title": "stage不均衡",
+      "observation": "参数均衡不等于时间均衡。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。参数均衡不等于时间均衡。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；参数均衡不等于时间均衡。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 8,
+      "title": "客户端API",
+      "observation": "set_speed与计算边界相关。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。set_speed与计算边界相关。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；set_speed与计算边界相关。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 10,
+      "title": "真实平台无慢者",
+      "observation": "节能必须与slowdown一起读。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。节能必须与slowdown一起读。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；节能必须与slowdown一起读。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.08,
+        0.495,
+        0.435
+      ],
+      "stage": "result",
+      "image": "original-table3.png"
+    },
+    {
+      "label": "Table4",
+      "page": 10,
+      "title": "真实平台有慢者",
+      "observation": "T′/T改变等待余量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。T′/T改变等待余量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；T′/T改变等待余量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table5",
+      "page": 11,
+      "title": "emulation规模",
+      "observation": "不能称全部实测。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不能称全部实测。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不能称全部实测。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table6",
+      "page": 11,
+      "title": "大规模模型收益",
+      "observation": "建模前提决定外推。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。建模前提决定外推。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；建模前提决定外推。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 6,
+      "title": "前沿迭代",
+      "observation": "τ影响精度与计算时间。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。τ影响精度与计算时间。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；τ影响精度与计算时间。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm2",
+      "page": 8,
+      "title": "下一调度",
+      "observation": "处理单选择操作与合法关键割。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。处理单选择操作与合法关键割。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；处理单选择操作与合法关键割。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "实现接口与DeepSpeed/Megatron集成见§5和附录G；本次未构建源码或独立跑训练。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。若选择GPU训练，可以研究小型pipeline的阶段频率调度；E902可迁移“找真正关键路径、给非关键段用余量、离散动作保守取整”，在压缩/预处理/通信流水线重新测E–T。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "GPT3、Bloom、BERT、T5、Wide-ResNet；真实平台约1.3B–6.7B配置，大规模emulation扩到176B"
+    ],
+    [
+      "A",
+      "控制策略",
+      "离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度"
+    ],
+    [
+      "B",
+      "控制周期",
+      "启动时逐频率约5迭代剖析；服务端算前沿，客户端在forward/backward边界异步set_speed；不是逐token反馈"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度",
+    "workload": "GPU流水线并行与数据并行训练，含stage不均衡和straggler",
+    "programs": "GPT3、Bloom、BERT、T5、Wide-ResNet；真实平台约1.3B–6.7B配置，大规模emulation扩到176B",
+    "platform": "真实A40-48GB集群与4×A100-80GB节点；NVML锁SM时钟、异步进程执行；大规模GPU数为基于剖析的emulation",
+    "inputs": "前向/反向计算DAG、各计算频率–时间–能量曲线、阻塞功率、目标iteration time/straggler迭代时间",
+    "outputs": "每个前向/反向计算的GPU频率schedule；不改变网络质量目标与global batch",
+    "timing": "启动时逐频率约5迭代剖析；服务端算前沿，客户端在forward/backward边界异步set_speed；不是逐token反馈"
+  }
+}

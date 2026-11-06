@@ -1,9 +1,28 @@
 ---
-title: "DVFS论文精读：面向CPU／E902课题"
-date: "2026-11-05"
+title: "DVFS论文精读：CPU、GPU与CV／LLM应用"
+date: "2026-11-06"
 ---
 
-从零理解CPU频率、能量与闭环，再结合原图、公式与实验边界选择自己的实现路线。
+从零理解CPU/GPU频率、能量与闭环，再结合CV/LLM等应用的原图、公式与实验边界选择实现路线；保留CPU/E902迁移分析。
+
+## 新增第三批：GPU、CV、LLM应用与30篇比较
+
+[30篇：算法、负载、程序、平台、结果](DVFS/comparison-30-papers.md) · [CSV](DVFS/data/dvfs-30.csv) · [新10篇阅读路线](DVFS/reading-map-gpu-cv-llm-2026-11.md)
+
+三批30篇，加独立旧JSA2023共31篇。GPU/CV/LLM现可作为应用候选，最终课题尚未确定；全部为原文阅读与分析，未独立复现。
+
+| 新增论文 | 从零入门 | 图文精读 | 图表索引 | 双语摘要 |
+| --- | --- | --- | --- | --- |
+| Zeus：训练能量优化 | [入门](DVFS/zeus-nsdi2023/ELI5_notes.md) | [精读](DVFS/zeus-nsdi2023/paper_notes.md) | [图表](DVFS/zeus-nsdi2023/figs_notes.md) | [摘要](DVFS/zeus-nsdi2023/translation_notes.md) |
+| Perseus：训练流水线频率调度 | [入门](DVFS/perseus-sosp2024/ELI5_notes.md) | [精读](DVFS/perseus-sosp2024/paper_notes.md) | [图表](DVFS/perseus-sosp2024/figs_notes.md) | [摘要](DVFS/perseus-sosp2024/translation_notes.md) |
+| GPOEO：预测＋局部搜索 | [入门](DVFS/gpoeo2022/ELI5_notes.md) | [精读](DVFS/gpoeo2022/paper_notes.md) | [图表](DVFS/gpoeo2022/figs_notes.md) | [摘要](DVFS/gpoeo2022/translation_notes.md) |
+| DVFO：边云协同推理 | [入门](DVFS/dvfo2023/ELI5_notes.md) | [精读](DVFS/dvfo2023/paper_notes.md) | [图表](DVFS/dvfo2023/figs_notes.md) | [摘要](DVFS/dvfo2023/translation_notes.md) |
+| E4：视频早退出＋DVFS | [入门](DVFS/e4-aaai2025/ELI5_notes.md) | [精读](DVFS/e4-aaai2025/paper_notes.md) | [图表](DVFS/e4-aaai2025/figs_notes.md) | [摘要](DVFS/e4-aaai2025/translation_notes.md) |
+| SparseDVFS：稀疏感知分块 | [入门](DVFS/sparsedvfs2026/ELI5_notes.md) | [精读](DVFS/sparsedvfs2026/paper_notes.md) | [图表](DVFS/sparsedvfs2026/figs_notes.md) | [摘要](DVFS/sparsedvfs2026/translation_notes.md) |
+| FUSE：手机LLM协同频率 | [入门](DVFS/fuse2025/ELI5_notes.md) | [精读](DVFS/fuse2025/paper_notes.md) | [图表](DVFS/fuse2025/figs_notes.md) | [摘要](DVFS/fuse2025/translation_notes.md) |
+| GreenLLM：SLO双环服务 | [入门](DVFS/greenllm2025/ELI5_notes.md) | [精读](DVFS/greenllm2025/paper_notes.md) | [图表](DVFS/greenllm2025/figs_notes.md) | [摘要](DVFS/greenllm2025/translation_notes.md) |
+| DVFSLM：token需求预测 | [入门](DVFS/dvfslm2026/ELI5_notes.md) | [精读](DVFS/dvfslm2026/paper_notes.md) | [图表](DVFS/dvfslm2026/figs_notes.md) | [摘要](DVFS/dvfslm2026/translation_notes.md) |
+| LLM能量–性能刻画v4 | [入门](DVFS/llm-dvfs-characterization2026/ELI5_notes.md) | [精读](DVFS/llm-dvfs-characterization2026/paper_notes.md) | [图表](DVFS/llm-dvfs-characterization2026/figs_notes.md) | [摘要](DVFS/llm-dvfs-characterization2026/translation_notes.md) |
 
 ## 新增第二批：20篇具体对比
 

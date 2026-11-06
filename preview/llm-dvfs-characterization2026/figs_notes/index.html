@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM能量–性能刻画v4：原图原表阅读索引 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">LLM能量–性能刻画v4：原图原表阅读索引</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link active" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="llm能量性能刻画v4原图原表阅读索引">LLM能量–性能刻画v4：原图原表阅读索引<a class="anchor" href="#llm能量性能刻画v4原图原表阅读索引">#</a></h1>
+<p><a href="https://arxiv.org/abs/2501.08219v4">论文页面</a> · <a href="https://arxiv.org/pdf/2501.08219v4">本笔记所用 PDF</a> · <a href="https://doi.org/10.48550/arXiv.2501.08219">标识符</a></p>
+<p>整理日期：2026-11-06。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>覆盖范围：</strong> 本版本正文中识别到的25项图、表或算法；保留原编号。关键项已裁图并在技术精读相应段落出现，未内嵌的项可点PDF页链接查看，不上传整篇PDF。</p>
+<p><strong>统计总边界：</strong> 每配置3次均值，未因3817queries就宣称3817独立设备重复。相关r=0.002不能证明长度对全部LLM完全无影响；语义分组与模型质量共同定义，预测外部验证不足。分类与生成指标、固定频点实验与phase-aware案例、实测与联合估算分开。GPU遥测排除CPU/系统能量；高频异常变慢需要热与功率限制日志核查。</p>
+<h2 id="fig1研究流程">Fig1：研究流程<a class="anchor" href="#fig1研究流程">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=3">原文 Fig1，PDF p3</a></p>
+<figure><a class="image-link" href="../images/original-fig1.png" target="_blank" rel="noopener"><img src="../images/original-fig1.png" alt="Fig1" loading="lazy"></a></figure>
+<p><a href="../images/original-fig1.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 研究流程，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。测量研究而非闭环部署。 结构／流程类没有统一数值坐标；箭头表示数据或控制关系，不表示统计因果。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 测量研究而非闭环部署。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；测量研究而非闭环部署。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 方法／系统实现说明。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“测量研究而非闭环部署。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；测量研究而非闭环部署。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig2长度与质量">Fig2：长度与质量<a class="anchor" href="#fig2长度与质量">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=5">原文 Fig2，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 长度与质量，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。近零相关仅限该聚合分析。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 近零相关仅限该聚合分析。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；近零相关仅限该聚合分析。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“近零相关仅限该聚合分析。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；近零相关仅限该聚合分析。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig3各频点能量token">Fig3：各频点能量/token<a class="anchor" href="#fig3各频点能量token">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=6">原文 Fig3，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 各频点能量/token，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。必须检查频率与功率限制实际生效。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 必须检查频率与功率限制实际生效。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；必须检查频率与功率限制实际生效。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“必须检查频率与功率限制实际生效。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；必须检查频率与功率限制实际生效。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig4frequency-cliff">Fig4：frequency cliff<a class="anchor" href="#fig4frequency-cliff">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=7">原文 Fig4，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> frequency cliff，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低于约1000MHz收益平台不是所有GPU定律。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 低于约1000MHz收益平台不是所有GPU定律。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；低于约1000MHz收益平台不是所有GPU定律。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“低于约1000MHz收益平台不是所有GPU定律。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；低于约1000MHz收益平台不是所有GPU定律。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig5batch影响">Fig5：batch影响<a class="anchor" href="#fig5batch影响">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=8">原文 Fig5，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> batch影响，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。batch与阶段比例一起改变。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> batch与阶段比例一起改变。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；batch与阶段比例一起改变。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“batch与阶段比例一起改变。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；batch与阶段比例一起改变。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig6阶段频率示意">Fig6：阶段频率示意<a class="anchor" href="#fig6阶段频率示意">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=9">原文 Fig6，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 阶段频率示意，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不能从示意图声称在线开销已量化。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不能从示意图声称在线开销已量化。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；不能从示意图声称在线开销已量化。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不能从示意图声称在线开销已量化。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；不能从示意图声称在线开销已量化。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="fig7能量质量前沿">Fig7：能量质量前沿<a class="anchor" href="#fig7能量质量前沿">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=10">原文 Fig7，PDF p10</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 能量质量前沿，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。路由改变质量，DVFS在固定模型内比较。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 路由改变质量，DVFS在固定模型内比较。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；路由改变质量，DVFS在固定模型内比较。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“路由改变质量，DVFS在固定模型内比较。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；路由改变质量，DVFS在固定模型内比较。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablei模型数据集">TableI：模型/数据集<a class="anchor" href="#tablei模型数据集">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=3">原文 TableI，PDF p3</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 模型/数据集，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。log-likelihood不生成token。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> log-likelihood不生成token。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；log-likelihood不生成token。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“log-likelihood不生成token。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；log-likelihood不生成token。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tableii长度统计">TableII：长度统计<a class="anchor" href="#tableii长度统计">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=4">原文 TableII，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 长度统计，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。样本3817，不是设备数。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 样本3817，不是设备数。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；样本3817，不是设备数。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“样本3817，不是设备数。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；样本3817，不是设备数。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tableiii语义特征">TableIII：语义特征<a class="anchor" href="#tableiii语义特征">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=4">原文 TableIII，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 语义特征，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可解释特征也要外部预测验证。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 可解释特征也要外部预测验证。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；可解释特征也要外部预测验证。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“可解释特征也要外部预测验证。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；可解释特征也要外部预测验证。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tableiv因果词分布">TableIV：因果词分布<a class="anchor" href="#tableiv因果词分布">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=4">原文 TableIV，PDF p4</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 因果词分布，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。词指标只是难度代理。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 词指标只是难度代理。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；词指标只是难度代理。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“词指标只是难度代理。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；词指标只是难度代理。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablev长度独立性">TableV：长度独立性<a class="anchor" href="#tablev长度独立性">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=5">原文 TableV，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 长度独立性，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。熵与长度相关较强。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 熵与长度相关较强。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；熵与长度相关较强。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“熵与长度相关较强。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；熵与长度相关较强。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablevi质量变化">TableVI：质量变化<a class="anchor" href="#tablevi质量变化">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=5">原文 TableVI，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 质量变化，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。accuracy与ROUGE不可合并。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> accuracy与ROUGE不可合并。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；accuracy与ROUGE不可合并。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“accuracy与ROUGE不可合并。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；accuracy与ROUGE不可合并。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablevii模型质量">TableVII：模型质量<a class="anchor" href="#tablevii模型质量">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=5">原文 TableVII，PDF p5</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 模型质量，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不同规模并非均等质量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 不同规模并非均等质量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；不同规模并非均等质量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“不同规模并非均等质量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；不同规模并非均等质量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tableviii特征与规模敏感性">TableVIII：特征与规模敏感性<a class="anchor" href="#tableviii特征与规模敏感性">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=6">原文 TableVIII，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 特征与规模敏感性，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。相关不证明因果。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 相关不证明因果。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；相关不证明因果。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“相关不证明因果。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；相关不证明因果。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tableix难度类别">TableIX：难度类别<a class="anchor" href="#tableix难度类别">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=6">原文 TableIX，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 难度类别，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。类别由所用模型质量定义。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 类别由所用模型质量定义。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；类别由所用模型质量定义。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“类别由所用模型质量定义。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；类别由所用模型质量定义。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablex阶段功耗">TableX：阶段功耗<a class="anchor" href="#tablex阶段功耗">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=6">原文 TableX，PDF p6</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 阶段功耗，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。功率不等阶段能量占比。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 功率不等阶段能量占比。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；功率不等阶段能量占比。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“功率不等阶段能量占比。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；功率不等阶段能量占比。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexi180mhz扫描结果">TableXI：180MHz扫描结果<a class="anchor" href="#tablexi180mhz扫描结果">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=7">原文 TableXI，PDF p7</a></p>
+<figure><a class="image-link" href="../images/original-tablexi.png" target="_blank" rel="noopener"><img src="../images/original-tablexi.png" alt="TableXI" loading="lazy"></a></figure>
+<p><a href="../images/original-tablexi.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 180MHz扫描结果，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。平均41.9%与2.8%按batch1。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 平均41.9%与2.8%按batch1。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；平均41.9%与2.8%按batch1。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“平均41.9%与2.8%按batch1。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；平均41.9%与2.8%按batch1。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexiiedp最优档">TableXII：EDP最优档<a class="anchor" href="#tablexiiedp最优档">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=7">原文 TableXII，PDF p7</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> EDP最优档，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。有更低频更快结果，需排查热/测量。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 有更低频更快结果，需排查热/测量。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；有更低频更快结果，需排查热/测量。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“有更低频更快结果，需排查热/测量。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；有更低频更快结果，需排查热/测量。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexiiibatch下时间比例">TableXIII：batch下时间比例<a class="anchor" href="#tablexiiibatch下时间比例">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=8">原文 TableXIII，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> batch下时间比例，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。decode占时不等占能。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> decode占时不等占能。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；decode占时不等占能。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“decode占时不等占能。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；decode占时不等占能。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexiv关键发现">TableXIV：关键发现<a class="anchor" href="#tablexiv关键发现">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=8">原文 TableXIV，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 关键发现，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。总结不能替代原始配置。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 总结不能替代原始配置。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；总结不能替代原始配置。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“总结不能替代原始配置。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；总结不能替代原始配置。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexv路由策略">TableXV：路由策略<a class="anchor" href="#tablexv路由策略">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=8">原文 TableXV，PDF p8</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 路由策略，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。尚非部署在线路由器。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 尚非部署在线路由器。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；尚非部署在线路由器。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“尚非部署在线路由器。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；尚非部署在线路由器。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexvi阶段调频案例">TableXVI：阶段调频案例<a class="anchor" href="#tablexvi阶段调频案例">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=9">原文 TableXVI，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 阶段调频案例，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。与扫描表对应关系需核查。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 与扫描表对应关系需核查。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；与扫描表对应关系需核查。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“与扫描表对应关系需核查。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；与扫描表对应关系需核查。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexvii联合节能估算">TableXVII：联合节能估算<a class="anchor" href="#tablexvii联合节能估算">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=9">原文 TableXVII，PDF p9</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 联合节能估算，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。87%是projection。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 87%是projection。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；87%是projection。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“87%是projection。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；87%是projection。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol>
+<h2 id="tablexviii能量质量折中">TableXVIII：能量质量折中<a class="anchor" href="#tablexviii能量质量折中">#</a></h2>
+<p><a href="https://arxiv.org/pdf/2501.08219v4#page=9">原文 TableXVIII，PDF p9</a></p>
+<figure><a class="image-link" href="../images/original-tablexviii.png" target="_blank" rel="noopener"><img src="../images/original-tablexviii.png" alt="TableXVIII" loading="lazy"></a></figure>
+<p><a href="../images/original-tablexviii.png">打开大图</a></p>
+<ol>
+<li><strong>本项回答的问题：</strong> 能量质量折中，用于支撑这条方法或实验链中的具体环节。</li>
+<li><strong>组成、坐标和对照：</strong> 先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。3B与32B质量差6.8个百分点。 按原图／表标示的单位与归一化基准阅读；不将不同子图或不同分母的柱高直接相除。 颜色按原图图例辨认，不能把同色跨图视为同一组。</li>
+<li><strong>阅读顺序与统计单位：</strong> 先看设定、单位和图例，再看趋势与作者正文。重复次数及采样独立性参见本篇技术精读统计节；没有为该图定位到的误差线定义／独立重复数，不另行猜测。</li>
+<li><strong>直接观察：</strong> 3B与32B质量差6.8个百分点。</li>
+<li><strong>作者解释的范围：</strong> 原文以该图／表作为上述观察的结构说明或实验支撑，需连同对应页正文读取；本索引不额外替作者推导因果机制。</li>
+<li><strong>独立判断（AI分析）：</strong> 只支持此图所列的模型、设备、输入与测量口径；3B与32B质量差6.8个百分点。 不能由单图推出E902或其他GPU的同幅收益。</li>
+<li><strong>证据链位置：</strong> 性能验证／定量或示例证据，需结合实验条件。它支持本文具体条件下的实现或结果，不单独完成跨平台验证。</li>
+<li><strong>结论与强度：</strong> 可复述“3B与32B质量差6.8个百分点。”；对图内描述的核查可信度高，对未做独立实验的泛化判断为中或无法判断。不能得出的结论是“只支持此图所列的模型、设备、输入与测量口径；3B与32B质量差6.8个百分点。 不能由单图推出E902或其他GPU的同幅收益。”所排除的外推。</li>
+</ol></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#llm能量性能刻画v4原图原表阅读索引">LLM能量–性能刻画v4：原图原表阅读索引</a>
+<a class="toc-level-2" href="#fig1研究流程">Fig1：研究流程</a>
+<a class="toc-level-2" href="#fig2长度与质量">Fig2：长度与质量</a>
+<a class="toc-level-2" href="#fig3各频点能量token">Fig3：各频点能量/token</a>
+<a class="toc-level-2" href="#fig4frequency-cliff">Fig4：frequency cliff</a>
+<a class="toc-level-2" href="#fig5batch影响">Fig5：batch影响</a>
+<a class="toc-level-2" href="#fig6阶段频率示意">Fig6：阶段频率示意</a>
+<a class="toc-level-2" href="#fig7能量质量前沿">Fig7：能量质量前沿</a>
+<a class="toc-level-2" href="#tablei模型数据集">TableI：模型/数据集</a>
+<a class="toc-level-2" href="#tableii长度统计">TableII：长度统计</a>
+<a class="toc-level-2" href="#tableiii语义特征">TableIII：语义特征</a>
+<a class="toc-level-2" href="#tableiv因果词分布">TableIV：因果词分布</a>
+<a class="toc-level-2" href="#tablev长度独立性">TableV：长度独立性</a>
+<a class="toc-level-2" href="#tablevi质量变化">TableVI：质量变化</a>
+<a class="toc-level-2" href="#tablevii模型质量">TableVII：模型质量</a>
+<a class="toc-level-2" href="#tableviii特征与规模敏感性">TableVIII：特征与规模敏感性</a>
+<a class="toc-level-2" href="#tableix难度类别">TableIX：难度类别</a>
+<a class="toc-level-2" href="#tablex阶段功耗">TableX：阶段功耗</a>
+<a class="toc-level-2" href="#tablexi180mhz扫描结果">TableXI：180MHz扫描结果</a>
+<a class="toc-level-2" href="#tablexiiedp最优档">TableXII：EDP最优档</a>
+<a class="toc-level-2" href="#tablexiiibatch下时间比例">TableXIII：batch下时间比例</a>
+<a class="toc-level-2" href="#tablexiv关键发现">TableXIV：关键发现</a>
+<a class="toc-level-2" href="#tablexv路由策略">TableXV：路由策略</a>
+<a class="toc-level-2" href="#tablexvi阶段调频案例">TableXVI：阶段调频案例</a>
+<a class="toc-level-2" href="#tablexvii联合节能估算">TableXVII：联合节能估算</a>
+<a class="toc-level-2" href="#tablexviii能量质量折中">TableXVIII：能量质量折中</a>
+    </aside>
+  </div>
+</body>
+</html>

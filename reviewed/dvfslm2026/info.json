@@ -1,0 +1,30 @@
+{
+  "index": "dvfslm2026",
+  "paper_title": "DVFS for Small Language Model Inference on Mobile Edge Devices",
+  "description": "从下一token的矩阵计算规模预测硬件元数据，再用轻量功率/延时模型在deadline下搜索GPU与EMC频率。从下一token的矩阵计算规模预测硬件元数据，再用轻量功率/延时模型在deadline下搜索GPU与EMC频率",
+  "authors": [
+    "Jiesong Chen",
+    "Lixiang Han",
+    "Jiani Cao",
+    "Zhaoxi Yue",
+    "Zhenjiang Li"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本2026",
+    "year": 2026,
+    "doi": "10.48550/arXiv.2609.13153"
+  },
+  "source_url": "https://arxiv.org/abs/2609.13153v1",
+  "pdf_url": "https://arxiv.org/pdf/2609.13153v1",
+  "source_version": "arXiv2609.13153v1，16页；首页版本标2026-07-08，与编号月份不同，按所用PDF记录，不自行改日期。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "c5198e6a344fb7fafe8727cf707c3851db286138803cb1d61f602da9e21fc447",
+  "figure_count": 29,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

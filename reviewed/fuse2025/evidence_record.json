@@ -1,0 +1,379 @@
+{
+  "short": "FUSE：手机LLM协同频率",
+  "zh": "解释手机CPU/GPU独立governor互相降频的恶性循环，再通过离线两步搜索为prefill/decode配置协同频率",
+  "authors": [
+    "Zongpu Zhang",
+    "Pranab Dash",
+    "Y. Charlie Hu",
+    "Qiang Xu",
+    "Jian Li",
+    "Haibing Guan"
+  ],
+  "venue": "arXiv预印本2025",
+  "version": "arXiv2507.02135v1，2025-07-02，16页；与SparseDVFS同名缩写的FUSE不是同一系统。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "解释手机CPU/GPU独立governor互相降频的恶性循环，再通过离线两步搜索为prefill/decode配置协同频率",
+  "abstract_zh": "本文研究手机本地GPU卸载的LLM自回归推理，单请求顺序执行的运行时能效。具体程序包括llama.cpp b2202/OpenCL＋CLBlast；TinyLlama1.1B、DS-R1-Distill-Qwen1.5B、Refact1.6B、StableLM2.7B、Phi2 2.7B、Llama2 6.7B，4bit；ShareGPT抽200请求。作者在root/opened Pixel7与7Pro，TensorG2/MaliG710、Android13；Monsoon旁路电池、0.2ms采样，屏幕关闭；测设备功耗上采用基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL。输入为模型、prompt长度桶、当前prefill/decode通知、离线E/T曲线、用户每token能量预算G1或时延目标G2，输出为CPU/GPU锁定频率pair；memory governor默认；G1最小时延/G2最小能量。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。以受控实验揭示多governor相互作用，提出简单可部署的阶段感知协同控制；复杂神经控制器不是必要条件。",
+  "abstract_en": "FUSE studies mobile LLM inference under independent CPU, GPU and memory governors. It finds that CPU kernel-submission delays can cause a mutually reinforcing CPU/GPU downclocking cycle. A model-specific offline search chooses CPU/GPU settings for latency or energy objectives and applies them at phase boundaries, while leaving the memory governor at its default setting. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：解释手机CPU/GPU独立governor互相降频的恶性循环，再通过离线两步搜索为prefill/decode配置协同频率。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "以受控实验揭示多governor相互作用，提出简单可部署的阶段感知协同控制；复杂神经控制器不是必要条件。",
+  "flow": "模型、prompt长度桶、当前prefill/decode通知、离线E/T曲线、用户每token能量预算G1或时延目标G2 → 基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL → CPU/GPU锁定频率pair；memory governor默认；G1最小时延/G2最小能量 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL"
+    ],
+    [
+      "被控负载类型",
+      "手机本地GPU卸载的LLM自回归推理，单请求顺序执行"
+    ],
+    [
+      "具体被控程序",
+      "llama.cpp b2202/OpenCL＋CLBlast；TinyLlama1.1B、DS-R1-Distill-Qwen1.5B、Refact1.6B、StableLM2.7B、Phi2 2.7B、Llama2 6.7B，4bit；ShareGPT抽200请求"
+    ],
+    [
+      "使用平台与测量",
+      "root/opened Pixel7与7Pro，TensorG2/MaliG710、Android13；Monsoon旁路电池、0.2ms采样，屏幕关闭；测设备功耗"
+    ],
+    [
+      "输入/状态",
+      "模型、prompt长度桶、当前prefill/decode通知、离线E/T曲线、用户每token能量预算G1或时延目标G2"
+    ],
+    [
+      "输出/动作",
+      "CPU/GPU锁定频率pair；memory governor默认；G1最小时延/G2最小能量"
+    ],
+    [
+      "周期与运行位置",
+      "安装/部署时每模型离线搜索；运行时只在prefill/decode边界换表，不是连续在线训练/逐tokenMPC"
+    ]
+  ],
+  "method": "§3–6，PDF p4–12：CPU负责OpenCL kernel提交和token处理，GPU等待使CPU利用率低；CPU降频又延迟提交、降低GPU利用率，GPU也降频，进一步拖慢，形成antagonistic downward spiral。先测固定频率对照，区分真正算力不足与governor互相影响。\n\nFUSE利用主导GPU因素，G1从高GPU频率向下找首次达到能量预算的频点及前一档，再逐GPU候选从高CPU频率向下细调；G2先找能量谷底或时延约束两侧GPU档，再找CPU可行档。内存默认governor已近最优，未强行搜索三维。5个prefill代表长度32/64/128/256/512＋decode32tokens离线剖析；实际按相位通知应用表。耗时17.7–87.7分钟/模型/目标范围，要靠多次使用摊销。",
+  "metrics": [
+    [
+      "ShareGPT同能量预算G1",
+      "TTFT降低7.0%–16.9%；TPOT降低25.4%–36.8%",
+      "TinyLlama/DS-Qwen/StableLM，200请求，近似iso-energy；不是节能百分比",
+      "Fig14/§6.2，p12"
+    ],
+    [
+      "ShareGPT同TTFT目标G2",
+      "总能量/电量代理降低4.2%–14.3%",
+      "三个模型；论文部分以mAh写energy drain，电量转J需电压",
+      "Fig14，p12"
+    ],
+    [
+      "固定长度同阶段时延G2",
+      "prefill每token能量−6.9%、decode−10.3%均值",
+      "六模型固定长度，不能替代真实trace范围",
+      "Fig13，p12"
+    ]
+  ],
+  "stats": "ShareGPT随机200请求，prompt≤512/output≤256，TTFT不含排队，不能套服务端SLO。Monsoon有高频设备测量，但请求数不同于重复设备样本。文中mAh是电量单位，若未给恒定供电电压，不应直接写等值J；近似iso-energy例也有小幅差异。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "离线配置依赖模型/平台；温度、后台负载、长上下文和并发请求可能让表失效。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "root/sysfs权限和整机功耗测量成本高，不等同普通手机app即可控制频率。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "不能把LLM负载称控制算法，或把G1时延改善说成同幅节能。"
+    ]
+  ],
+  "transfer": "如果有GPU/手机实验权限，适合作为“软控软”的清晰案例：软件策略控制运行推理软件的真实硬件。CPU单平台可借鉴阶段分表与小规模离线搜索；E902只迁移阶段观测/安全OPP，不照搬Android三频域。",
+  "experiments": [
+    [
+      "P0：独立governor与锁频对照",
+      "先验证应用与执行器，建立同边界基线",
+      "可root手机/Jetson或Linux CPU、轻量SLM、实际频率日志",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：相位分表与统一表、联合与独立调节",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "可root手机/Jetson或Linux CPU、轻量SLM、实际频率日志",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "G1：能量预算下最低时延",
+      "tex": "\\min_{f_C,f_G}T(f_C,f_G)\\quad\\mathrm{s.t.}\\ E(f_C,f_G)\\leq E_b",
+      "symbols": "T为TTFT(s)或TPOT(s/token)，E为对应阶段J或J/token；两种目标不可混。",
+      "example": "若GPU单独高频能量略超预算，调CPU可能让该GPU档变为可行，故保留边界前一档。",
+      "source": "§6/Fig11，p10–11"
+    },
+    {
+      "title": "G2：时延约束下最低能量",
+      "tex": "\\min_{f_C,f_G}E(f_C,f_G)\\quad\\mathrm{s.t.}\\ T(f_C,f_G)\\leq D",
+      "symbols": "D是阶段时延目标；memory默认，此式不是完整三维穷举。",
+      "example": "最低频若延长运行、增加基线能量，会比中间频率更费能，形成U形。",
+      "source": "§6.1，p10–11"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 3,
+      "title": "GPU利用率目标表",
+      "observation": "governor根据目标区间调节。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。governor根据目标区间调节。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；governor根据目标区间调节。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 5,
+      "title": "CPU/GPU推理对比",
+      "observation": "执行设备不同会改变最优策略。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。执行设备不同会改变最优策略。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；执行设备不同会改变最优策略。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 5,
+      "title": "E2E分解",
+      "observation": "CPU框架开销即使GPU推理也存在。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。CPU框架开销即使GPU推理也存在。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；CPU框架开销即使GPU推理也存在。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 6,
+      "title": "decode GPU扫描",
+      "observation": "能量/时延Pareto而非越低频越好。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。能量/时延Pareto而非越低频越好。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；能量/时延Pareto而非越低频越好。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 6,
+      "title": "prefill GPU扫描",
+      "observation": "prefill与decode需不同配置。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。prefill与decode需不同配置。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；prefill与decode需不同配置。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 7,
+      "title": "内存扫描",
+      "observation": "支持保留默认内存governor的条件。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。支持保留默认内存governor的条件。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；支持保留默认内存governor的条件。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 7,
+      "title": "CPU与GPU利用率耦合",
+      "observation": "降低CPU可让GPU更空闲。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。降低CPU可让GPU更空闲。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；降低CPU可让GPU更空闲。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 8,
+      "title": "CPU扫描与EAS",
+      "observation": "低CPU利用率不等无需提高CPU频率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低CPU利用率不等无需提高CPU频率。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；低CPU利用率不等无需提高CPU频率。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 9,
+      "title": "频率CDF",
+      "observation": "看默认频率驻留分布。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。看默认频率驻留分布。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；看默认频率驻留分布。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 9,
+      "title": "耦合频率时序",
+      "observation": "需与单独钉住组件对照。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。需与单独钉住组件对照。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；需与单独钉住组件对照。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.26,
+        0.495,
+        0.335
+      ],
+      "stage": "method",
+      "image": "original-fig10.png"
+    },
+    {
+      "label": "Fig11",
+      "page": 10,
+      "title": "两种目标的候选点",
+      "observation": "G1与G2选择规则不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。G1与G2选择规则不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；G1与G2选择规则不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.07,
+        0.94,
+        0.235
+      ],
+      "stage": "method",
+      "image": "original-fig11.png"
+    },
+    {
+      "label": "Fig12",
+      "page": 11,
+      "title": "G1固定长度结果",
+      "observation": "iso-energy速度改善不是节能。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。iso-energy速度改善不是节能。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；iso-energy速度改善不是节能。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 12,
+      "title": "G2固定长度结果",
+      "observation": "同阶段时延比较能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。同阶段时延比较能量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；同阶段时延比较能量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig14",
+      "page": 12,
+      "title": "真实ShareGPT回放",
+      "observation": "200请求、三模型与两个目标。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。200请求、三模型与两个目标。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；200请求、三模型与两个目标。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.105,
+        0.94,
+        0.355
+      ],
+      "stage": "result",
+      "image": "original-fig14.png"
+    },
+    {
+      "label": "Fig15",
+      "page": 15,
+      "title": "prefill CPU补充",
+      "observation": "正文decode结论的补充证据。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。正文decode结论的补充证据。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；正文decode结论的补充证据。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 15,
+      "title": "解除CPU锁定",
+      "observation": "事件触发的频率变化揭示耦合。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。事件触发的频率变化揭示耦合。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；事件触发的频率变化揭示耦合。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig17",
+      "page": 15,
+      "title": "G2频率表",
+      "observation": "离线结果不是在线神经策略。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。离线结果不是在线神经策略。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；离线结果不是在线神经策略。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 3,
+      "title": "可用档位",
+      "observation": "可锁档范围由设备决定。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可锁档范围由设备决定。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；可锁档范围由设备决定。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 11,
+      "title": "六模型配置",
+      "observation": "参数规模不等运行工作量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。参数规模不等运行工作量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；参数规模不等运行工作量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.315,
+        0.94,
+        0.425
+      ],
+      "stage": "result",
+      "image": "original-table2.png"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。如果有GPU/手机实验权限，适合作为“软控软”的清晰案例：软件策略控制运行推理软件的真实硬件。CPU单平台可借鉴阶段分表与小规模离线搜索；E902只迁移阶段观测/安全OPP，不照搬Android三频域。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "llama.cpp b2202/OpenCL＋CLBlast；TinyLlama1.1B、DS-R1-Distill-Qwen1.5B、Refact1.6B、StableLM2.7B、Phi2 2.7B、Llama2 6.7B，4bit；ShareGPT抽200请求"
+    ],
+    [
+      "A",
+      "控制策略",
+      "基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL"
+    ],
+    [
+      "B",
+      "控制周期",
+      "安装/部署时每模型离线搜索；运行时只在prefill/decode边界换表，不是连续在线训练/逐tokenMPC"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL",
+    "workload": "手机本地GPU卸载的LLM自回归推理，单请求顺序执行",
+    "programs": "llama.cpp b2202/OpenCL＋CLBlast；TinyLlama1.1B、DS-R1-Distill-Qwen1.5B、Refact1.6B、StableLM2.7B、Phi2 2.7B、Llama2 6.7B，4bit；ShareGPT抽200请求",
+    "platform": "root/opened Pixel7与7Pro，TensorG2/MaliG710、Android13；Monsoon旁路电池、0.2ms采样，屏幕关闭；测设备功耗",
+    "inputs": "模型、prompt长度桶、当前prefill/decode通知、离线E/T曲线、用户每token能量预算G1或时延目标G2",
+    "outputs": "CPU/GPU锁定频率pair；memory governor默认；G1最小时延/G2最小能量",
+    "timing": "安装/部署时每模型离线搜索；运行时只在prefill/decode边界换表，不是连续在线训练/逐tokenMPC"
+  }
+}

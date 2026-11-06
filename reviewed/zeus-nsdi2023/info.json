@@ -1,0 +1,28 @@
+{
+  "index": "zeus-nsdi2023",
+  "paper_title": "Zeus: Understanding and Optimizing GPU Energy Consumption of DNN Training",
+  "description": "把反复训练任务的batch size视为老虎机动作，用在线功率剖析寻找功率上限，优化达到目标精度的总能量与总时间。把反复训练任务的batch size视为老虎机动作，用在线功率剖析寻找功率上限，优化达到目标精度的总能量与总时间",
+  "authors": [
+    "Jie You",
+    "Jae-Won Chung",
+    "Mosharaf Chowdhury"
+  ],
+  "metadata": {
+    "venue": "USENIX NSDI 2023，119–139",
+    "year": 2023,
+    "doi": ""
+  },
+  "source_url": "https://www.usenix.org/conference/nsdi23/presentation/you",
+  "pdf_url": "https://www.usenix.org/system/files/nsdi23-you.pdf",
+  "source_version": "USENIX正式PDF22页，含封面；PDF p2对应印刷p119。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "90bdc9e84d3189b2573f7218e47e8d244233865b064bc9a2a5fc2506102516a4",
+  "figure_count": 28,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

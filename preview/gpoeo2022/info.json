@@ -1,0 +1,30 @@
+{
+  "index": "gpoeo2022",
+  "paper_title": "Dynamic GPU Energy Optimization for Machine Learning Training Workloads",
+  "description": "先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测。先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测",
+  "authors": [
+    "Farui Wang",
+    "Weizhe Zhang",
+    "Shichao Lai",
+    "Meng Hao",
+    "Zheng Wang"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本，2022",
+    "year": 2022,
+    "doi": "10.48550/arXiv.2201.01684"
+  },
+  "source_url": "https://arxiv.org/abs/2201.01684v1",
+  "pdf_url": "https://arxiv.org/pdf/2201.01684v1",
+  "source_version": "arXiv2201.01684v1，13页；本文为GPOEO，不是后续MF-GPOEO。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "afeeafaa8e08f6d8d3c938b59a6c88d70629ed1c732d8ddd144103ccbb1233a8",
+  "figure_count": 22,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

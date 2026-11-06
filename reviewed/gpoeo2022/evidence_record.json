@@ -1,0 +1,402 @@
+{
+  "short": "GPOEO：预测＋局部搜索",
+  "zh": "先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测",
+  "authors": [
+    "Farui Wang",
+    "Weizhe Zhang",
+    "Shichao Lai",
+    "Meng Hao",
+    "Zheng Wang"
+  ],
+  "venue": "arXiv预印本，2022",
+  "version": "arXiv2201.01684v1，13页；本文为GPOEO，不是后续MF-GPOEO。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测",
+  "abstract_zh": "本文研究GPU机器学习训练：周期性DNN/GNN及非周期传统ML的运行时能效。具体程序包括PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）。作者在RTX3080Ti＋AMD5950X/64GB；driver470.57、CUDA11.3；NVML功率/时钟、CUPTI计数；GPU能量非整机能量上采用FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索。输入为采样power/SM利用率/memory利用率周期信号；参考频率下PTX类型密度、L1/L2 miss、候选SM/显存档位、性能损失阈值，输出为SM与显存频率配置；以预测ED²P或受损失约束能量优化为目标。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把低侵入周期识别、细计数学习和在线局部修正组合，使离线预测不必完全精确。",
+  "abstract_en": "GPOEO combines robust training-period detection, performance-counter features, four boosted-tree energy/time predictors and local frequency search. Its controller adjusts GPU SM and memory clocks on an RTX3080Ti. The evaluation includes periodic neural-network training and aperiodic ML workloads, while online exploration and profiling can temporarily violate slowdown constraints. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "把低侵入周期识别、细计数学习和在线局部修正组合，使离线预测不必完全精确。",
+  "flow": "采样power/SM利用率/memory利用率周期信号；参考频率下PTX类型密度、L1/L2 miss、候选SM/显存档位、性能损失阈值 → FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索 → SM与显存频率配置；以预测ED²P或受损失约束能量优化为目标 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索"
+    ],
+    [
+      "被控负载类型",
+      "GPU机器学习训练：周期性DNN/GNN及非周期传统ML"
+    ],
+    [
+      "具体被控程序",
+      "PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）"
+    ],
+    [
+      "使用平台与测量",
+      "RTX3080Ti＋AMD5950X/64GB；driver470.57、CUDA11.3；NVML功率/时钟、CUPTI计数；GPU能量非整机能量"
+    ],
+    [
+      "输入/状态",
+      "采样power/SM利用率/memory利用率周期信号；参考频率下PTX类型密度、L1/L2 miss、候选SM/显存档位、性能损失阈值"
+    ],
+    [
+      "输出/动作",
+      "SM与显存频率配置；以预测ED²P或受损失约束能量优化为目标"
+    ],
+    [
+      "周期与运行位置",
+      "检测到稳定周期后采一个迭代的细计数；局部搜索跨若干迭代；非周期按固定区间IPS与功率估E/T"
+    ]
+  ],
+  "method": "§3–4，p3–7：高层利用率相似仍可能有不同频率敏感性，故先用低侵入功率/利用率组合检测迭代周期，再在参考频率1800/9251MHz采CUPTI特征。四个XGBoost分别预测改变SM或显存的相对能量/相对时间，训练数据每配置测10次取平均，超参grid search。离线训练套件与主要评估套件分开。\n\n预测最优档附近先搜显存（过低显存易严重慢化），再搜SM；利用目标大致凸的经验做黄金分割，拟合多次噪声点。SM实际搜索450–1920MHz、15MHz档距；硬件全支持210–2025MHz不等于算法全选。非周期任务改用固定区间IPS/power，避免把假周期当一次完整训练。约束只保证优化后的迭代，剖析/搜索阶段会额外慢化。",
+  "metrics": [
+    [
+      "全71项平均",
+      "GPU能量−16.2%，执行时间＋5.1%",
+      "相对NVIDIA默认；并非每项满足5% slowdown",
+      "摘要/§5.4，p1/9–11"
+    ],
+    [
+      "16项中型测试",
+      "能量−14.7%、ED²P−6.8%、时间＋4.6%",
+      "14AIBench＋2传统ML；相对默认",
+      "Fig13，p9–10"
+    ],
+    [
+      "55项GNN",
+      "能量−16.6%、时间＋5.2%",
+      "仅22/55在整体评估中达到5%性能损失约束；不可称零违约",
+      "Fig14/§5.4.2，p11"
+    ]
+  ],
+  "stats": "训练数据每测10次平均不等于最终71工作负载每项都有10次独立重复。Fig9–12主要为预测误差分布，不是节能效果。两个测试分组的mean与全体mean不同。控制开销作者消融全系统但不调频，Fig15开销<4%；探索期间违反5%约束需要单列。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "只在RTX3080Ti验证，性能计数/特征与频率选项跨GPU需重训。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "周期检测异常和短运行会削弱搜索摊销，瞬态性能并未硬保证。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "XGBoost是预测模型，最终动作由搜索决定；不能称端到端强化学习或把预测误差当节能率。"
+    ]
+  ],
+  "transfer": "很适合“轻量预测＋安全候选档搜索”的毕设结构。GPU负载可直接借鉴；E902把CUPTI换实际可用cycles/停顿/访存计数，先证明新输入预测有效，再比较无模型搜索与纯查表。",
+  "experiments": [
+    [
+      "P0：参考档特征与E–T数据",
+      "先验证应用与执行器，建立同边界基线",
+      "可锁频GPU或有计数器CPU；小CNN/GNN或候选压缩程序",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：预测器＋局部修正与穷举oracle",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "可锁频GPU或有计数器CPU；小CNN/GNN或候选压缩程序",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "相对能量预测",
+      "tex": "\\widehat{e}(x,f)=\\sum_{k=1}^{K}h_k(x,f)",
+      "symbols": "x为参考档特征，f为候选档；输出e是E/Edefault无量纲，不是J；hk为回归树。",
+      "example": "预测0.85表示该基线能量的85%，若时间比1.1，则ED²P比0.85×1.1²≈1.029。",
+      "source": "§4.3，p6–7"
+    },
+    {
+      "title": "目标与性能约束（整理）",
+      "tex": "\\min_f E(f)T(f)^2\\quad\\mathrm{or}\\quad\\min_f E(f),\\ T(f)\\leq(1+\\epsilon)T_0",
+      "symbols": "ε为允许slowdown比例；E J、T s；ED²P单位J·s²。",
+      "example": "能量−15%、时间＋10%时ED²P反而约＋2.85%，不能只看能量。",
+      "source": "§3.1/§5.4，p3/9"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 2,
+      "title": "oracle机会",
+      "observation": "已知最优上界不是部署结果。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。已知最优上界不是部署结果。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；已知最优上界不是部署结果。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 2,
+      "title": "周期检测误差",
+      "observation": "低频局部重复可能误导FFT。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低频局部重复可能误导FFT。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；低频局部重复可能误导FFT。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 3,
+      "title": "利用率不足以区分任务",
+      "observation": "相似粗特征不等于相同选频。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。相似粗特征不等于相同选频。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；相似粗特征不等于相同选频。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 3,
+      "title": "GPOEO流程",
+      "observation": "预测后仍有在线搜索。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。预测后仍有在线搜索。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；预测后仍有在线搜索。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.505,
+        0.37,
+        0.94,
+        0.635
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 7,
+      "title": "周期检测全任务",
+      "observation": "比较GPOEO与ODPP的误差。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。比较GPOEO与ODPP的误差。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；比较GPOEO与ODPP的误差。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 8,
+      "title": "CLB-GAT周期敏感性",
+      "observation": "跨SM频率检测稳定性。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。跨SM频率检测稳定性。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；跨SM频率检测稳定性。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 8,
+      "title": "SBM周期敏感性",
+      "observation": "并非只在默认档有效。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。并非只在默认档有效。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；并非只在默认档有效。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 8,
+      "title": "TSP周期敏感性",
+      "observation": "ODPP可能检测到局部短周期。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。ODPP可能检测到局部短周期。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；ODPP可能检测到局部短周期。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 8,
+      "title": "按SM档分组预测误差",
+      "observation": "箱线图误差不是节能。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。箱线图误差不是节能。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；箱线图误差不是节能。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 8,
+      "title": "按数据集分组预测误差",
+      "observation": "检验跨任务泛化。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。检验跨任务泛化。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；检验跨任务泛化。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "显存预测误差",
+      "observation": "先确认E/T两个子图。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。先确认E/T两个子图。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；先确认E/T两个子图。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 9,
+      "title": "显存档误差分布",
+      "observation": "不同显存区间风险不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不同显存区间风险不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不同显存区间风险不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 10,
+      "title": "16任务能量/时间/ED²P",
+      "observation": "三行配对才可判断。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。三行配对才可判断。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；三行配对才可判断。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.045,
+        0.94,
+        0.35
+      ],
+      "stage": "result",
+      "image": "original-fig13.png"
+    },
+    {
+      "label": "Fig14",
+      "page": 11,
+      "title": "55GNN三指标",
+      "observation": "有些任务slowdown超阈值。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。有些任务slowdown超阈值。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；有些任务slowdown超阈值。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 11,
+      "title": "系统开销",
+      "observation": "不调频的控制组件消融。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不调频的控制组件消融。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不调频的控制组件消融。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 3,
+      "title": "符号表",
+      "observation": "区分reference/default/optimal频率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。区分reference/default/optimal频率。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；区分reference/default/optimal频率。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 6,
+      "title": "CUPTI特征",
+      "observation": "PTX密度与cache miss来自GPU硬件。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。PTX密度与cache miss来自GPU硬件。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；PTX密度与cache miss来自GPU硬件。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.505,
+        0.055,
+        0.94,
+        0.405
+      ],
+      "stage": "result",
+      "image": "original-table2.png"
+    },
+    {
+      "label": "Table3",
+      "page": 10,
+      "title": "预测与搜索档位",
+      "observation": "预测误差通过搜索减少但不总为零。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。预测误差通过搜索减少但不总为零。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；预测误差通过搜索减少但不总为零。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 4,
+      "title": "FFT候选周期",
+      "observation": "候选还需序列检验。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。候选还需序列检验。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；候选还需序列检验。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm2",
+      "page": 5,
+      "title": "周期相似度",
+      "observation": "分组比较相邻周期特征。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。分组比较相邻周期特征。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；分组比较相邻周期特征。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm3",
+      "page": 5,
+      "title": "滚动稳定检测",
+      "observation": "不稳定则继续采样。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不稳定则继续采样。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不稳定则继续采样。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm4",
+      "page": 5,
+      "title": "特征采样",
+      "observation": "稳定周期后再收一周期计数。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。稳定周期后再收一周期计数。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；稳定周期后再收一周期计数。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。很适合“轻量预测＋安全候选档搜索”的毕设结构。GPU负载可直接借鉴；E902把CUPTI换实际可用cycles/停顿/访存计数，先证明新输入预测有效，再比较无模型搜索与纯查表。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）"
+    ],
+    [
+      "A",
+      "控制策略",
+      "FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索"
+    ],
+    [
+      "B",
+      "控制周期",
+      "检测到稳定周期后采一个迭代的细计数；局部搜索跨若干迭代；非周期按固定区间IPS与功率估E/T"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索",
+    "workload": "GPU机器学习训练：周期性DNN/GNN及非周期传统ML",
+    "programs": "PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）",
+    "platform": "RTX3080Ti＋AMD5950X/64GB；driver470.57、CUDA11.3；NVML功率/时钟、CUPTI计数；GPU能量非整机能量",
+    "inputs": "采样power/SM利用率/memory利用率周期信号；参考频率下PTX类型密度、L1/L2 miss、候选SM/显存档位、性能损失阈值",
+    "outputs": "SM与显存频率配置；以预测ED²P或受损失约束能量优化为目标",
+    "timing": "检测到稳定周期后采一个迭代的细计数；局部搜索跨若干迭代；非周期按固定区间IPS与功率估E/T"
+  }
+}

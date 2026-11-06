@@ -1,0 +1,31 @@
+{
+  "index": "perseus-sosp2024",
+  "paper_title": "Reducing Energy Bloat in Large Model Training",
+  "description": "将训练计算DAG的关键路径转成最小割问题，给不同前向/反向计算安排GPU频率以回收流水线等待能量。将训练计算DAG的关键路径转成最小割问题，给不同前向/反向计算安排GPU频率以回收流水线等待能量",
+  "authors": [
+    "Jae-Won Chung",
+    "Yile Gu",
+    "Insu Jang",
+    "Luoxi Meng",
+    "Nikhil Bansal",
+    "Mosharaf Chowdhury"
+  ],
+  "metadata": {
+    "venue": "SOSP 2024相关论文；本笔记分析arXiv v3",
+    "year": 2024,
+    "doi": "10.48550/arXiv.2312.06902"
+  },
+  "source_url": "https://arxiv.org/abs/2312.06902v3",
+  "pdf_url": "https://arxiv.org/pdf/2312.06902v3",
+  "source_version": "arXiv2312.06902v3，2024-09-23，24页；不能把大规模emulation写成同规模硬件实验。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "b8647fd47e84376b93fc1c5229a4cf6cf7b863b41d0d2d382a6238b96b4d3be6",
+  "figure_count": 21,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

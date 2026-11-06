@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GPOEO：预测＋局部搜索：中英文摘要与章节导读 - DVFS 论文精读</title>
+  <style>
+:root {
+  color-scheme: light;
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --accent: #2563eb;
+  --accent-soft: #eff6ff;
+  --sidebar: #0f172a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+  line-height: 1.72;
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  padding: 0 28px;
+  color: #fff;
+  background: var(--sidebar);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, .12);
+}
+.brand {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.page-title {
+  overflow: hidden;
+  color: #cbd5e1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 0;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+.sidebar,
+.toc {
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow: auto;
+  padding: 28px 18px;
+}
+.sidebar {
+  border-right: 1px solid var(--line);
+  background: #fff;
+}
+.toc {
+  border-left: 1px solid var(--line);
+  background: #fff;
+}
+.nav-link,
+.toc a {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+}
+.nav-link {
+  margin-bottom: 4px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.nav-link:hover,
+.nav-link.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.toc-title {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.toc a {
+  padding: 5px 0;
+  font-size: 13px;
+}
+.toc a:hover { color: var(--accent); }
+.toc-level-3 { padding-left: 16px !important; }
+.content {
+  min-width: 0;
+  padding: 36px 48px 80px;
+}
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 36px 44px 56px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+h1, h2, h3, h4, h5, h6 {
+  position: relative;
+  line-height: 1.28;
+  scroll-margin-top: 76px;
+}
+h1 {
+  margin-top: 0;
+  font-size: 30px;
+}
+h2 {
+  margin-top: 42px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 24px;
+}
+h3 { margin-top: 30px; font-size: 20px; }
+h4 { margin-top: 24px; font-size: 17px; }
+.anchor {
+  margin-left: 8px;
+  color: #94a3b8;
+  font-size: .72em;
+  text-decoration: none;
+  opacity: 0;
+}
+h1:hover .anchor,
+h2:hover .anchor,
+h3:hover .anchor,
+h4:hover .anchor { opacity: 1; }
+p { margin: 14px 0; }
+ul, ol { padding-left: 1.35em; }
+li { margin: 5px 0; }
+a { color: var(--accent); }
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 28px 0;
+}
+code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  font-size: .92em;
+}
+pre {
+  overflow: auto;
+  padding: 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+pre code { padding: 0; background: transparent; color: inherit; }
+figure {
+  margin: 24px 0;
+  text-align: center;
+}
+figure img,
+p img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 14px;
+  overflow-x: auto;
+  display: block;
+}
+table th, table td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  min-width: 110px;
+  overflow-wrap: anywhere;
+}
+table thead th {
+  background: #f1f5f9;
+  font-weight: 700;
+}
+table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+table tbody tr:hover {
+  background: var(--accent-soft);
+}
+figure em {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.index {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 28px;
+}
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.report-card {
+  display: block;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  text-decoration: none;
+}
+.report-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+}
+.report-card span {
+  display: block;
+  font-weight: 700;
+}
+	.report-card small {
+	  color: var(--muted);
+	}
+	.paper-card p {
+	  margin: 10px 0 0;
+	  color: var(--muted);
+	  font-size: 14px;
+	  line-height: 1.55;
+	}
+	.muted { color: var(--muted); }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 760px) {
+  .topbar { padding: 0 16px; }
+  .layout { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 12px;
+  }
+  .content { padding: 20px 12px 48px; }
+  article { padding: 24px 18px 40px; }
+  h1 { font-size: 25px; }
+  h2 { font-size: 21px; }
+  table th, table td { min-width: 180px; }
+  table th:first-child, table td:first-child { min-width: 84px; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html">DVFS 论文精读</a>
+    <span class="page-title">GPOEO：预测＋局部搜索：中英文摘要与章节导读</span>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <nav>
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../eli5_notes/index.html">1 从零入门</a>
+<a class="nav-link" href="../paper_notes/index.html">2 图文精读</a>
+<a class="nav-link" href="../figs_notes/index.html">3 图表索引</a>
+<a class="nav-link active" href="../translation_notes/index.html">4 摘要与译读</a>
+      </nav>
+    </aside>
+    <main class="content">
+      <article><h1 id="gpoeo预测局部搜索中英文摘要与章节导读">GPOEO：预测＋局部搜索：中英文摘要与章节导读<a class="anchor" href="#gpoeo预测局部搜索中英文摘要与章节导读">#</a></h1>
+<p><a href="https://arxiv.org/abs/2201.01684v1">论文页面</a> · <a href="https://arxiv.org/pdf/2201.01684v1">本笔记所用 PDF</a> · <a href="https://doi.org/10.48550/arXiv.2201.01684">标识符</a></p>
+<p>整理日期：2026-11-06。<strong>读者原创中文解读；原图归论文作者／出版方。未运行作者实验，不是独立复现。</strong></p>
+<p><strong>范围说明：以下英文与中文都是读者改写，不是原文摘要逐字引用，也不是全文翻译。</strong> 原始摘要请打开论文页面或PDF首页。</p>
+<h2 id="english-abstract-paraphrase">English abstract paraphrase<a class="anchor" href="#english-abstract-paraphrase">#</a></h2>
+<p>GPOEO combines robust training-period detection, performance-counter features, four boosted-tree energy/time predictors and local frequency search. Its controller adjusts GPU SM and memory clocks on an RTX3080Ti. The evaluation includes periodic neural-network training and aperiodic ML workloads, while online exploration and profiling can temporarily violate slowdown constraints. This is a reader-written paraphrase, not the original abstract.</p>
+<h2 id="中文摘要改写">中文摘要改写<a class="anchor" href="#中文摘要改写">#</a></h2>
+<p>本文研究GPU机器学习训练：周期性DNN/GNN及非周期传统ML的运行时能效。具体程序包括PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）。作者在RTX3080Ti＋AMD5950X/64GB；driver470.57、CUDA11.3；NVML功率/时钟、CUPTI计数；GPU能量非整机能量上采用FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索。输入为采样power/SM利用率/memory利用率周期信号；参考频率下PTX类型密度、L1/L2 miss、候选SM/显存档位、性能损失阈值，输出为SM与显存频率配置；以预测ED²P或受损失约束能量优化为目标。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把低侵入周期识别、细计数学习和在线局部修正组合，使离线预测不必完全精确。</p>
+<h2 id="题名怎么理解">题名怎么理解<a class="anchor" href="#题名怎么理解">#</a></h2>
+<p><strong>原题：</strong> Dynamic GPU Energy Optimization for Machine Learning Training Workloads</p>
+<p><strong>中文阅读题：</strong> 先检测训练迭代周期，再用XGBoost预测候选GPU核/显存频率的能量和时间，最后在线黄金分割搜索修正预测</p>
+<h2 id="章节导读">章节导读<a class="anchor" href="#章节导读">#</a></h2>
+<table>
+<thead><tr>
+<th>阅读问题</th>
+<th>先看材料</th>
+<th>如何接到下一步</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>为什么要改现有方案</td>
+<td>问题背景与动机图</td>
+<td>确定目标、约束和原有不足</td>
+</tr>
+<tr>
+<td>系统观察什么、控制什么</td>
+<td>输入输出表＋关键架构图</td>
+<td>确认数据、模型和执行器真实角色</td>
+</tr>
+<tr>
+<td>方法如何得到动作或估计</td>
+<td>方法段、公式、算法／模型表</td>
+<td>明确离线训练与在线流程</td>
+</tr>
+<tr>
+<td>收益是否真实且公平</td>
+<td>结果图表、统计与测量边界</td>
+<td>核查基线／目标／分母／开销</td>
+</tr>
+<tr>
+<td>能否用于自己的CPU</td>
+<td>局限、复现计划、三项实验</td>
+<td>把论文假设变成待验证的工程条件</td>
+</tr>
+</tbody>
+</table>
+<h2 id="阅读中英对照">阅读中英对照<a class="anchor" href="#阅读中英对照">#</a></h2>
+<table>
+<thead><tr>
+<th>级别</th>
+<th>术语／关键词</th>
+<th>直觉、严格含义与易混点</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>DVFS / DFS</td>
+<td>DVFS同时涉及动态电压与频率；只有时钟变化称DFS。电压能否改变取决于实际供电域。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Workload</td>
+<td>真正执行应用计算的程序与输入；本文里的控制器是另一个角色。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Controller</td>
+<td>根据观测选择动作的软件／硬件，可运行在同一CPU或独立控制核。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>OPP</td>
+<td>Operating Performance Point，经过允许范围验证的电压—频率组合。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>Power / Energy</td>
+<td>功率W表示此刻消耗快慢；能量J是对时间积分。低功率不必然低能量。</td>
+</tr>
+<tr>
+<td>B</td>
+<td>Deadline</td>
+<td>作业必须完成的时刻；平均时延、P95与最大时延各有不同用途。</td>
+</tr>
+<tr>
+<td>A</td>
+<td>被控程序</td>
+<td>PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等）</td>
+</tr>
+<tr>
+<td>A</td>
+<td>控制策略</td>
+<td>FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索</td>
+</tr>
+<tr>
+<td>B</td>
+<td>控制周期</td>
+<td>检测到稳定周期后采一个迭代的细计数；局部搜索跨若干迭代；非周期按固定区间IPS与功率估E/T</td>
+</tr>
+<tr>
+<td>B</td>
+<td>证据边界</td>
+<td>实测、硬件仿真、功耗模型是不同证据，见平台与结果表。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="原文数字应怎样转述">原文数字应怎样转述<a class="anchor" href="#原文数字应怎样转述">#</a></h2>
+<table>
+<thead><tr>
+<th>指标</th>
+<th>原文报告</th>
+<th>条件／分母／边界</th>
+<th>证据位置</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>全71项平均</td>
+<td>GPU能量−16.2%，执行时间＋5.1%</td>
+<td>相对NVIDIA默认；并非每项满足5% slowdown</td>
+<td>摘要/§5.4，p1/9–11</td>
+</tr>
+<tr>
+<td>16项中型测试</td>
+<td>能量−14.7%、ED²P−6.8%、时间＋4.6%</td>
+<td>14AIBench＋2传统ML；相对默认</td>
+<td>Fig13，p9–10</td>
+</tr>
+<tr>
+<td>55项GNN</td>
+<td>能量−16.6%、时间＋5.2%</td>
+<td>仅22/55在整体评估中达到5%性能损失约束；不可称零违约</td>
+<td>Fig14/§5.4.2，p11</td>
+</tr>
+</tbody>
+</table>
+<p>不要省去基线、平台、约束和测量边界。摘要级概述与全文结果不一致时，以明确标注版本的正文实验条件为准。</p>
+<h2 id="对你课题最有用的一句话">对你课题最有用的一句话<a class="anchor" href="#对你课题最有用的一句话">#</a></h2>
+<p>很适合“轻量预测＋安全候选档搜索”的毕设结构。GPU负载可直接借鉴；E902把CUPTI换实际可用cycles/停顿/访存计数，先证明新输入预测有效，再比较无模型搜索与纯查表。</p></article>
+    </main>
+    <aside class="toc">
+      <div class="toc-title">目录</div>
+      <a class="toc-level-1" href="#gpoeo预测局部搜索中英文摘要与章节导读">GPOEO：预测＋局部搜索：中英文摘要与章节导读</a>
+<a class="toc-level-2" href="#english-abstract-paraphrase">English abstract paraphrase</a>
+<a class="toc-level-2" href="#中文摘要改写">中文摘要改写</a>
+<a class="toc-level-2" href="#题名怎么理解">题名怎么理解</a>
+<a class="toc-level-2" href="#章节导读">章节导读</a>
+<a class="toc-level-2" href="#阅读中英对照">阅读中英对照</a>
+<a class="toc-level-2" href="#原文数字应怎样转述">原文数字应怎样转述</a>
+<a class="toc-level-2" href="#对你课题最有用的一句话">对你课题最有用的一句话</a>
+    </aside>
+  </div>
+</body>
+</html>

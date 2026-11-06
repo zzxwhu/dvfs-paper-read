@@ -1,0 +1,28 @@
+{
+  "index": "llm-dvfs-characterization2026",
+  "paper_title": "Characterizing LLM Inference Energy-Performance Tradeoffs across Workloads and GPU Scaling",
+  "description": "以控制变量实验刻画模型规模、输入语义、batch与GPU频率的关系，给阶段调频和模型路由提供机会分析而非完整新闭环控制器。以控制变量实验刻画模型规模、输入语义、batch与GPU频率的关系，给阶段调频和模型路由提供机会分析而非完整新闭环控制器",
+  "authors": [
+    "Paul Joe Maliakel",
+    "Shashikant Ilager",
+    "Ivona Brandic"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本v4，2026",
+    "year": 2026,
+    "doi": "10.48550/arXiv.2501.08219"
+  },
+  "source_url": "https://arxiv.org/abs/2501.08219v4",
+  "pdf_url": "https://arxiv.org/pdf/2501.08219v4",
+  "source_version": "arXiv2501.08219v4，2026-02-24，11页；题名/模型/结果与2025初版不同。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "5adb71747ad96e0a27dedd7b7c9d374b87ee0c65be539c82f31f9091fa2f4fe6",
+  "figure_count": 25,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

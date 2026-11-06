@@ -1,0 +1,29 @@
+{
+  "index": "greenllm2025",
+  "paper_title": "GreenLLM: SLO-Aware Dynamic Frequency Scaling for Energy-Efficient LLM Serving",
+  "description": "prefill按prompt长度分队列并解能量模型，decode用TPS粗档表与token尾延时细环分别调GPU频率。prefill按prompt长度分队列并解能量模型，decode用TPS粗档表与token尾延时细环分别调GPU频率",
+  "authors": [
+    "Qunyou Liu",
+    "Darong Huang",
+    "Marina Zapater",
+    "David Atienza"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本2025",
+    "year": 2025,
+    "doi": "10.48550/arXiv.2508.16449"
+  },
+  "source_url": "https://arxiv.org/abs/2508.16449v1",
+  "pdf_url": "https://arxiv.org/pdf/2508.16449v1",
+  "source_version": "arXiv2508.16449v1，2025-08-22，13页；与GreenDVFS服务器CPU工作不同。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "e78dbad4f73f1e6943ac96cf8e41b20f5f1e7a1254565def76aed97de186f9e5",
+  "figure_count": 16,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

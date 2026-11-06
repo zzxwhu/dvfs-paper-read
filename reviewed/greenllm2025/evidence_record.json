@@ -1,0 +1,347 @@
+{
+  "short": "GreenLLM：SLO双环服务",
+  "zh": "prefill按prompt长度分队列并解能量模型，decode用TPS粗档表与token尾延时细环分别调GPU频率",
+  "authors": [
+    "Qunyou Liu",
+    "Darong Huang",
+    "Marina Zapater",
+    "David Atienza"
+  ],
+  "venue": "arXiv预印本2025",
+  "version": "arXiv2508.16449v1，2025-08-22，13页；与GreenDVFS服务器CPU工作不同。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "prefill按prompt长度分队列并解能量模型，decode用TPS粗档表与token尾延时细环分别调GPU频率",
+  "abstract_zh": "本文研究多请求服务端LLM推理，prefill/decode解耦、动态到达率的运行时能效。具体程序包括Qwen3-14B dense、Qwen3-30B MoE，BF16；Alibaba ServeGen chat QPS1/3/5/8/10、Azure2024 code/conversation下采样trace。作者在单DGX-A100节点8×A100-SXM4 40GB/NVLink；Dynamo0.3.1/TensorRT-LLM；NVML SM应用时钟，显存固定；GPU能量，不含全设施上采用prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新。输入为prompt长度/队列待处理项、离线aL²+bL+c时延与P(f)功率模型、过去200ms TPS、近期P95 TBT、SLO余量，输出为prefill队列路由与各worker SM频率；decode频带＋15MHz步进频率；不在线改变模型尺寸。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。按阶段采用不同控制律，且将服务排队、空闲功耗、尾延时反馈组合；可解释的双时间尺度比泛称“智能DVFS”更有实施意义。",
+  "abstract_en": "GreenLLM separates prefill and decode energy control for LLM serving. Prompt-length queues and a latency/power optimizer handle prefill. A TPS-based lookup table, hysteresis and a token-latency feedback loop control decode. Tests on an eight-A100 node report GPU energy savings under specified TTFT and TBT targets, with workload-dependent SLO compliance. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：prefill按prompt长度分队列并解能量模型，decode用TPS粗档表与token尾延时细环分别调GPU频率。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "按阶段采用不同控制律，且将服务排队、空闲功耗、尾延时反馈组合；可解释的双时间尺度比泛称“智能DVFS”更有实施意义。",
+  "flow": "prompt长度/队列待处理项、离线aL²+bL+c时延与P(f)功率模型、过去200ms TPS、近期P95 TBT、SLO余量 → prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新 → prefill队列路由与各worker SM频率；decode频带＋15MHz步进频率；不在线改变模型尺寸 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新"
+    ],
+    [
+      "被控负载类型",
+      "多请求服务端LLM推理，prefill/decode解耦、动态到达率"
+    ],
+    [
+      "具体被控程序",
+      "Qwen3-14B dense、Qwen3-30B MoE，BF16；Alibaba ServeGen chat QPS1/3/5/8/10、Azure2024 code/conversation下采样trace"
+    ],
+    [
+      "使用平台与测量",
+      "单DGX-A100节点8×A100-SXM4 40GB/NVLink；Dynamo0.3.1/TensorRT-LLM；NVML SM应用时钟，显存固定；GPU能量，不含全设施"
+    ],
+    [
+      "输入/状态",
+      "prompt长度/队列待处理项、离线aL²+bL+c时延与P(f)功率模型、过去200ms TPS、近期P95 TBT、SLO余量"
+    ],
+    [
+      "输出/动作",
+      "prefill队列路由与各worker SM频率；decode频带＋15MHz步进频率；不在线改变模型尺寸"
+    ],
+    [
+      "周期与运行位置",
+      "decode 200ms估TPS、连续3窗口才换bucket；20ms细环；6s更新粗表。prefill按待处理队列调节"
+    ]
+  ],
+  "method": "§3，PDF p4–7：短/中/长prompt分队列减轻head-of-line blocking；按长度预测参考时钟busy time，再以fref/f近似缩放，拟合active P(f)=k3f³+k2f²+k1f+k0，并把SLO窗口剩余时间idle能量也计入，选择busy≤D时能量最低档。\n\ndecode先离线按TPS200–3000剖析最低能耗可行SM频率，在线过去200ms映射bucket，连续三个窗口留在新桶才换band；20ms计算近期P95 TBT/100ms，大于1升15MHz，小于0.65降15MHz，否则保持；限制在粗档邻域。6s持续偏置才更新表。方法是模型＋反馈规则，不是神经RL。4个prefill GPU（2workers×2）和4个decodeGPU；每trace至少30min。",
+  "metrics": [
+    [
+      "GPU总能量降低",
+      "Azure Qwen14B最高34.09%",
+      "Azure_conv5，相对defaultNV；其他工况约6.78%–34.09%，非所有34%",
+      "Table3，p10"
+    ],
+    [
+      "Qwen30B例",
+      "Azure_conv8节能22.51%，TBT通过99.8%→93.8%",
+      "通过率下降6.0个百分点；与摘要“additional violations<3.5%”笼统说法不完全一致",
+      "Table4，p10"
+    ],
+    [
+      "路由单独贡献",
+      "多工况约1%–3%能量变化",
+      "PrefillSplit消融vsdefaultNV；主要节能还来自阶段调频",
+      "Table3–4，p10"
+    ]
+  ],
+  "stats": "trace每次至少30min不等独立30次重复。SLO通过率有TTFT/TBT不同分母，P95目标与整段百分比不同。Table4个别通过率下降超过摘要概括范围，引用必须逐行标注，不隐去反例。预填充功率拟合与busy缩放有近似误差；固定显存条件不能推出显存协同收益。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "DGX节点/两模型/下采样trace对单设备CPU或手机外推有限。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "低负载有余量，高负载趋向最高频率，节能随QPS减小，不能保证负载满时仍34%。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "SLO不是硬deadline证明；原文表格存在更大通过率代价，需要独立重算和明确违约定义。"
+    ]
+  ],
+  "transfer": "适合将“队列长度/阶段＋粗表＋细反馈”迁移到CPU服务应用；E902可用队列积压/剩余期限替代TPS与P95窗口，先简单规则再学习预测。完整LLM服务实验需要GPU内存，E902只适合小负载或作为管理核。",
+  "experiments": [
+    [
+      "P0：阶段与排队时延分离",
+      "先验证应用与执行器，建立同边界基线",
+      "单GPU/CPU轻量服务、可控请求到达率、端到端与执行时间日志",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：固定档/统一策略/阶段双环的SLO对照",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "单GPU/CPU轻量服务、可控请求到达率、端到端与执行时间日志",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "SLO窗口能量",
+      "tex": "E(f)=P(f)\\frac{f_{\\mathrm{ref}}}{f}T_{\\mathrm{ref}}+P_{\\mathrm{idle}}\\left(D-\\frac{f_{\\mathrm{ref}}}{f}T_{\\mathrm{ref}}\\right)",
+      "symbols": "频率同单位，Tref/D为s，功率W，E为J；只在busy≤D可行时用。",
+      "example": "教学例D=1s、busy=0.6s，剩0.4s的idle也耗能；不能只看active功率。",
+      "source": "Eq5–12，p6"
+    },
+    {
+      "title": "尾延时控制误差",
+      "tex": "m_t=\\frac{\\mathrm{P95}(TBT)}{100\\,\\mathrm{ms}}",
+      "symbols": "m无量纲；m>1升频，m<0.65降频，中间死区保持；不等PID积分。",
+      "example": "P95=70ms时m=0.7，保持；60ms时降频；105ms时升频。",
+      "source": "Eq13/§3.3，p7"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 2,
+      "title": "默认与TPS反馈轨迹",
+      "observation": "高频常驻不一定能量最优。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。高频常驻不一定能量最优。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；高频常驻不一定能量最优。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 2,
+      "title": "prefill/decode流程",
+      "observation": "TTFT和TBT是不同阶段指标。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。TTFT和TBT是不同阶段指标。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；TTFT和TBT是不同阶段指标。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 4,
+      "title": "频率剖析",
+      "observation": "prefill/decode频率敏感性不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。prefill/decode频率敏感性不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；prefill/decode频率敏感性不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "整体架构",
+      "observation": "路由、prefill优化、decode反馈分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。路由、prefill优化、decode反馈分开。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；路由、prefill优化、decode反馈分开。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.27,
+        0.495,
+        0.47
+      ],
+      "stage": "method",
+      "image": "original-fig4.png"
+    },
+    {
+      "label": "Fig5",
+      "page": 5,
+      "title": "分队列前后TTFT",
+      "observation": "减少长prompt队头阻塞。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。减少长prompt队头阻塞。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；减少长prompt队头阻塞。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 5,
+      "title": "prefill队列控制",
+      "observation": "busy模型约束不直接保证所有尾请求。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。busy模型约束不直接保证所有尾请求。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；busy模型约束不直接保证所有尾请求。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 6,
+      "title": "长度二次拟合",
+      "observation": "模型误差需留余量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。模型误差需留余量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；模型误差需留余量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig8",
+      "page": 6,
+      "title": "三次功率拟合",
+      "observation": "拟合不是普适物理定律。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。拟合不是普适物理定律。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；拟合不是普适物理定律。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 7,
+      "title": "decode双环",
+      "observation": "粗表与细步进各有时钟。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。粗表与细步进各有时钟。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；粗表与细步进各有时钟。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.085,
+        0.495,
+        0.23
+      ],
+      "stage": "method",
+      "image": "original-fig9.png"
+    },
+    {
+      "label": "Fig10",
+      "page": 8,
+      "title": "prefill微基准",
+      "observation": "负载升高会吃掉余量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。负载升高会吃掉余量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；负载升高会吃掉余量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "decode微基准",
+      "observation": "SLO以下也有延时代价。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。SLO以下也有延时代价。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；SLO以下也有延时代价。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 11,
+      "title": "SLO余量扫描",
+      "observation": "放松目标省能，不能与严格目标混排。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。放松目标省能，不能与严格目标混排。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；放松目标省能，不能与严格目标混排。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 7,
+      "title": "硬件软件",
+      "observation": "8卡单节点，非大集群直接实测。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。8卡单节点，非大集群直接实测。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；8卡单节点，非大集群直接实测。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 8,
+      "title": "dense/MoE配置",
+      "observation": "总参数和激活参数不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。总参数和激活参数不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；总参数和激活参数不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table3",
+      "page": 10,
+      "title": "14B完整trace结果",
+      "observation": "逐行对照通过率和总能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。逐行对照通过率和总能量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；逐行对照通过率和总能量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.085,
+        0.495,
+        0.46
+      ],
+      "stage": "result",
+      "image": "original-table3.png"
+    },
+    {
+      "label": "Table4",
+      "page": 10,
+      "title": "30B完整trace结果",
+      "observation": "有6个百分点TBT通过率下降，不能漏掉。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。有6个百分点TBT通过率下降，不能漏掉。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；有6个百分点TBT通过率下降，不能漏掉。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.47,
+        0.495,
+        0.77
+      ],
+      "stage": "result",
+      "image": "original-table4.png"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。适合将“队列长度/阶段＋粗表＋细反馈”迁移到CPU服务应用；E902可用队列积压/剩余期限替代TPS与P95窗口，先简单规则再学习预测。完整LLM服务实验需要GPU内存，E902只适合小负载或作为管理核。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "Qwen3-14B dense、Qwen3-30B MoE，BF16；Alibaba ServeGen chat QPS1/3/5/8/10、Azure2024 code/conversation下采样trace"
+    ],
+    [
+      "A",
+      "控制策略",
+      "prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新"
+    ],
+    [
+      "B",
+      "控制周期",
+      "decode 200ms估TPS、连续3窗口才换bucket；20ms细环；6s更新粗表。prefill按待处理队列调节"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新",
+    "workload": "多请求服务端LLM推理，prefill/decode解耦、动态到达率",
+    "programs": "Qwen3-14B dense、Qwen3-30B MoE，BF16；Alibaba ServeGen chat QPS1/3/5/8/10、Azure2024 code/conversation下采样trace",
+    "platform": "单DGX-A100节点8×A100-SXM4 40GB/NVLink；Dynamo0.3.1/TensorRT-LLM；NVML SM应用时钟，显存固定；GPU能量，不含全设施",
+    "inputs": "prompt长度/队列待处理项、离线aL²+bL+c时延与P(f)功率模型、过去200ms TPS、近期P95 TBT、SLO余量",
+    "outputs": "prefill队列路由与各worker SM频率；decode频带＋15MHz步进频率；不在线改变模型尺寸",
+    "timing": "decode 200ms估TPS、连续3窗口才换bucket；20ms细环；6s更新粗表。prefill按待处理队列调节"
+  }
+}

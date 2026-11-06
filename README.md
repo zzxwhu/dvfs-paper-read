@@ -4,9 +4,11 @@
 
 ## 已经能用的内容
 
-已完成第二批10篇图文笔记，并提供[20篇具体对比](https://zzxwhu.github.io/dvfs-paper-read/dvfs/comparison-20-papers)：逐项列出控制算法、负载类型、具体程序、平台、结果与基线/约束。可下载[CSV](content/DVFS/data/dvfs-20.csv)和[JSON](content/DVFS/data/dvfs-20.json)。两批20篇，加原有JSA2023共21篇；第二批40份报告、31张关键原图表和20张公式图，184项图表/算法索引。全部为文献分析与方案建议，未进行独立实机复现。
+新增第三批10篇GPU/CV/LLM全文图文笔记，三批共30篇，加独立旧JSA2023共31篇。见[30篇具体比较](https://zzxwhu.github.io/dvfs-paper-read/dvfs/comparison-30-papers)、[阅读路线](https://zzxwhu.github.io/dvfs-paper-read/dvfs/reading-map-gpu-cv-llm-2026-11)、[30行CSV](content/DVFS/data/dvfs-30.csv)和[JSON](content/DVFS/data/dvfs-30.json)。第三批40份报告、34张关键原图表、20张公式图，212项图表/算法索引；逐项比较具体控制算法、负载类别、真实程序、平台、结果/基线/约束/证据。GPU/CV/LLM已允许作为应用候选，最终负载未确定。全部为文献阅读与分析，未独立运行作者实验。
 
-第一批10篇全文图文笔记包含40份报告、46张关键原图／原表裁图与20张公式图，配147项图表／算法索引及每篇3项CPU/E902相关实验建议。第二批另增10篇，当前总量以上方21篇说明为准。读者分析与原文结果分开，未执行训练、硬件复现或模型API流水线。
+此前第二批10篇及[20篇比较](https://zzxwhu.github.io/dvfs-paper-read/dvfs/comparison-20-papers)保留：[CSV20](content/DVFS/data/dvfs-20.csv)、[JSON20](content/DVFS/data/dvfs-20.json)。第二批40份报告、31张关键原图表和20张公式图，184项图表/算法索引。
+
+第一批10篇全文图文笔记包含40份报告、46张关键原图／原表裁图与20张公式图，配147项图表／算法索引及每篇3项CPU/E902相关实验建议。当前总量以上方31篇说明为准。读者分析与原文结果分开，未执行训练、硬件复现或模型API流水线。
 
 - [在线十篇路线图与课题取舍](https://zzxwhu.github.io/dvfs-paper-read/dvfs/reading-map-2026-11)
 - [本批材料与版本记录](reviewed/batch-2026-11-05.json)

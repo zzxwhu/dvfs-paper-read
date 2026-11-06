@@ -1,0 +1,434 @@
+{
+  "short": "SparseDVFS：稀疏感知分块",
+  "zh": "用稀疏特征和白盒模型估算算子需求，把过短算子合并为super-block，并协同CPU/GPU/EMC提前调频摊销切换成本",
+  "authors": [
+    "Ziyang Zhang",
+    "Zheshun Wu",
+    "Jie Liu",
+    "Luca Mottola"
+  ],
+  "venue": "arXiv预印本2026",
+  "version": "arXiv2603.21908v1，2026-03-23，14页；页眉仍有xxx et al.占位，按预印本评估。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "用稀疏特征和白盒模型估算算子需求，把过短算子合并为super-block，并协同CPU/GPU/EMC提前调频摊销切换成本",
+  "abstract_zh": "本文研究稀疏程度变化的边缘CNN/ViT推理的运行时能效。具体程序包括ResNet18/ResNet101、ViT-B16/ViT-L16，ImageNet2012预训练→ONNX；算子/超级块级执行。作者在Jetson Orin Nano8GB、JetPack6/Linux5.15；PyTorch2.1离线、C++在线、CUDA/TensorRT拦截、sysfs/jetson_clocks；jetson-stats电源轨遥测上采用稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列。输入为算子DAG、稀疏度、算量/访存量、温度、离线E/T模型、测得切频延迟Tswitch与聚合因子N，输出为super-block划分＋CPU/GPU/EMC联合频率；提前发下一块动作，CPU race-to-submit避免GPU饥饿。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。把能否摊销切换成本显式放入图划分，再联合多个频域执行；这里的智能主要是白盒模型与结构规则，并非深度RL。",
+  "abstract_en": "SparseDVFS proposes sparsity-aware latency and thermal power models, greedy operator aggregation and coordinated look-ahead frequency control on Jetson Orin Nano. Its main methodological value is matching control granularity to hardware switching cost. The preprint reports large energy reductions, but those figures require stronger measurement and consistency checks before being used as design expectations. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：用稀疏特征和白盒模型估算算子需求，把过短算子合并为super-block，并协同CPU/GPU/EMC提前调频摊销切换成本。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "把能否摊销切换成本显式放入图划分，再联合多个频域执行；这里的智能主要是白盒模型与结构规则，并非深度RL。",
+  "flow": "算子DAG、稀疏度、算量/访存量、温度、离线E/T模型、测得切频延迟Tswitch与聚合因子N → 稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列 → super-block划分＋CPU/GPU/EMC联合频率；提前发下一块动作，CPU race-to-submit避免GPU饥饿 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列"
+    ],
+    [
+      "被控负载类型",
+      "稀疏程度变化的边缘CNN/ViT推理"
+    ],
+    [
+      "具体被控程序",
+      "ResNet18/ResNet101、ViT-B16/ViT-L16，ImageNet2012预训练→ONNX；算子/超级块级执行"
+    ],
+    [
+      "使用平台与测量",
+      "Jetson Orin Nano8GB、JetPack6/Linux5.15；PyTorch2.1离线、C++在线、CUDA/TensorRT拦截、sysfs/jetson_clocks；jetson-stats电源轨遥测"
+    ],
+    [
+      "输入/状态",
+      "算子DAG、稀疏度、算量/访存量、温度、离线E/T模型、测得切频延迟Tswitch与聚合因子N"
+    ],
+    [
+      "输出/动作",
+      "super-block划分＋CPU/GPU/EMC联合频率；提前发下一块动作，CPU race-to-submit避免GPU饥饿"
+    ],
+    [
+      "周期与运行位置",
+      "块执行时间须超过N×Tswitch（默认N=5）；不是越细越好；异步命令需不干扰当前块"
+    ]
+  ],
+  "method": "§4–5，PDF p5–8：稀疏使计算量与访存量变化不同，FLOPs线性预测失效；timeline模型取计算与访存瓶颈、加固定开销。功率模型分动态α(S)·V²f与静态(k1T+k2)V。Algorithm1拓扑遍历，若块还太短或下个算子最佳档接近则合并，保守取较高频；满足驻留摊销后才能分界。FUSE在此指frequency unified scaling engine，与另一篇手机LLM的FUSE不是同一系统。CPU先高频提交kernel再下降，稀疏块保高EMC并降GPU，dense块按带宽需求配EMC。look-ahead将下一块切频命令与当前执行重叠。\n\n审查：文中温度式在固定V下对T是线性，却多处称super-linear，应要求额外温度/电压联动解释。所谓32B模型与nn-Meter856MB是作者选择的存储口径，不能当通用推理开销证明。§6.4确实把78.17%定义为相对Default的总能量降低，不应擅自改成另一种效率定义；但此大幅数字与Fig11–13、测量窗口、基线行为需原始轨迹重算，当前只报告作者声称，迁移可信度低。\n\n视觉核查Fig13还有口径冲突：正文定义gain为能量降低比例，但右轴Gain点与左轴能量柱对应的(1−E/Edefault)不一致，部分点约100%，而相应能量柱显然非零。不能仅按正文定义把78.17%当作已自洽验证的节能率；须获取原始J与gain计算代码。这里保留作者数值并明确其内部一致性未通过读者审查。",
+  "metrics": [
+    [
+      "作者报告平均总能量降低",
+      "78.17%",
+      "§6.4定义相对Default DVFS；预印本，仅Orin Nano，不是独立复现",
+      "Fig13/§6.4，p9–10"
+    ],
+    [
+      "相对MAX-N时延代价",
+      "约＋12.8%",
+      "MAX-N最低时延；不能把不同基线节能和时延拼成一组",
+      "§6.2/Fig11，p9"
+    ],
+    [
+      "切换摊销例",
+      "ResNet101 10.81→1.45ms",
+      "Table2为累计开销；不代表PLL本体锁定时间变快7.5倍",
+      "Table2，p8"
+    ],
+    [
+      "成本收益比",
+      "14%",
+      "cost-gain ratio，低较好；不是节能14%",
+      "Fig14，p10"
+    ],
+    [
+      "结果内部一致性",
+      "未通过读者审查",
+      "Fig13能量柱与右轴gain不能按正文降低率定义对应；须作者原始J与计算脚本",
+      "Fig13与§6.4，p9–10"
+    ]
+  ],
+  "stats": "只核查到单Orin Nano平台和作者的功耗轨/时延图；当前正文未定位齐重复次数/误差线与对Default的完整原始能量积分。大能量差尤其要检查idle、预热、thermal throttling、切换与计算窗口是否相同。看起来更低的功率不够证明78.17%的总能量下降。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "缺原始轨迹与完整重复配置，大幅节能主张外推可信度低，应先独立复核。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "异步提前改频可能影响当前块，必须测实际生效而非只测命令入队。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "稀疏不保证底层kernel真正跳过零元素；模型稀疏度不能直接替代硬件瓶颈实测。"
+    ],
+    [
+      "读者视觉核查",
+      "关键",
+      "Fig13右轴gain与正文总能量降低定义及柱图对应关系不一致；78.17%仅列为作者报告，不能作为经过审查的实测节能结论。"
+    ]
+  ],
+  "transfer": "最适合借鉴的不是78.17%，而是“控制粒度必须大于切换成本”。CPU/E902可将压缩/图像前处理分阶段，合并短阶段，实测请求到生效并加最短驻留；GPU场景再增加CPU提交和EMC协调。",
+  "experiments": [
+    [
+      "P0：测真实切频成本与最小块长",
+      "先验证应用与执行器，建立同边界基线",
+      "可控CPU/Jetson，阶段化程序与实际频率日志",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：逐算子/固定块/自适应聚合三者消融",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "可控CPU/Jetson，阶段化程序与实际频率日志",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "摊销约束",
+      "tex": "T_{\\mathrm{block}}>N T_{\\mathrm{switch}}",
+      "symbols": "时间都用s，N无量纲；这是启发式驻留条件，不是节能充分条件。",
+      "example": "教学例切换0.2ms、N=5，块应超过1ms；0.1ms算子不宜每个都切。",
+      "source": "Eq3/Algorithm1，p7"
+    },
+    {
+      "title": "温度功率模型",
+      "tex": "P=\\alpha(S)V^2f+(k_1\\Theta+k_2)V",
+      "symbols": "P W，V V，f Hz，Θ温度，系数需对应单位；固定V时静态项随Θ线性。",
+      "example": "温度改变后应重新验证误差；不能从此式直接断言超线性温升。",
+      "source": "Eq2，p6"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 1,
+      "title": "三种粒度",
+      "observation": "model级太粗，operator级切换过多。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。model级太粗，operator级切换过多。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；model级太粗，operator级切换过多。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig2",
+      "page": 3,
+      "title": "roofline",
+      "observation": "稀疏可改变瓶颈。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。稀疏可改变瓶颈。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；稀疏可改变瓶颈。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 3,
+      "title": "动态稀疏分布",
+      "observation": "算子间分布不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。算子间分布不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；算子间分布不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 4,
+      "title": "独立governor轨迹",
+      "observation": "利用率反馈可能互相拖慢。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。利用率反馈可能互相拖慢。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；利用率反馈可能互相拖慢。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 4,
+      "title": "切换/算子时长",
+      "observation": "切换可超过短算子。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。切换可超过短算子。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；切换可超过短算子。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 4,
+      "title": "频率热图",
+      "observation": "联合频域有非单调效应。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。联合频域有非单调效应。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；联合频域有非单调效应。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 5,
+      "title": "三阶段架构",
+      "observation": "离线模型、块划分和执行器分开。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。离线模型、块划分和执行器分开。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；离线模型、块划分和执行器分开。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.07,
+        0.94,
+        0.375
+      ],
+      "stage": "method",
+      "image": "original-fig7.png"
+    },
+    {
+      "label": "Fig8",
+      "page": 6,
+      "title": "模型拟合",
+      "observation": "预测误差不是节能证据。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。预测误差不是节能证据。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；预测误差不是节能证据。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig9",
+      "page": 7,
+      "title": "聚合与切换",
+      "observation": "减少次数不能自动证明净能量改善。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。减少次数不能自动证明净能量改善。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；减少次数不能自动证明净能量改善。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig10",
+      "page": 8,
+      "title": "提前调频时序",
+      "observation": "入队与实际频率生效不同。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。入队与实际频率生效不同。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；入队与实际频率生效不同。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig11",
+      "page": 9,
+      "title": "端到端时延",
+      "observation": "MAX-N更快，代价保留。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。MAX-N更快，代价保留。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；MAX-N更快，代价保留。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig12",
+      "page": 9,
+      "title": "能量和功率",
+      "observation": "mJ与W不混。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。mJ与W不混。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；mJ与W不混。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig13",
+      "page": 10,
+      "title": "归一化收益",
+      "observation": "正文78.17%定义为能量降低，但右轴Gain与能量柱的比例并不一致；存在指标口径冲突。",
+      "read": "先看左轴mJ能量柱，再在同模型内计算1−新能量/Default能量，并与右轴Gain比较。无需猜柱高精确数值也能看到二者不一致。",
+      "limit": "不能把内部口径未澄清的78.17%当作可靠性能基准；需原始能量和计算脚本。",
+      "crop": [
+        0.08,
+        0.07,
+        0.495,
+        0.245
+      ],
+      "stage": "result",
+      "image": "original-fig13.png"
+    },
+    {
+      "label": "Fig14",
+      "page": 10,
+      "title": "cost-gain",
+      "observation": "14%不是节能率。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。14%不是节能率。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；14%不是节能率。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig15",
+      "page": 10,
+      "title": "组件消融",
+      "observation": "须看各组件共同代价。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。须看各组件共同代价。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；须看各组件共同代价。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig16",
+      "page": 10,
+      "title": "热与抖动",
+      "observation": "短稳态窗口不代表全天工况。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。短稳态窗口不代表全天工况。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；短稳态窗口不代表全天工况。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig17",
+      "page": 10,
+      "title": "N与块粒度",
+      "observation": "N改变响应与切换次数。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。N改变响应与切换次数。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；N改变响应与切换次数。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig18",
+      "page": 11,
+      "title": "N与时延开销",
+      "observation": "大N可能失去细粒度机会。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。大N可能失去细粒度机会。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；大N可能失去细粒度机会。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig19",
+      "page": 11,
+      "title": "N与功率/能量",
+      "observation": "用净能量选N。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。用净能量选N。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；用净能量选N。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table1",
+      "page": 6,
+      "title": "模型比较",
+      "observation": "±10%准确率阈值不同于平均误差。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。±10%准确率阈值不同于平均误差。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；±10%准确率阈值不同于平均误差。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Table2",
+      "page": 8,
+      "title": "累计切换开销",
+      "observation": "隐藏开销不等于物理切换加速。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。隐藏开销不等于物理切换加速。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；隐藏开销不等于物理切换加速。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.25,
+        0.94,
+        0.405
+      ],
+      "stage": "result",
+      "image": "original-table2.png"
+    },
+    {
+      "label": "Table3",
+      "page": 9,
+      "title": "四模型配置",
+      "observation": "算子计数由其图转换口径决定。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。算子计数由其图转换口径决定。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；算子计数由其图转换口径决定。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Algorithm1",
+      "page": 7,
+      "title": "贪心合并",
+      "observation": "保守max频率可牺牲部分能量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。保守max频率可牺牲部分能量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；保守max频率可牺牲部分能量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.55,
+        0.495,
+        0.86
+      ],
+      "stage": "method",
+      "image": "original-algorithm1.png"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。最适合借鉴的不是78.17%，而是“控制粒度必须大于切换成本”。CPU/E902可将压缩/图像前处理分阶段，合并短阶段，实测请求到生效并加最短驻留；GPU场景再增加CPU提交和EMC协调。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "ResNet18/ResNet101、ViT-B16/ViT-L16，ImageNet2012预训练→ONNX；算子/超级块级执行"
+    ],
+    [
+      "A",
+      "控制策略",
+      "稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列"
+    ],
+    [
+      "B",
+      "控制周期",
+      "块执行时间须超过N×Tswitch（默认N=5）；不是越细越好；异步命令需不干扰当前块"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列",
+    "workload": "稀疏程度变化的边缘CNN/ViT推理",
+    "programs": "ResNet18/ResNet101、ViT-B16/ViT-L16，ImageNet2012预训练→ONNX；算子/超级块级执行",
+    "platform": "Jetson Orin Nano8GB、JetPack6/Linux5.15；PyTorch2.1离线、C++在线、CUDA/TensorRT拦截、sysfs/jetson_clocks；jetson-stats电源轨遥测",
+    "inputs": "算子DAG、稀疏度、算量/访存量、温度、离线E/T模型、测得切频延迟Tswitch与聚合因子N",
+    "outputs": "super-block划分＋CPU/GPU/EMC联合频率；提前发下一块动作，CPU race-to-submit避免GPU饥饿",
+    "timing": "块执行时间须超过N×Tswitch（默认N=5）；不是越细越好；异步命令需不干扰当前块"
+  }
+}

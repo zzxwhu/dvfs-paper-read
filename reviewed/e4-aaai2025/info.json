@@ -1,0 +1,30 @@
+{
+  "index": "e4-aaai2025",
+  "paper_title": "E4: Energy-Efficient DNN Inference for Edge Video Analytics via Early Exiting and DVFS",
+  "description": "先通过时序注意力确定视频动作识别所需的退出位置，再用坐标下降为退出前各层选CPU/GPU频率。先通过时序注意力确定视频动作识别所需的退出位置，再用坐标下降为退出前各层选CPU/GPU频率",
+  "authors": [
+    "Ziyang Zhang",
+    "Yang Zhao",
+    "Ming-Ching Chang",
+    "Changyao Lin",
+    "Jie Liu"
+  ],
+  "metadata": {
+    "venue": "AAAI 2025，1165–1173",
+    "year": 2025,
+    "doi": ""
+  },
+  "source_url": "https://ojs.aaai.org/index.php/AAAI/article/view/32104",
+  "pdf_url": "https://yangece.github.io/papers/conference/AAAI2025-E4.pdf",
+  "source_version": "作者托管正式会议PDF9页；PDF p1为印刷p1165，非arXiv版页码。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "b0a58a415c0b596921d2c419ebcbc1edc973d66d07fbed342d7a719eafb8b79f",
+  "figure_count": 8,
+  "embedded_figures": 3,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

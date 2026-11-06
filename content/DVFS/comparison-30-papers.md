@@ -1,0 +1,109 @@
+---
+title: "30篇DVFS论文对比：算法、应用、程序、平台、结果"
+date: "2026-11-06"
+tags: [DVFS, CPU, GPU, CV, LLM, E902]
+---
+
+本页在原20篇上新增10篇，**三批恰好30篇**；独立旧JSA2023笔记仍保留，不计入30篇，站内共31篇。用户已允许GPU平台及CV/LLM应用，这不是替你确定最终负载。整理日期2026-11-06；覆盖2001–2026的基础与应用工作，并非系统穷尽综述。预印本与正式版、所用版本见各笔记。
+
+[下载30行CSV](data/dvfs-30.csv) · [完整结构化JSON](data/dvfs-30.json) · [新增10篇入门路线](reading-map-gpu-cv-llm-2026-11.md) · [原20篇比较](comparison-20-papers.md)
+
+**五个维度分别读：** 算法=怎样决定动作；被控负载=哪类应用；程序=实际执行的模型/软件和输入；平台=执行器与测量条件；结果=相对谁、什么约束、什么证据。CNN/LLM可以是负载，控制器仍可只是规则、查表、回归、图优化或小Q网络。
+
+**不要按最高百分比排冠军。** GPU/CPU/整板能量不同；早退出、改变batch、卸载、模型路由会改变计算量或质量。功率帽不等直接电压，SM锁频不等用户能任意调压。预测误差、能量降低、速度、SLO通过率、QoS吞吐比、固件速度都不是同一指标。未运行作者代码，以下不是独立复现报告。
+
+手机横向滑动表格；桌面使用六列宽版。点击论文进入原图表、公式、输入输出和实验审查。
+
+## 新增第三批：GPU / CV / LLM应用（10篇）
+
+| 论文 / 原文 | 具体控制算法 | 被控负载类型 | 具体被控程序 | 平台 / 证据边界 | 结果 / 基线 / 约束 |
+| --- | --- | --- | --- | --- | --- |
+| [Zeus：训练能量优化，2023](zeus-nsdi2023/paper_notes.md) · [原文](https://www.usenix.org/conference/nsdi23/presentation/you) | 高斯Thompson Sampling多臂老虎机选batch size；两轮剪枝/代价早停；固定batch时JIT剖析选GPU功率上限；近期窗口适应漂移 | 反复提交、需要达到目标质量的GPU DNN训练/微调 | DeepSpeech2/LibriSpeech；BERT/SQuAD与Sentiment140；ResNet50/ImageNet；ShuffleNet-v2/CIFAR100；NeuMF/MovieLens1M | 默认V100 PCIe32GB；另A40、RTX6000、P100；PyTorch ZeusDataLoader＋NVML GPU遥测与功率帽。多数优化评估由真实训练/功率轨迹回放；漂移另有端到端训练 | 达到目标的GPU能量降低：15.3%–75.8%（相对默认batch＋最大功率帽；Fig6取最后5次recurrences；主要是轨迹回放结果；§6.1–6.2/Fig6，p10–11）；训练时间代价：最多缩短60.1%，部分增加12.8%（不同负载的能量—时间折中；不是所有负载同时提速；§6.2，p11）；探索代价：Grid Search最坏累计regret为Zeus的72倍（相同recurrence任务设置；regret单位J，不是节能72倍；Fig7–8，p11） |
+| [Perseus：训练流水线频率调度，2024](perseus-sosp2024/paper_notes.md) · [原文](https://arxiv.org/abs/2312.06902v3) | 离线/启动剖析E–T曲线→指数连续松弛→关键DAG的s-t最小割/最大流迭代追踪Pareto前沿→离散频率向上取可行档；慢流水线约束下选调度 | GPU流水线并行与数据并行训练，含stage不均衡和straggler | GPT3、Bloom、BERT、T5、Wide-ResNet；真实平台约1.3B–6.7B配置，大规模emulation扩到176B | 真实A40-48GB集群与4×A100-80GB节点；NVML锁SM时钟、异步进程执行；大规模GPU数为基于剖析的emulation | 真实GPU intrinsic能量降低：最高28.5%（8stage A40/T5-3B，对最大频率；同项slowdown0.0%；各模型不全相同；Table3，p10）；A100 GPT3-1.3B例：能量−13.2%，时间＋0.1%（4stage；EnvPipe−8.8%，＋0.1%；Table3a，p10）；大规模结果：最高约30%（是emulation，不是几千张实体卡全部实测；§6.3/Fig7–8，p11） |
+| [GPOEO：预测＋局部搜索，2022](gpoeo2022/paper_notes.md) · [原文](https://arxiv.org/abs/2201.01684v1) | FFT候选周期＋序列相似度/高斯混合与滚动检验；4个XGBoost相对E/T预测器；先显存后SM局部黄金分割/凸拟合搜索 | GPU机器学习训练：周期性DNN/GNN及非周期传统ML | PyTorch Benchmarks训练预测器；14项AIBench＋ThunderSVM/ThunderGBM测试；55项benchmarking-gnns（GAT/GCN/GatedGCN等×COLLAB/CSL/SBM/TSP/TU等） | RTX3080Ti＋AMD5950X/64GB；driver470.57、CUDA11.3；NVML功率/时钟、CUPTI计数；GPU能量非整机能量 | 全71项平均：GPU能量−16.2%，执行时间＋5.1%（相对NVIDIA默认；并非每项满足5% slowdown；摘要/§5.4，p1/9–11）；16项中型测试：能量−14.7%、ED²P−6.8%、时间＋4.6%（14AIBench＋2传统ML；相对默认；Fig13，p9–10）；55项GNN：能量−16.6%、时间＋5.2%（仅22/55在整体评估中达到5%性能损失约束；不可称零违约；Fig14/§5.4.2，p11） |
+| [DVFO：边云协同推理，2023](dvfo2023/paper_notes.md) · [原文](https://arxiv.org/abs/2306.01811v3) | 离线训练、在线推理的concurrent DQN：prioritized replay＋ε-greedy；thinking-while-moving减少决策阻塞；SCAM选择特征＋INT8量化＋加权融合 | 边缘–云协同CV分类推理，网络带宽变化 | 主实验EfficientNet-B0与ViT-B16，CIFAR100/ImageNet2012；扩展ResNet18、Inception-v3、MobileNet-v2、MaxViT | Jetson Nano/TX2/Xavier NX（默认NX）；云RTX3080＋Xeon6226R；PyTorch、nvpmodel、jetson-stats边缘设备遥测；云端能量未计入边缘ETI | 主推理能量降低：18.4%/31.2%/39.7%/43.4%（分别相对DRLDO/AppealNet/Cloud-only/Edge-only；NX、5Mbps、两模型×两数据集平均，边缘能量；§6.3/Fig8，p9）；端到端时延降低：28.6%–59.1%（相对上述不同基线；不是纯DVFS消融收益；Fig8，p9）；准确率边界：§6.3称相对Edge-only损失within2%；融合例0.68/0.56个百分点（摘要within1%与主实验within2%不能合并；Table4只比较融合实现；Fig9/Table4，p10/12） |
+| [E4：视频早退出＋DVFS，2025](e4-aaai2025/paper_notes.md) · [原文](https://ojs.aaai.org/index.php/AAAI/article/view/32104) | 两层LSTM累计特征＋注意力/MLP早退gate；JIT coordinate descent search逐层找CPU-GPU频率；nvpmodel执行，非RL governor | 边缘视频动作识别，多帧/多出口DNN推理 | EfficientNet-B0、MobileNet-v2特征骨干＋5出口；ActivityNet-v1.3、Mini-Kinetics；ImageNet预训练 | Jetson Nano/TX2/Xavier NX/Orin Nano/AGX Orin五设备；Python3.6、nvpmodel；jetson-stats整设备遥测；早退网络另用4×RTX3080离线训练 | 主要正文结果：EfficientNet能量−20%–37%、速度1.3–2.2×；MobileNet−18%–30%、1.4–1.9×（五Jetson/两数据集，与EENet/zTT/Ring比较；摘要最高2.8×不冒充所有主图结果；§Performance/Fig3，p5–6）；摘要总体：平均节能26%，最高速度2.8×（联合早退和调频；保留正文分组与精度条件；摘要，p1）；能量换算示例：约217.98mJ→164.01mJ（Table2 Eff-B0无策略6.3ms/34.6W，单DVFS7.1ms/23.1W；乘积教学换算，约−24.8%，不是新实测；Table2，p7） |
+| [SparseDVFS：稀疏感知分块，2026](sparsedvfs2026/paper_notes.md) · [原文](https://arxiv.org/abs/2603.21908v1) | 稀疏感知timeline/roofline延时模型＋温度功耗回归；贪心同频/短算子合并；FUSE统一CPU/GPU/EMC规则＋look-ahead异步命令队列 | 稀疏程度变化的边缘CNN/ViT推理 | ResNet18/ResNet101、ViT-B16/ViT-L16，ImageNet2012预训练→ONNX；算子/超级块级执行 | Jetson Orin Nano8GB、JetPack6/Linux5.15；PyTorch2.1离线、C++在线、CUDA/TensorRT拦截、sysfs/jetson_clocks；jetson-stats电源轨遥测 | 作者报告平均总能量降低：78.17%（§6.4定义相对Default DVFS；预印本，仅Orin Nano，不是独立复现；Fig13/§6.4，p9–10）；相对MAX-N时延代价：约＋12.8%（MAX-N最低时延；不能把不同基线节能和时延拼成一组；§6.2/Fig11，p9）；切换摊销例：ResNet101 10.81→1.45ms（Table2为累计开销；不代表PLL本体锁定时间变快7.5倍；Table2，p8）；成本收益比：14%（cost-gain ratio，低较好；不是节能14%；Fig14，p10）；结果内部一致性：未通过读者审查（Fig13能量柱与右轴gain不能按正文降低率定义对应；须作者原始J与计算脚本；Fig13与§6.4，p9–10） |
+| [FUSE：手机LLM协同频率，2025](fuse2025/paper_notes.md) · [原文](https://arxiv.org/abs/2507.02135v1) | 基于U形能量曲线的两步离线搜索：先GPU至能量/时延边界，再CPU细调；5种prompt桶＋1种decode配置；相位切换查表，无RL | 手机本地GPU卸载的LLM自回归推理，单请求顺序执行 | llama.cpp b2202/OpenCL＋CLBlast；TinyLlama1.1B、DS-R1-Distill-Qwen1.5B、Refact1.6B、StableLM2.7B、Phi2 2.7B、Llama2 6.7B，4bit；ShareGPT抽200请求 | root/opened Pixel7与7Pro，TensorG2/MaliG710、Android13；Monsoon旁路电池、0.2ms采样，屏幕关闭；测设备功耗 | ShareGPT同能量预算G1：TTFT降低7.0%–16.9%；TPOT降低25.4%–36.8%（TinyLlama/DS-Qwen/StableLM，200请求，近似iso-energy；不是节能百分比；Fig14/§6.2，p12）；ShareGPT同TTFT目标G2：总能量/电量代理降低4.2%–14.3%（三个模型；论文部分以mAh写energy drain，电量转J需电压；Fig14，p12）；固定长度同阶段时延G2：prefill每token能量−6.9%、decode−10.3%均值（六模型固定长度，不能替代真实trace范围；Fig13，p12） |
+| [GreenLLM：SLO双环服务，2025](greenllm2025/paper_notes.md) · [原文](https://arxiv.org/abs/2508.16449v1) | prefill长度分队列＋二次延时/三次功率模型约束优化；decode TPS查表粗环＋滞回＋20ms尾延时频率步进细环＋6s表偏置更新 | 多请求服务端LLM推理，prefill/decode解耦、动态到达率 | Qwen3-14B dense、Qwen3-30B MoE，BF16；Alibaba ServeGen chat QPS1/3/5/8/10、Azure2024 code/conversation下采样trace | 单DGX-A100节点8×A100-SXM4 40GB/NVLink；Dynamo0.3.1/TensorRT-LLM；NVML SM应用时钟，显存固定；GPU能量，不含全设施 | GPU总能量降低：Azure Qwen14B最高34.09%（Azure_conv5，相对defaultNV；其他工况约6.78%–34.09%，非所有34%；Table3，p10）；Qwen30B例：Azure_conv8节能22.51%，TBT通过99.8%→93.8%（通过率下降6.0个百分点；与摘要“additional violations<3.5%”笼统说法不完全一致；Table4，p10）；路由单独贡献：多工况约1%–3%能量变化（PrefillSplit消融vsdefaultNV；主要节能还来自阶段调频；Table3–4，p10） |
+| [DVFSLM：token需求预测，2026](dvfslm2026/paper_notes.md) · [原文](https://arxiv.org/abs/2609.13153v1) | XGBoost矩阵规模→未来HPC元数据parser；线性/频率基函数E/T估计；枚举GPU–EMC候选＋单调剪枝；50token窗口偏差反馈α修正 | 边缘GPU本地小语言模型自回归decode（含dense/MoE） | llama.cpp/llama-cpp-python q4_0；GPT2-small/medium/large/xl、Qwen2.5-0.5B、TinyLLaMA1.1B、OLMoE-1B-7B；主实验生成1024tokens | Jetson AGX Orin与Orin NX；CPU阈值0.6528GHz固定；44/28组GPU–EMC候选；INA3221 200Hz整设备功耗；C++/XGBoost CAPI/pybind11 | 每token能量：相对RULE最高−12.4%，相对改造Gear最高−8.4%（模型/期限不同；某些高目标下Gear更省能但QoS差，不能脱约束比较；Fig8/§5.1，p10）；QoS定义与改善：min(实际tokens/s÷目标tokens/s,1)；原文最高相对改善93.12%/69.14%（不是百分之多少token按时完成，也不是成功率；不可达目标下仍<100%；Fig9/§5.1，p10）；模型误差/决策：功率平均误差2.49%–4.60%、延时2.01%–2.81%；决策0.81ms（预测误差不是节能；CPU固定＋已剖析模型条件；§5.2/Fig11，p10–11；§3.3 p8）；一次性剖析成本：21.37–27.28小时/模型，0.25–0.33kWh，0.34–0.61GB（并非零成本部署；须由后续推理节省摊销；Table3/§5.4，p13） |
+| [LLM能量–性能刻画v4，2026](llm-dvfs-characterization2026/paper_notes.md) · [原文](https://arxiv.org/abs/2501.08219v4) | 离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor | 单GPU离线LLM推理基准，分类与生成两种任务 | Llama3.2-1B/3B、Llama3.1-8B、Qwen2.5-14B/32B，FP16；BoolQ/HellaSwag用log-likelihood分类（不生成），TruthfulQA_GEN/NarrativeQA greedy最多100tokens；3817queries | 单RTX PRO6000 Blackwell96GB；NVML/nvidia-smi 10ms功率采样、CUDA同步计时；batch1/4/8，显存默认频率；只计GPU能量 | batch1低频扫描/案例：平均GPU能量−41.9%、时延＋2.8%（180对2842MHz；各模型能量−39.9%–44.0%，时延＋0.3%–5.6%；仅本设备；TableXI/XVI，p7/9）；batch扩大：batch4/8能量−42.4%/43.6%，时延＋2.1%/1.1%（同最高频基线；不等任意在线batch服务收益；TableXI，p7）；联合路由机会：约87%估算；3B质量77.0%对32B83.8%（质量差6.8个百分点；没有部署路由测量；44.5%“easy”是分析分类；TableXVII/XVIII，p9） |
+
+## 第二批：CPU与运行时管理（10篇）
+
+| 论文 / 原文 | 具体控制算法 | 被控负载类型 | 具体被控程序 | 平台 / 证据边界 | 结果 / 基线 / 约束 |
+| --- | --- | --- | --- | --- | --- |
+| [Ondemand原始设计，2006](ondemand2006/paper_notes.md) · [原文](https://www.kernel.org/doc/ols/2006/) | 内核定时采样忙闲比：原版超过上阈值升MAX，低于下阈值逐步降；后续直接选可保持约80%忙碌的最低频率，共享域取最高核需求 | 多处理器SSL Web服务，客户连接数由负载机递增 | 标准SSL Web server/client测试；当前材料未明确到可唯一复建的服务软件版本，不擅自补成Apache/Nginx | 4-socket Xeon MP，双核/HT共16逻辑CPU，8GB；Linux2.6时期cpufreq；12V CPU供电支路电流，CR5410S霍尔传感器＋PMD-1208LS USB采集 | Performance与Powersave功率差：约10%（16逻辑CPU服务器SSL负载；CPU12V支路，不是任意整机能量节省；§6.3，PDF p10–12）；动态策略性能：相对静态低频退化更小（原文描述dynamic性能损失barely visible；不从曲线虚构统一精确节能率；Fig4–5，p12）；测量变化：约1W run-to-run（作者因此展示原始曲线未额外平均；不是置信区间；§6.2，p10） |
+| [ULP MCU DVFS，2024](ulp-dvfs2024/paper_notes.md) · [原文](https://doi.org/10.3390/electronics13050826) | 离线频点扫描＋两端点指数V–f拟合；Algorithm5按事件/任务类别选择高性能、最低功耗或能量效率模式；没有训练神经网络 | 单核MCU计算内核；不同计算量与软/严格时限类别 | 32点/128点FFT、CRC32、MD5、SHA256（Algorithm1–4） | STM32L0 ARM Cortex-M0+，STM32CubeIDE；Keysight34465A电流测量、GW INSTEK PSB-1400L供电；引用数据表为STM32L010K8，正文未把具体开发板型号写齐 | 同频点DVFS相对3.3V DFS能量：降低27.74%–47.74%（Table4各频率比较；不是相对最优DFS点统一降低47.74%；Table4，PDF p13）；最低计算能量点：2.097MHz，约1.94V（本文8档/5程序与拟合曲线内；不是任意MCU最优点；Table3/6，p13–14）；FFT128示例：2285.48µJ（2.097MHz下Table3；相同程序单位需统一；Table3，p13） |
+| [RP2040阶段DVFS，2025](embedded-apps2025/paper_notes.md) · [原文](https://doi.org/10.3390/technologies13020082) | 离线阶段能量/时延表＋固定周期预算：固定时长采集/通信走Slow，计算选能满足剩余期限的最低电压可行档，余时睡眠；确定性规则，无训练模型 | 周期性IoT声音采集→数字信号处理→无线发送→睡眠 | 4000点FFT、4000点自相关、50-tap FIR；4kHz采集4000样点；经ESP-01发送19字节标志/时间等 | RP2040双Cortex-M0+（264KB SRAM）＋PDM MEMS麦克风＋ESP-01；裸机；Nordic PPK2 100ksps，3.3V板级供电，GPIO四位标记阶段；ATmega328p补充泄漏实验 | 20s周期完整能量：2.947J/周期（Medium Optimized；High4.409J，Medium3.594J，High Optimized3.104J；Table10–11，p15）；30s周期完整能量：2.884J/周期（Low Optimized；High4.503J，Medium3.676J，Low3.145J；Table12–13，p16）；作者概括收益：最高约33%/36%（分别20s/30s、相对未优化高档；不是相对每一种基线均省36%；§4.1，p15–16） |
+| [ATP Per-core DVFS，2025](percore-dvfs2025/paper_notes.md) · [原文](https://doi.org/10.37936/ecti-cit.2025192.258820) | 阈值T=45%+U_avg·(85%−45%)；逐核利用率超过T则升最高频，否则降一档；100ms轮询，非神经网络 | 虚拟机中并行通信负载，2/3/4核参与与不同不平衡程度 | Charm++ Stream-All-to-All，TRAM（Topological Routing and Aggregation of Messages）；Type1/2/3三种并行配置 | 物理Xeon E5630四核2.53GHz，CentOS7/KVM；4vCPU虚拟机；psutil/perf-kvm，APC UPS/apcupsd读取能耗；实际供电域独立性未由请求接口自动证明 | Type1能量/指令：ATP79.06，Ondemand84.29，Performance75.74 J/Ginstr（ATP好于Ondemand，但差于Performance；Fig9/§6.2，p8–9）；Type2能量/指令：ATP57.88，Ondemand61.64，Performance57.48 J/Ginstr（同一负载内比较，不能说ATP全面第一；§6.2，p9）；Type3能量/指令：ATP44.81，Performance44.92 J/Ginstr（很小差距无置信区间，不自动显著；§6.2，p9） |
+| [WLC＋MLR RTM，2020](lowcomplex-rtm2020/paper_notes.md) · [原文](https://doi.org/10.3390/jlpea10030025) | WLC四类阈值分类＋查表任务映射/cluster DVFS；可选MLR在缩小空间中建模IPC并最大化IPS/W；每500ms重新分类 | CPU密集、访存密集、混合与低活动并发多线程程序 | mthreads整数/64MB随机内存混合合成负载；PARSEC bodytrack、ferret、fluidanimate、canneal、freqmine、streamcluster，单个及多程序组合 | ODROID-XU3 Exynos5422，4×A15＋4×A7、Ubuntu14.04与片上电流传感器；Intel Sandybridge Core i7，Ubuntu/Likwid/RAPL并用分流电阻初步交叉验证 | XU3 WLC-only：IPS/W改善约24%–127%（相对Ondemand，特定单/多程序场景；Fig10/Table10，p19）；XU3 WLC＋MLR：Fluidanimate139%；两不同类128.42%（是IPS/W相对改善，不是能量减少139%；Table10，p19）；Intel平台WLC＋MLR：IPS/W约20%–40%改善（同平台Ondemand，所有核分配给应用；Fig12，p20） |
+| [GreenDVFS，2024](greendvfs2024/paper_notes.md) · [原文](https://doi.org/10.1109/CCGrid59990.2024.00039) | 离线加权效用最大化选“负载等级—频率”对；LSTM早期序列分类；在线概率加权频率f=Σp_i f_i；不是强化学习 | 虚拟机中的数据库/缓存/搜索服务，请求强度变化 | CloudSuite Data Serving（YCSB+Cassandra）、Redis benchmark、CloudSuite Web Search（Nutch） | HPE ProLiant DL380 Gen11，2×Xeon Gold6448Y，256GB DDR5；Ubuntu23.04/Linux6.2，KVM/QEMU/libvirt；perf/turbostat等监测package功率并积分能量 | 已知负载能量改善：WS4.6%、Redis6.5%、Data Serving18.3%（相对论文intel governor；package能量；不同应用分别报告；TableV，p10）；已知负载性能改善：0.9%、1.3%、1.3%（与上行同三应用和基线，不是所有负载无退化证明；TableV，p10）；分类准确率：94.1%、97.7%、90.0%（分别DS/Redis/WS，不是节能率；TableIV，p7） |
+| [多任务时序DDQN，2024](multitask-drl2024/paper_notes.md) · [原文](https://doi.org/10.48550/arXiv.2409.19434) | 用户态DDQN＋内核TEGM（GRU+MLP，PRO/PROL）或TEM（MLP，PROM）；对每个候选频率评估Q并取最大；终回合稀疏reward | 多核共享频率上的周期软实时任务集，串行/并行与多个期限 | 3任务：重复乘法；5/8任务：MiBench jpeg、qsort、fft、typeset混合；另随机生成3/4/5/8任务集 | NVIDIA Jetson Nano2GB，Linux4.9；Ruideng UM25C USB功率计；内核浮点网络，用户态训练；不是E902实现 | 固定任务集相对Ondemand：约7%/3%/4%降低（分别3任务PRO、5任务PRO、8任务PROL；图15称功率，正文又称energy，应保留术语不一致；Fig15/§III-E，p9–10）；随机任务集功率：2.177→1.8449W（3任务，15.25%）（不是所有任务均有15.25%；4/5/8任务7.25/8.12/7.26%；TableVI，p11）；推理开销：最大0.16ms（8任务PROL；非旧2023的整数引擎25µs；TableIV，p10） |
+| [2QoSM表格Q，2022](2qosm2022/paper_notes.md) · [原文](https://doi.org/10.3390/jlpea12020029) | C/GSL实现表格Q-learning，状态离散化，0.9概率选最大Q/0.1探索；10ms线程更新；七种reward对照，HAL映射至CPU性能状态 | 导航/路径规划CPU软件，计算量、访存与重规划需求变化；本文CPU控制不是电机控制算法 | Anytime Dynamic A*（ADA*）路径规划、地图与轨迹规划线程；低层PID/里程计由另一Arduino承担，不是用户课题要实现的内容 | ODROID-XU4 Exynos5422，4×A15/4×A7、2GB，Ubuntu18.04/Linux4.14.5-92；cluster级DVFS；ArduinoROMEO/ATmega328P独立处理低层动作 | power-only策略：平均功率降低42.6% vs Ondemand（2.98W；相对situation-aware降低10.2%，但误差更大；Fig8/§5.4，p15）；power＋error策略：功率−38.7%、误差−4.6% vs Ondemand（同一reward可同时转述这两项；不是42.6%与6.1%同时获得；§5.4，p15）；error-only策略：误差改善6.1% vs Ondemand（属于另一策略；不能合并最高功率收益；§5.4，p15） |
+| [数字分频＋DVFS，2023](divider-dvfs2023/paper_notes.md) · [原文](https://doi.org/10.3390/electronics12020407) | 改进CRIT访存关键路径计数＋512–4096周期密集采样；25µs移动平均/稳定判定；快DFS分频与≥100µs慢DVFS双层规则 | 乱序CPU上短突发与持续访存密集阶段 | SPEC CPU2017 traces，例605.mcf、619.lbm、xalancbmk等；非实际板卡上直接运行SPEC测试 | ChampSim修改L2 MSHR与频率时序、McPAT功耗模型；2.5GHz乱序CPU模型，8个DVFS×8个分频配置（64有效频级）；另用Design Compiler估面积 | 模型平均能量降低：16.26%（Table4）（相对无DVFS；摘要写16.36%，版本内不一致；Table4，p12）；模型平均性能损失：2.04%（CRIT1.88%；容限10%是阈值设计设置，非所有应用实证硬上界；Table4/Fig8，p12–13）；ED²P能效改善：13.57%（CRIT6.79%；不是额外节能13.57%；Table4，p12） |
+| [Ωkypous，2024](serverless-coreuncore2024/paper_notes.md) · [原文](https://doi.org/10.48550/arXiv.2407.18386) | 关键路径/比例预算＋自适应比例反馈u=Kp(S)S＋PMC灰盒延迟模型＋二次功率回归；Pareto可行集选最低功率Core/Uncore组合；共享域冲突协调 | 具有顺序/分叉/汇合的serverless函数工作流，SLO与调用率变化 | SeBS九种函数构成160条工作流；正文点名video-processing、graph-bfs、dynamic-html；Azure调用轨迹驱动（并非直接在Azure上实测） | 两台Intel Xeon E5-2658A服务器，4个10vCPU/16GB VM，各VM分socket；OpenWhisk/Kubernetes/MinIO；acpi-cpufreq与MSR0x620；RAPL20ms采样 | 相对Performance/Ondemand功率：约降低44%/25%（160条工作流，代价为非零违约；不等于CPU压缩能量收益；Fig11–12/§6.2.1，p9–10）；相对EcoFaaS功率：约降低16.4%（Ωkypous违约1.8%，EcoFaaS1.3%；不是相同违约率下比较；§6.2.2，p10）；相对DVFaaS功率：约降低22%（DVFaaS违约2.8%，各控制器服务质量并非完全相同；Fig12，p10） |
+
+## 第一批：基础、建模与控制接口（10篇）
+
+| 论文 / 原文 | 具体控制算法 | 被控负载类型 | 具体被控程序 | 平台 / 证据边界 | 结果 / 基线 / 约束 |
+| --- | --- | --- | --- | --- | --- |
+| [RT-DVS，2001](rtdvs-sosp2001/paper_notes.md) · [原文](https://doi.org/10.1145/378239.378245) | 静态EDF/RM＋cycle-conserving余量回收＋look-ahead EDF；输入周期/WCET与完成事件，输出合法OPP | 单CPU周期实时计算任务 | 5个周期性任务使用90%WCET；随机周期/WCET任务集仿真。mpg123/内核编译为平台性能校验，不能误写为全部主任务源码 | HP N3350/AMD K6-2+ PowerNow!，Linux2.2.16；真实整机电测＋独立任务集仿真 | 原型约20%–40%整机功率/能量改善，特定5任务；变压约0.4ms、仅变频41µs；见Fig16/§4。 |
+| [CPN-DVFS，2018](cpn-dvfs-sensors2018/paper_notes.md) · [原文](https://pmc.ncbi.nlm.nih.gov/articles/PMC6163884/) | CPN竞争层最近原型＋输出频率映射；离线训练，在线特征推理；共享频域取各核建议最大值 | 单核/多核CPU计算与访存混合 | MiBench/ParMiBench；gzip_b、gzip、gunzip等，含同构与混合并发压缩 | Creator PXA270/Linux2.6.25＋MAXIM1586B/DAQ；Jetson Tegra K1四A15 | 对Performance，单核CPN70能量降低4.88%–42.63%，CPN90为0.54%–20.93%；70/90允许不同性能损失，非同QoS统一排名。 |
+| [DRQN Governor，2022](drqn-tnse2022/paper_notes.md) · [原文](https://doi.org/10.1109/TNSE.2021.3123280) | GRU状态8＋Q网络8–16–15；频率/利用率历史→15档动作；100ms采样，用户态训练/内核推理 | 软实时混合计算/I/O应用 | 相机/ResNet50/存储；MP3→WAV＋蓝牙；FFT＋4KB文件写入 | Intel i5-7200U/Linux5.4.45，400–2500MHz/Turbo关闭；RAPL核心能量 | 对Ondemand三类核心能量分别约13%–33%、22%–30%、7%–28%，依期限；推理4–10ms，非2023版本25µs。 |
+| [Double-Q OPM，2022](online-power-tpds2022/paper_notes.md) · [原文](https://doi.org/10.1109/TPDS.2021.3092270) | 两张Q表；IPC/MPO离散状态→RAPL功率帽＋uncore频率；3s窗口，reward=(c·IPC)^3/W | 多核MPI/HPC与学习程序 | NAS8项训练；未见11项：AMG、CoMD、miniFE、miniQMC、HPCCG、Nekbone、miniAMR、LULESH、Sweep3D、LeNet5、Keras-CNN | CascadeLake4×40核共160；Haswell16×12核共192；Ubuntu16.04/Linux4.15/RAPL/msr-safe | 11项未见程序平均芯片能量降低约12%、平均慢化<3%；基线TDP功率帽＋Ondemand＋默认uncore；不保证每程序<3%。 |
+| [SAMOS功耗模型，2022](dvfs-powermodel-samos2022/paper_notes.md) · [原文](https://arxiv.org/abs/2305.06782) | 按频点选择兼容PMC＋NNLS非负线性回归；输出功率估计，未实现新的闭环选频策略 | CPU/GPU功率建模工作负载 | Rodinia3.1的17个OpenMP＋5个CPU合成压力内核、10个CUDA程序；当前记录未逐一列齐17个名称，不从套件目录猜补 | Jetson AGX Xavier，INA3221，100ms采样；离线标定模型 | 全组合能量误差2.5%；GPU>600MHz子集平均1.3%，不是节能率；没有可直接横比的governor收益。 |
+| [Runmeter，2025](runmeter-jsa2025/paper_notes.md) · [原文](https://doi.org/10.1016/j.sysarc.2025.103504) | 分频点PMC/NNLS功率模型＋内核定点移动窗口；输出估计功率/能量，非完整DVFS governor | Linux任务/核心在线功率监控 | Rodinia/OpenMP/CUDA及合成内核；任务切出/tick采样；具体套件配置需配套代码核对 | Jetson AGX Xavier/Linux4.9.253，INA3221；10Hz监控；64位定点29小数位 | 在线窗口能量APE均值约9%、P90约20.8%；最坏监控时间开销0.7%。离线1.3%不可冒充在线误差或节能率。 |
+| [JOSS，2023](joss2023/paper_notes.md) · [原文](https://arxiv.org/abs/2306.04615) | 两频点标定memory-boundness＋回归时间/功率模型＋四角/最陡下降搜索；联合核类型/核数/CPU/内存频率 | 异构多核task-DAG与多种粒度 | Heat Diffusion、Dot Product、Fibonacci、Darknet VGG16、Biomarker Infection、Alya、Sparse LU、Matrix Multiplication、Matrix Copy、Stencil | Jetson TX2，2Denver＋4A57/Linux4.9.253；INA3221 CPU＋内存轨，5ms采样 | 相对GRWS CPU＋内存能量降低40.7%；STEER同基线19.5%，差21.2个百分点；相对速度目标非绝对硬期限。 |
+| [ControlPULP，2024](controlpulp2024/paper_notes.md) · [原文](https://arxiv.org/abs/2306.09501) | 可编程功率分配/封顶＋PID温控＋频率/电压协调；PFCT500µs/PVCT125µs；多核并行固件 | HPC CPU被控功耗/热模型 | 72核案例的合成负载轨迹；ZCU102 PS上的C/pthread plant模型；非72核实体运行应用电测 | CV32E40P管理核＋8核集群/DMA；ZCU102 FPGA，FreeRTOS，硬件在环 | 主控制步67330→13641周期（4.9倍固件加速），不是应用/节能4.9倍。9核HIL案例与72核计算案例需分开；分析arXiv v2。 |
+| [SCMI接口优化，2024](scmi-interfaces2024/paper_notes.md) · [原文](https://www.mdpi.com/1996-1073/17/22/5778) | Linux CPUFreq/SCMI→邮箱/中断/FreeRTOS PCF；事件触发＋安全降频快速通路；不是新学习算法 | HIL模型中的计算/访存阶段切换 | 500个20ms合成计算/访存阶段、SCMI请求序列；不对应已公开命名的CPU应用基准 | ZCU102：A53/Linux高层＋FPGA ControlPULP低层，模型CPU/能量；时间尺度映射 | T1发送70.5µs；优化降频114µs、升频约1.42ms，整体CD均值0.77ms；模型应用加速2.89%，不是通用实测节能率。 |
+| [ControlPULPlet，2025](controlpulplet2025/paper_notes.md) · [原文](https://arxiv.org/abs/2410.15985) | 案例用MPC（horizon2、5次迭代）＋快速中断/周期DMA/D2D；控制核输出DVFS动作 | 9/36PE功率/热控制模型；另有硅片通信实验 | MPC固件、500个8B PVT寄存器事务与链路测试；不是已命名压缩/CV/LLM应用基准 | 500MHz RTL控制案例；TSMC65nm Kairos硅片290MHz/30mW、双QFN64 PCB；两证据分开 | CRD128通信附加总时长<0.05%，因MPC计算占>99%；非通信本身耗时0.05%或节能率。宽链路51.2Gbit/s非窄PCB实测。 |
+
+## 新增10篇按具体算法比较
+
+| 路线 | 论文 | 学习/优化到底发生在哪里 | 主要可控动作 | 首先需要什么 |
+| --- | --- | --- | --- | --- |
+| 多臂老虎机 | Zeus | 跨反复训练作业学习batch代价；JIT剖析功率帽 | batch size＋power cap | 足够多重复作业、固定目标质量、可测GPU能量 |
+| 图优化 | Perseus | E–T拟合后，在关键DAG做min-cut | 每段前向/反向GPU时钟 | 流水线DAG、稳定剖析、可用余量 |
+| 监督预测＋局部搜索 | GPOEO | XGBoost预测相对E/T，黄金分割修正 | SM/显存频率 | 周期检测、CUPTI、离线训练样本 |
+| 深度强化学习 | DVFO | concurrent DQN估Q，SCAM处理应用特征 | CPU/GPU/内存＋卸载比例 | 边云、带宽、精度约束、离线训练 |
+| 智能应用＋数值搜索 | E4 | attention/gate决定少算多少；CDS决定怎么运行 | early exit＋逐层CPU/GPU频率 | 标注视频与多出口模型、切换成本 |
+| 白盒模型＋贪心 | SparseDVFS | 瓶颈/功耗预测、算子合并、look-ahead | super-block三频域 | 实测切换时间与稀疏执行有效性；大节能数字待复核 |
+| 离线搜索＋阶段查表 | FUSE | GPU边界搜索后CPU细调，不训练RL | phase-specific CPU/GPU；内存默认 | 长期复用模型、可锁频权限、整设备测能 |
+| 约束模型＋双环规则 | GreenLLM | prefill解模型；decode查表/滞回反馈 | SM频率和长度队列 | 请求队列、TTFT/TBT、负载与SLO |
+| 学习估计＋小空间搜索 | DVFSLM | XGBoost预测未来metadata；轻量E/T估计 | 固定CPU阈值后GPU/EMC搜索 | 每模型约一天标定、deadline、窗口反馈 |
+| 刻画/机会分析 | LLM刻画v4 | 静态扫描与统计，未提供新部署闭环 | 受控频点实验；路由为推算 | 先验证测量与质量，不把87%当控制器实测 |
+
+## 对你的选题：三条可以落地的路径（建议，尚未执行）
+
+**资源最省：CPU真实程序＋需求预测。** 选择轻量CV分类/前处理，或已有压缩候选之一，固定算法与质量。输入=块/帧大小、历史cycles、队列、剩余期限；小回归/树预测下一块时间，枚举合法OPP选最小预测J，再用完成时间校正。借鉴DVFSLM/GPOEO，基线是固定档、阈值、纯查表。E902先验证真实程序、计时与安全DFS；若没有实际调压接口，就如实称DFS或模型DVFS。
+
+**有Jetson/GPU：小SLM或轻量CV阶段感知。** 以FUSE为容易核对的查表基线，再加入DVFSLM式预测/反馈或GreenLLM式粗细环。输入=阶段/context/到达率/实际延时；动作=设备允许的CPU/GPU/EMC频档子集。输出同时记录J/token或J/frame、TTFT/TPOT或帧时延、质量、尾部与不可达期限。先固定量化/模型/帧数，再做早退/卸载消融。
+
+**有多GPU和足够时间：训练DAG或重复训练优化。** Perseus的图优化研究依赖pipeline；Zeus适合反复训练且有探索摊销。与E902的联系应限定为控制机制迁移或管理核架构，不宣称E902能运行BERT/GPT训练。
+
+### 统一实验矩阵
+
+| 变量 | 固定项 | 扫描项 | 记录与判据 |
+| --- | --- | --- | --- |
+| 执行器 | 合法频档、质量与输入 | 固定最高/默认/查表/预测闭环 | 命令到生效、实际频率、正确性、净J/任务 |
+| 泛化 | 训练/标定数据冻结 | 新输入、context、温度、队列突发 | 均值与P95/最大延时、违约定义、失败输入 |
+| 控制粒度 | 同策略/同频域 | 每任务/每块/每Ntoken | 控制/采样/切换成本及最优驻留时间 |
+| 应用联合优化 | 同一质量目标与测量窗口 | 只调频/只早退或batch/联合 | 分清硬件收益、少做计算收益和精度代价 |
+
+E902实验若只在RTL中改变时钟，时序反馈是仿真证据；若能量来自功耗模型，必须标成估计。真实程序运行在真实CPU/GPU并由软件调频则是实际硬件闭环；“软控软”不能自动等于假负载。所有建议仍需实现后才有结果。
+
+## 本批需要防止的误读
+
+- Zeus的15.3%–75.8%主要由真实训练/功率轨迹回放评估，不能写成每种配置数百次完整实训。
+- Perseus的28.5%有真实GPU实验；最高约30%的大规模扩展要带Emulation标签。
+- GPOEO全体平均slowdown5.1%不代表每项≤5%；探索时也可能违约。
+- DVFO主要节能是边缘端，不包含云GPU全链路；其动作离散与ξ表述有版本内核对缺口。
+- E4的W轴是功率；34.6W×6.3ms=217.98mJ。早退出改变计算和质量，不是纯DVFS。
+- SparseDVFS的78.17%按原文定义确为对Default总能量降低，但缺原始轨迹/重复审查，不作为你的预期指标。
+- FUSE G1的TTFT/TPOT下降是近同能量下提速；G2才是在时延目标下比较能量。mAh是电量而非J。
+- GreenLLM Table4有TBT通过率99.8%→93.8%（−6.0个百分点），不能只复述摘要的笼统违约上限。
+- DVFSLM的QoS是截断的实际/目标吞吐比，不是token按时比例；标定成本21–27小时/模型需摊销。
+- 刻画v4的约87%是联合路由推算，质量从83.8%到77.0%的代价必须一起写。
+
+[额外JSA2023时序编码笔记](jsa2023-temporal-dvfs/paper_notes.md)不计入30篇；它可与DRQN/DDQN比较控制网络成本。

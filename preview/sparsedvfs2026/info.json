@@ -1,0 +1,29 @@
+{
+  "index": "sparsedvfs2026",
+  "paper_title": "SparseDVFS: Sparse-Aware DVFS for Energy-Efficient Edge Inference",
+  "description": "用稀疏特征和白盒模型估算算子需求，把过短算子合并为super-block，并协同CPU/GPU/EMC提前调频摊销切换成本。用稀疏特征和白盒模型估算算子需求，把过短算子合并为super-block，并协同CPU/GPU/EMC提前调频摊销切换成本",
+  "authors": [
+    "Ziyang Zhang",
+    "Zheshun Wu",
+    "Jie Liu",
+    "Luca Mottola"
+  ],
+  "metadata": {
+    "venue": "arXiv预印本2026",
+    "year": 2026,
+    "doi": "10.48550/arXiv.2603.21908"
+  },
+  "source_url": "https://arxiv.org/abs/2603.21908v1",
+  "pdf_url": "https://arxiv.org/pdf/2603.21908v1",
+  "source_version": "arXiv2603.21908v1，2026-03-23，14页；页眉仍有xxx et al.占位，按预印本评估。",
+  "review_date": "2026-11-06",
+  "review_basis": "Full local PDF, rendered figures, method/result checks; authored in this Codex conversation, no external LLM pipeline executed",
+  "translation_scope": "Reader-written bilingual abstract paraphrases and section guide; not verbatim abstract or full translation",
+  "figure_attribution": "Selected original figure/table crops belong to cited paper authors and publisher; attribution and source PDF pages accompany each image. Full PDFs are not redistributed.",
+  "source_sha256": "eddebca0a08b85f77c89a31e8f41ddaec5fc042b8a7106795cfa30e486ff69fc",
+  "figure_count": 23,
+  "embedded_figures": 4,
+  "equations_count": 2,
+  "reproduction_status": "Not executed",
+  "reader_profile": "DVFS thesis; GPU/CV/LLM allowed from 2026-11-06; CPU/E902 transfer considered; workload not finalized"
+}

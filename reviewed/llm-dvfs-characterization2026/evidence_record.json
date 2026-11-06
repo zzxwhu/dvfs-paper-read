@@ -1,0 +1,430 @@
+{
+  "short": "LLM能量–性能刻画v4",
+  "zh": "以控制变量实验刻画模型规模、输入语义、batch与GPU频率的关系，给阶段调频和模型路由提供机会分析而非完整新闭环控制器",
+  "authors": [
+    "Paul Joe Maliakel",
+    "Shashikant Ilager",
+    "Ivona Brandic"
+  ],
+  "venue": "arXiv预印本v4，2026",
+  "version": "arXiv2501.08219v4，2026-02-24，11页；题名/模型/结果与2025初版不同。",
+  "identity": "作者姓名以本版本首页为准；通讯方式、单位及资助可回查首页与末页声明。当前尚未完成资助/利益关系/勘误的跨版本穷尽审计。",
+  "one": "以控制变量实验刻画模型规模、输入语义、batch与GPU频率的关系，给阶段调频和模型路由提供机会分析而非完整新闭环控制器",
+  "abstract_zh": "本文研究单GPU离线LLM推理基准，分类与生成两种任务的运行时能效。具体程序包括Llama3.2-1B/3B、Llama3.1-8B、Qwen2.5-14B/32B，FP16；BoolQ/HellaSwag用log-likelihood分类（不生成），TruthfulQA_GEN/NarrativeQA greedy最多100tokens；3817queries。作者在单RTX PRO6000 Blackwell96GB；NVML/nvidia-smi 10ms功率采样、CUDA同步计时；batch1/4/8，显存默认频率；只计GPU能量上采用离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor。输入为受控SM频率、模型规模、batch、prompt语义/长度特征；分类accuracy与生成ROUGE-L；不是在线反馈state，输出为频率–能量–时间表、EDP最优档、质量/能量机会分析；没有可直接部署的每步闭环动作轨迹。主要结果应与下方基线、性能约束和测量范围一起阅读，不能只摘最高百分比。提供跨输入语义、模型大小和硬件频率的统一刻画；价值是选状态/实验基线，并不是提出有稳定性或SLO保证的新学习控制器。",
+  "abstract_en": "This measurement study evaluates five decoder LLMs from 1B to 32B across four NLP workloads and seven GPU SM frequencies. It examines semantic query features, phase-level latency and energy–quality tradeoffs. Static-frequency measurements motivate a phase-aware policy and routing case study; combined savings are projections rather than results from a deployed online routing governor. This is a reader-written paraphrase, not the original abstract.",
+  "question": "为什么局部利用率不能完整反映整个应用的性能与能耗？本篇的研究问题或可检验主张是：以控制变量实验刻画模型规模、输入语义、batch与GPU频率的关系，给阶段调频和模型路由提供机会分析而非完整新闭环控制器。验证链是可观测状态→控制规则或学习模型→执行器→任务正确性/服务质量与能耗对照。",
+  "novel": "提供跨输入语义、模型大小和硬件频率的统一刻画；价值是选状态/实验基线，并不是提出有稳定性或SLO保证的新学习控制器。",
+  "flow": "受控SM频率、模型规模、batch、prompt语义/长度特征；分类accuracy与生成ROUGE-L；不是在线反馈state → 离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor → 频率–能量–时间表、EDP最优档、质量/能量机会分析；没有可直接部署的每步闭环动作轨迹 → 执行与反馈。",
+  "io": [
+    [
+      "具体控制算法",
+      "离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor"
+    ],
+    [
+      "被控负载类型",
+      "单GPU离线LLM推理基准，分类与生成两种任务"
+    ],
+    [
+      "具体被控程序",
+      "Llama3.2-1B/3B、Llama3.1-8B、Qwen2.5-14B/32B，FP16；BoolQ/HellaSwag用log-likelihood分类（不生成），TruthfulQA_GEN/NarrativeQA greedy最多100tokens；3817queries"
+    ],
+    [
+      "使用平台与测量",
+      "单RTX PRO6000 Blackwell96GB；NVML/nvidia-smi 10ms功率采样、CUDA同步计时；batch1/4/8，显存默认频率；只计GPU能量"
+    ],
+    [
+      "输入/状态",
+      "受控SM频率、模型规模、batch、prompt语义/长度特征；分类accuracy与生成ROUGE-L；不是在线反馈state"
+    ],
+    [
+      "输出/动作",
+      "频率–能量–时间表、EDP最优档、质量/能量机会分析；没有可直接部署的每步闭环动作轨迹"
+    ],
+    [
+      "周期与运行位置",
+      "每配置固定SM频率并重复3次平均；相位切换案例是由刻画提出的策略解释，路由需未来实现与开销验证"
+    ]
+  ],
+  "method": "§IV–VII，PDF p3–9：统一FP16、greedy、固定最大输出，7档180/487/960/1500/2000/2505/2842MHz，显存默认。分类用选项log-likelihood，无token生成，不能把所有四数据集都叫decode。语义特征包括实体密度、因果标记、推理复杂度、熵；用相关分析筛选并检查与长度相关性，不是已经训练可部署难度分类器。\n\nTableXI扫描180对2842MHz，TableXII比较各batch的EDP最优频率，最佳可能960MHz且时间比最高档更低，要排查热/测量路径而非当普适定律。TableXVI给phase-aware案例数据，文中同时称180MHz结果为upper bound；需作者日志确认它与静态扫描行的关系。TableXVII/ XVIII模型路由+DVFS的87/88%明确是估算且相对“总用32B最高频”的强基线，伴随质量下降，不是部署后无损节能。",
+  "metrics": [
+    [
+      "batch1低频扫描/案例",
+      "平均GPU能量−41.9%、时延＋2.8%",
+      "180对2842MHz；各模型能量−39.9%–44.0%，时延＋0.3%–5.6%；仅本设备",
+      "TableXI/XVI，p7/9"
+    ],
+    [
+      "batch扩大",
+      "batch4/8能量−42.4%/43.6%，时延＋2.1%/1.1%",
+      "同最高频基线；不等任意在线batch服务收益",
+      "TableXI，p7"
+    ],
+    [
+      "联合路由机会",
+      "约87%估算；3B质量77.0%对32B83.8%",
+      "质量差6.8个百分点；没有部署路由测量；44.5%“easy”是分析分类",
+      "TableXVII/XVIII，p9"
+    ]
+  ],
+  "stats": "每配置3次均值，未因3817queries就宣称3817独立设备重复。相关r=0.002不能证明长度对全部LLM完全无影响；语义分组与模型质量共同定义，预测外部验证不足。分类与生成指标、固定频点实验与phase-aware案例、实测与联合估算分开。GPU遥测排除CPU/系统能量；高频异常变慢需要热与功率限制日志核查。",
+  "limits": [
+    [
+      "读者分析",
+      "关键",
+      "单GPU/离线replay/短生成范围，未覆盖continuous batching、speculative decoding或多GPU。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "44.5%easy与87%联合收益不是已验证在线预测器的结果。"
+    ],
+    [
+      "读者分析",
+      "关键",
+      "180MHz极端点和960MHz异常优势必须复核；不能据此要求任意GPU降到180MHz。"
+    ]
+  ],
+  "transfer": "适合作为你开题前的实验模板：先固定应用质量和工作量，做E–T曲线/阶段分解，再决定是否有必要学习。CPU/E902也先扫描合法档、计算EDP与错误条；不必一开始选LLM，更不移植Blackwell的频率和百分比。",
+  "experiments": [
+    [
+      "P0：固定工作量频率扫描",
+      "先验证应用与执行器，建立同边界基线",
+      "可锁频GPU小SLM或LinuxCPU候选程序，重复运行与温度日志",
+      "频率命令不一定获准或真实生效",
+      "输出正确；保存实际频率、温度、时延与积分能量"
+    ],
+    [
+      "P1：阶段调频与路由分别计质量/能量",
+      "验证状态/阶段感知是否优于固定档与阈值",
+      "可锁频GPU小SLM或LinuxCPU候选程序，重复运行与温度日志",
+      "新输入与离线标定分布不同",
+      "同期限/质量/动作空间下报告净收益及尾部时延"
+    ],
+    [
+      "P1：控制成本和迁移消融",
+      "分开采样、模型、切换与算法贡献",
+      "执行器时间戳；必要时外部电测或明确功耗模型",
+      "短任务收益被开销吞掉；E902可观测量不同",
+      "分别关闭各组件；报告失败输入；CPU迁移重新标定"
+    ]
+  ],
+  "equations": [
+    {
+      "title": "积分能量与EDP",
+      "tex": "E\\approx\\sum_j P_j\\Delta t,\\quad EDP=E T",
+      "symbols": "P W、Δt s、E J、T s；采样10ms未必捕获更短瞬态，需窗口校验。",
+      "example": "教学例能量0.6倍、时间1.1倍，EDP0.66倍；低功率本身不是能量。",
+      "source": "§IV/TableXII，p3/7"
+    },
+    {
+      "title": "阶段调频能量（教学分析）",
+      "tex": "E=P_pT_p+P_dT_d+E_{\\mathrm{switch}}",
+      "symbols": "p为prefill、d为decode，功率W、时间s、切换J；phase-specific开销需实际测量。",
+      "example": "decode占90%时间不等占90%能量；prefill高功率可能仍贡献较多J。",
+      "source": "§VI–VII/Fig6，p7–9"
+    }
+  ],
+  "figs": [
+    {
+      "label": "Fig1",
+      "page": 3,
+      "title": "研究流程",
+      "observation": "测量研究而非闭环部署。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。测量研究而非闭环部署。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；测量研究而非闭环部署。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.055,
+        0.495,
+        0.255
+      ],
+      "stage": "method",
+      "image": "original-fig1.png"
+    },
+    {
+      "label": "Fig2",
+      "page": 5,
+      "title": "长度与质量",
+      "observation": "近零相关仅限该聚合分析。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。近零相关仅限该聚合分析。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；近零相关仅限该聚合分析。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig3",
+      "page": 6,
+      "title": "各频点能量/token",
+      "observation": "必须检查频率与功率限制实际生效。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。必须检查频率与功率限制实际生效。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；必须检查频率与功率限制实际生效。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig4",
+      "page": 7,
+      "title": "frequency cliff",
+      "observation": "低于约1000MHz收益平台不是所有GPU定律。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。低于约1000MHz收益平台不是所有GPU定律。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；低于约1000MHz收益平台不是所有GPU定律。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig5",
+      "page": 8,
+      "title": "batch影响",
+      "observation": "batch与阶段比例一起改变。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。batch与阶段比例一起改变。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；batch与阶段比例一起改变。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig6",
+      "page": 9,
+      "title": "阶段频率示意",
+      "observation": "不能从示意图声称在线开销已量化。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不能从示意图声称在线开销已量化。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不能从示意图声称在线开销已量化。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "Fig7",
+      "page": 10,
+      "title": "能量质量前沿",
+      "observation": "路由改变质量，DVFS在固定模型内比较。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。路由改变质量，DVFS在固定模型内比较。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；路由改变质量，DVFS在固定模型内比较。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableI",
+      "page": 3,
+      "title": "模型/数据集",
+      "observation": "log-likelihood不生成token。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。log-likelihood不生成token。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；log-likelihood不生成token。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableII",
+      "page": 4,
+      "title": "长度统计",
+      "observation": "样本3817，不是设备数。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。样本3817，不是设备数。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；样本3817，不是设备数。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableIII",
+      "page": 4,
+      "title": "语义特征",
+      "observation": "可解释特征也要外部预测验证。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。可解释特征也要外部预测验证。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；可解释特征也要外部预测验证。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableIV",
+      "page": 4,
+      "title": "因果词分布",
+      "observation": "词指标只是难度代理。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。词指标只是难度代理。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；词指标只是难度代理。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableV",
+      "page": 5,
+      "title": "长度独立性",
+      "observation": "熵与长度相关较强。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。熵与长度相关较强。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；熵与长度相关较强。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableVI",
+      "page": 5,
+      "title": "质量变化",
+      "observation": "accuracy与ROUGE不可合并。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。accuracy与ROUGE不可合并。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；accuracy与ROUGE不可合并。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableVII",
+      "page": 5,
+      "title": "模型质量",
+      "observation": "不同规模并非均等质量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。不同规模并非均等质量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；不同规模并非均等质量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableVIII",
+      "page": 6,
+      "title": "特征与规模敏感性",
+      "observation": "相关不证明因果。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。相关不证明因果。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；相关不证明因果。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableIX",
+      "page": 6,
+      "title": "难度类别",
+      "observation": "类别由所用模型质量定义。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。类别由所用模型质量定义。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；类别由所用模型质量定义。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableX",
+      "page": 6,
+      "title": "阶段功耗",
+      "observation": "功率不等阶段能量占比。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。功率不等阶段能量占比。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；功率不等阶段能量占比。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXI",
+      "page": 7,
+      "title": "180MHz扫描结果",
+      "observation": "平均41.9%与2.8%按batch1。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。平均41.9%与2.8%按batch1。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；平均41.9%与2.8%按batch1。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.08,
+        0.055,
+        0.495,
+        0.45
+      ],
+      "stage": "result",
+      "image": "original-tablexi.png"
+    },
+    {
+      "label": "TableXII",
+      "page": 7,
+      "title": "EDP最优档",
+      "observation": "有更低频更快结果，需排查热/测量。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。有更低频更快结果，需排查热/测量。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；有更低频更快结果，需排查热/测量。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXIII",
+      "page": 8,
+      "title": "batch下时间比例",
+      "observation": "decode占时不等占能。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。decode占时不等占能。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；decode占时不等占能。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXIV",
+      "page": 8,
+      "title": "关键发现",
+      "observation": "总结不能替代原始配置。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。总结不能替代原始配置。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；总结不能替代原始配置。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXV",
+      "page": 8,
+      "title": "路由策略",
+      "observation": "尚非部署在线路由器。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。尚非部署在线路由器。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；尚非部署在线路由器。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXVI",
+      "page": 9,
+      "title": "阶段调频案例",
+      "observation": "与扫描表对应关系需核查。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。与扫描表对应关系需核查。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；与扫描表对应关系需核查。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXVII",
+      "page": 9,
+      "title": "联合节能估算",
+      "observation": "87%是projection。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。87%是projection。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；87%是projection。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": null,
+      "stage": "method"
+    },
+    {
+      "label": "TableXVIII",
+      "page": 9,
+      "title": "能量质量折中",
+      "observation": "3B与32B质量差6.8个百分点。",
+      "read": "先读图题、图例、坐标/表头与单位，再在同一负载和同一基线内比较。3B与32B质量差6.8个百分点。",
+      "limit": "只支持此图所列的模型、设备、输入与测量口径；3B与32B质量差6.8个百分点。 不能由单图推出E902或其他GPU的同幅收益。",
+      "crop": [
+        0.515,
+        0.2,
+        0.94,
+        0.315
+      ],
+      "stage": "result",
+      "image": "original-tablexviii.png"
+    }
+  ],
+  "code": "当前材料中尚未定位齐完整控制器源码、实验脚本和原始重复数据；这不表示这些材料不存在。",
+  "reproduce": "本次未运行作者代码。最小复建顺序：①固定本文平台/模型/输入与质量目标，确认合法可用频档和权限；②逐档运行真实被控程序，验证输出、预热、计时同步与能量测量窗口，至少记录多次独立运行原始数据；③实现本文算法，冻结离线训练/搜索配置，留出新的输入、到达率和温度条件测试；④同动作空间、同质量/SLO比较固定最高档、默认governor、简单规则和本文方案；⑤把离线剖析与在线控制、采样、切频成本单列并计算摊销次数。失败时退回安全固定档，缺失参数列日志，不猜成已知。适合作为你开题前的实验模板：先固定应用质量和工作量，做E–T曲线/阶段分解，再决定是否有必要学习。CPU/E902也先扫描合法档、计算EDP与错误条；不必一开始选LLM，更不移植Blackwell的频率和百分比。",
+  "glossary": [
+    [
+      "A",
+      "被控程序",
+      "Llama3.2-1B/3B、Llama3.1-8B、Qwen2.5-14B/32B，FP16；BoolQ/HellaSwag用log-likelihood分类（不生成），TruthfulQA_GEN/NarrativeQA greedy最多100tokens；3817queries"
+    ],
+    [
+      "A",
+      "控制策略",
+      "离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor"
+    ],
+    [
+      "B",
+      "控制周期",
+      "每配置固定SM频率并重复3次平均；相位切换案例是由刻画提出的策略解释，路由需未来实现与开销验证"
+    ],
+    [
+      "B",
+      "证据边界",
+      "实测、硬件仿真、功耗模型是不同证据，见平台与结果表。"
+    ]
+  ],
+  "comparison": {
+    "algorithm": "离线7档SM频率扫描＋语义/质量相关分析＋EDP比较；提出prefill高频/decode低频用例；模型路由联合87%为估算，无训练在线governor",
+    "workload": "单GPU离线LLM推理基准，分类与生成两种任务",
+    "programs": "Llama3.2-1B/3B、Llama3.1-8B、Qwen2.5-14B/32B，FP16；BoolQ/HellaSwag用log-likelihood分类（不生成），TruthfulQA_GEN/NarrativeQA greedy最多100tokens；3817queries",
+    "platform": "单RTX PRO6000 Blackwell96GB；NVML/nvidia-smi 10ms功率采样、CUDA同步计时；batch1/4/8，显存默认频率；只计GPU能量",
+    "inputs": "受控SM频率、模型规模、batch、prompt语义/长度特征；分类accuracy与生成ROUGE-L；不是在线反馈state",
+    "outputs": "频率–能量–时间表、EDP最优档、质量/能量机会分析；没有可直接部署的每步闭环动作轨迹",
+    "timing": "每配置固定SM频率并重复3次平均；相位切换案例是由刻画提出的策略解释，路由需未来实现与开销验证"
+  }
+}
