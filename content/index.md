@@ -5,6 +5,8 @@ date: "2026-11-06"
 
 从零理解CPU/GPU频率、能量与闭环，再结合CV/LLM等应用的原图、公式与实验边界选择实现路线；保留CPU/E902迁移分析。
 
+[五篇重点精读与复现实验手册：从软件选档到 E902 执行](DVFS/focus-five/guide.md)
+
 ## 新增第三批：GPU、CV、LLM应用与30篇比较
 
 [30篇：算法、负载、程序、平台、结果](DVFS/comparison-30-papers.md) · [CSV](DVFS/data/dvfs-30.csv) · [新10篇阅读路线](DVFS/reading-map-gpu-cv-llm-2026-11.md)
