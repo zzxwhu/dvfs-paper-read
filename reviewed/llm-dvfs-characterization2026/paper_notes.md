@@ -167,7 +167,7 @@ TableXI扫描180对2842MHz，TableXII比较各batch的EDP最优频率，最佳�
 
 | 来源 | 严重程度 | 局限及其影响 |
 | --- | --- | --- |
-| 读者分析 | 关键 | 单GPU/离线replay/短生成范围，未覆盖continuous batching、speculative decoding或多GPU。 |
+| 作者明确讨论＋读者影响分析（Threats to validity，p9） | 关键 | 单GPU/离线replay/短生成范围，未覆盖continuous batching、speculative decoding或多GPU。 |
 | 读者分析 | 关键 | 44.5%easy与87%联合收益不是已验证在线预测器的结果。 |
 | 读者分析 | 关键 | 180MHz极端点和960MHz异常优势必须复核；不能据此要求任意GPU降到180MHz。 |
 

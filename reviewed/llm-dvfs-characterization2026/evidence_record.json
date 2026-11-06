@@ -69,7 +69,7 @@
   "stats": "每配置3次均值，未因3817queries就宣称3817独立设备重复。相关r=0.002不能证明长度对全部LLM完全无影响；语义分组与模型质量共同定义，预测外部验证不足。分类与生成指标、固定频点实验与phase-aware案例、实测与联合估算分开。GPU遥测排除CPU/系统能量；高频异常变慢需要热与功率限制日志核查。",
   "limits": [
     [
-      "读者分析",
+      "作者明确讨论＋读者影响分析（Threats to validity，p9）",
       "关键",
       "单GPU/离线replay/短生成范围，未覆盖continuous batching、speculative decoding或多GPU。"
     ],
