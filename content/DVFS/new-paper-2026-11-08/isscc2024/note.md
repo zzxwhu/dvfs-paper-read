@@ -7,6 +7,8 @@ doi: 10.1109/ISSCC49657.2024.10454494
 ---
 # ISSCC2024：硬件电压闭环如何协调CPU时钟、PMIC和SRAM供电
 
+[从零入门](start.md) · [原图表索引](figures.md) · [双语摘要与导读](abstract.md)
+
 ## 核心信息
 
 - 标题：A 4nm 3.4GHz Tri-Gear Fully Out-of-Order ARMv9.2 CPU Subsystem-Based 5G Mobile SoC

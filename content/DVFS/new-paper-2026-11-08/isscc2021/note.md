@@ -7,6 +7,8 @@ doi: 10.1109/ISSCC42613.2021.9366046
 ---
 # ISSCC2021：用传感器修正电压裕量，固件怎样控制PLL和PMIC
 
+[从零入门](start.md) · [原图表索引](figures.md) · [双语摘要与导读](abstract.md)
+
 ## 核心信息
 
 - 标题：An Octa-Core 2.8/2GHz Dual-Gear Sensor-Assisted High-Speed and Power-Efficient CPU in 7nm FinFET 5G Smartphone SoC

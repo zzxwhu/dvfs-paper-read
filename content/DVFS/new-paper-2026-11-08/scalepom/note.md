@@ -7,6 +7,8 @@ doi: 10.1145/3676536.3676740
 ---
 # ScalePoM：把DVFS、供电损耗、LLM映射和Chiplet架构一起优化
 
+[从零入门](start.md) · [原图表索引](figures.md) · [双语摘要与导读](abstract.md)
+
 ## 核心信息
 
 - 标题：Hierarchical Power Co-Optimization and Management for LLM Chiplet Designs
