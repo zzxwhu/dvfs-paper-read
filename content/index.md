@@ -3,6 +3,8 @@ title: "DVFS论文精读：IC控制器、PLL／PMIC与软硬件协同"
 date: "2026-11-06"
 ---
 
+[new_paper专题：14篇比较、DVFS脉络与逐篇进度](DVFS/new-paper-2026-11-08/index.md)
+
 [初学者优先：用Jiang2020看懂DVFS完整执行流程（含原图）](DVFS/jiang2020-beginner/guide.md)
 
 [IC方向新精选10篇：ISSCC／JSSC、数字控制器与co-design](DVFS/ic-codesign-selected-10.md)
@@ -81,3 +83,4 @@ date: "2026-11-06"
 每篇顶部提供论文页面、分析版本PDF与DOI；图下给原图号与PDF页码。代码／原始数据／勘误的未核实项逐篇说明。原PDF不在公开仓库再分发；图归原作者与出版方，中文分析与教学算例为本项目整理。
 
 [日报与历史筛选站](https://zzxwhu.github.io/dvfs-paper-daily/)用于发现候选，摘要卡不代替完整精读。
+
