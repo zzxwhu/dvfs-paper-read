@@ -3,6 +3,8 @@ title: "DVFS论文精读：IC控制器、PLL／PMIC与软硬件协同"
 date: "2026-11-06"
 ---
 
+[初学者优先：用Jiang2020看懂DVFS完整执行流程（含原图）](DVFS/jiang2020-beginner/guide.md)
+
 [IC方向新精选10篇：ISSCC／JSSC、数字控制器与co-design](DVFS/ic-codesign-selected-10.md)
 
 当前课题主线：数字DVFS控制器调用现有PLL/PMIC，优先阅读IC领域论文。下方保留此前CPU/GPU应用文献作为背景。

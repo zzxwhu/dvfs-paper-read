@@ -4,6 +4,8 @@
 
 ## 阅读背景与目标
 
+2026-11-07 用户认可Jiang2020《Optimizing energy efficiency of CNN-based object detection with dynamic voltage and frequency scaling》适合作为初学者材料。将其列为“DVFS完整执行流程”的优先入门读物，重点解释软件控制MMCM/PMIC、离线遍历表征与在线活动/空闲切换的区别。学习其流程时明确原文图4代码重复、部分结果前后差异及CPU迁移边界；入门价值与发表渠道偏好分别评价。
+
 2026-11-07 用户补充发表渠道偏好：**优先向IC领域顶刊顶会靠拢**。电路与芯片实现重点检索ISSCC、IEEE Symposium on VLSI Technology and Circuits、JSSC；数字控制与软硬件协同设计重点检索DAC、ICCAD、TCAD，必要时补充DATE及体系结构会议。渠道声誉不替代课题相关性：主选论文必须直接研究DVFS或对现有PLL/PMIC的控制、协调、监测与安全切换提供明确证据。优先近五年，2017年后的关键奠基工作可单列；会议论文及其期刊扩展版按同一工作关联，不能凑数。记录全文可得性、代码可得性及硅片实测/FPGA/仿真边界。只因题名含PLL、PMIC或co-design但不解释DVFS控制链的文章不得进入核心精读。
 
 2026-11-07 用户进一步明确：主线是 **IC领域的数字DVFS控制器，调用现有PLL/PMIC，强调hardware/software co-design（软硬件协同设计）**。优先研究软件需求/硬件监控输入、OPP选择、寄存器与握手、PLL锁定及无毛刺切频、PMIC调压完成反馈、切换顺序与超时回退、控制开销和RTL/FPGA/ASIC验证。纯应用层CPU/GPU调频论文降为背景；只设计模拟PLL或DC–DC内部电路的论文作为接口约束参考，不默认用户要设计这些电路。必须说明论文哪些模块可直接复用、哪些需与已有IP接口适配；FPGA功能验证不等于ASIC电源轨实测。
