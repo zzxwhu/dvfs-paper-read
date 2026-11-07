@@ -50,7 +50,24 @@ DVFS改变工作电压与频率；DFS只改变频率；AVS在给定性能要求�
 - SUIT，ASPLOS2024，DOI10.1145/3620665.3640373：[作者全文](https://www.jonasjuffinger.com/papers/suit.pdf)、[公开实验材料](https://zenodo.org/records/10704359)。Gonidec用户稿参考文献[52]确实引用。利用不同指令对低压敏感度的差异，在高效与保守DVFS曲线间切换；属于CPU软硬件共同设计，已取得全文，尚未本轮正式精读。机构库DOI有截断，采用作者全文完整DOI，不复制截断标识。
 - TECS2018，DOI10.1145/3182172：[作者机构记录](https://research-information.bris.ac.uk/en/publications/dynamic-energy-management-of-fpga-accelerators-in-embedded-system/)。EARA参考文献[10]，研究CPU/FPGA任务选择及VFS，不把映射算法应用当电机驱动实施。
 
-检索发现的TCAD2025《A Deep Investigation on Stealthy DVFS Fault Injection Attacks at DNN Hardware Accelerators》是DAC2022同主题后续候选，须核对作者/出版社全文后再纳入确定引用边。暂不把只讲LLM、NoC、剪枝而不控制/分析V/f的工作放入DVFS主图。
+TCAD2025《A Deep Investigation on Stealthy DVFS Fault Injection Attacks at DNN Hardware Accelerators》的[IEEE出版社记录](https://ieeexplore.ieee.org/abstract/document/10591998)已核实：DOI10.1109/TCAD.2024.3426364，2024年先行、2025年44(1)39–51。它是DAC2022同主题后续阅读，完整引用/扩展关系仍待全文确认，当前不画确定继承边。暂不把只讲LLM、NoC、剪枝而不控制/分析V/f的工作放入DVFS主图。
+
+从边缘深度学习综述参考文献[81]追到Predictive Exit：综述引用2022预印本，正式为[AAAI2023原文](https://ojs.aaai.org/index.php/AAAI/article/download/26042/25814)。它预测早退位置以便提前规划V/f，是应用工作量先验与DVFS结合的支线。沿同作者课题组资料另定位[SSMDVFS，DATE2025](https://ieeexplore.ieee.org/abstract/document/10992871)，DOI10.23919/DATE64628.2025.10992871，研究监督学习、自校准与微秒级GPU DVFS；身份与直接相关性已核，未完成本轮全文精读，不能声称它必然引用Predictive Exit。
+
+```mermaid
+flowchart LR
+ J[Jiang 2020] -->|参考2| M[DAC 2016 DVFS基础设施]
+ J -->|参考24| E[TC 2019 自适应VFS]
+ T[Terminator DAC 2022] -->|参考8| J
+ H[HSCONN 2024] -->|参考5| J
+ C24[ISSCC 2024 HBVC] -->|参考3| C22[ISSCC 2022 三档CPU]
+ C24 -->|参考4| C17[ISSCC 2017 PDN]
+ C21[ISSCC 2021 传感辅助] -->|参考6| C17
+ S[ScalePoM ICCAD 2024] -->|参考4| F[F-LEMMA TCAD 2023]
+ G[Gonidec 用户稿] -->|参考52| U[SUIT ASPLOS 2024]
+```
+
+以上箭头只表示已核对的引用方向，不能按箭头直接排性能高低。
 
 ## 当前最值得深入的三条研究问题
 
@@ -85,7 +102,7 @@ flowchart LR
 
 ## 已落地的本轮成果
 
-ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS已完成正式DeepPaperNote保存，分别嵌入三张/四张原图，各有完整七图索引；其余文章仍按各自状态推进。另有ScalePoM、PowerBench、NPU功率尖峰、博士论文第4–5章及EARA核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024已完成正式DeepPaperNote保存，分别嵌入3/4/8份原图表与算法，各有完整索引；其余文章仍按各自状态推进。另有PowerBench、NPU功率尖峰、博士论文第4–5章及EARA核查草稿。正式笔记与研究草稿不能混称全部精读完成。
 
 ## 尚待完成
 
