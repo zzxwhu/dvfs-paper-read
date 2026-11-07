@@ -85,7 +85,7 @@ flowchart LR
 
 ## 已落地的本轮成果
 
-ISSCC2024硬件DVFS已完成正式DeepPaperNote保存、三张原图和完整七图索引；其余文章仍按各自状态推进。另有ISSCC2021/ScalePoM、PowerBench、NPU功率尖峰、博士论文第4–5章及EARA核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS已完成正式DeepPaperNote保存，分别嵌入三张/四张原图，各有完整七图索引；其余文章仍按各自状态推进。另有ScalePoM、PowerBench、NPU功率尖峰、博士论文第4–5章及EARA核查草稿。正式笔记与研究草稿不能混称全部精读完成。
 
 ## 尚待完成
 
