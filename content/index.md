@@ -1,7 +1,11 @@
 ---
-title: "DVFS论文精读：CPU、GPU与CV／LLM应用"
+title: "DVFS论文精读：IC控制器、PLL／PMIC与软硬件协同"
 date: "2026-11-06"
 ---
+
+[IC方向新精选10篇：ISSCC／JSSC、数字控制器与co-design](DVFS/ic-codesign-selected-10.md)
+
+当前课题主线：数字DVFS控制器调用现有PLL/PMIC，优先阅读IC领域论文。下方保留此前CPU/GPU应用文献作为背景。
 
 从零理解CPU/GPU频率、能量与闭环，再结合CV/LLM等应用的原图、公式与实验边界选择实现路线；保留CPU/E902迁移分析。
 
