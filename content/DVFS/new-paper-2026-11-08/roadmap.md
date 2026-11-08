@@ -5,9 +5,9 @@ tags: [DVFS, IC, co-design]
 ---
 # DVFS技术脉络：从能运行的档位，到能执行的控制系统
 
-更新2026-11-08。研究草稿：正在逐篇核对new_paper的14份PDF，并补充直接相关的引用链。本页是阶段性综合，不表示14份全部精读完成，不宣称独立复现。来源与阅读状态见manifest.json。
+更新2026-11-08。综合知识库：new_paper的14份PDF正式笔记已全部完成，并补充有明确来源的直接相关引用链。不宣称独立复现或穷尽所有被引。
 
-**最新进度：13/14正式图文笔记、76项原图表。** 尚缺135页博士全书的正式笔记。新完成的[EARA](eara/note.md)按DEAR九步拆解联合控制，并保留功率×时间/能量、模块总和、版本及物理执行缺口；[可穿戴综述](wearable/note.md)用于需求生成与系统边界，非IC控制器核心证据。其参考10给出的arXiv2310.09692实际题名/作者不符，59–66%等预测DVFS数字不可依此追溯，不画作已确认的技术继承边。两篇是深入审查，不意味着原文所有主张通过核实。
+**14/14正式图文笔记、104项内嵌原图表/算法。** [Liu博士全书](liu-dissertation/note.md)完成135页/59项图表核对，详解离线预测与运行时选档、粗细粒度、异频缓冲、PLL/SIMO及CPU/E902复现。新完成的[EARA](eara/note.md)按DEAR九步拆解联合控制，并保留功率×时间/能量、模块总和、版本及物理执行缺口；[可穿戴综述](wearable/note.md)用于需求生成与系统边界，非IC控制器核心证据。其参考10给出的arXiv2310.09692实际题名/作者不符，59–66%等预测DVFS数字不可依此追溯，不画作已确认的技术继承边。两篇是深入审查，不意味着原文所有主张通过核实。
 
 新增[能量感知深度学习综述](energy-dl/note.md)完成全文/六图表：其中参考81→PredictiveExit是真实直接DVFS引用边。综述列2022预印本，正式AAAI2023 DOI10.1609/aaai.v37i7.26042身份与摘要已核，原始研究全文仍待另做；不能把NAS、早退、卸载或间歇恢复一概标成DVFS。
 
@@ -43,7 +43,9 @@ DVFS改变工作电压与频率；DFS只改变频率；AVS在给定性能要求�
 |MediaTek ISSCC2021及2024|A 10nm FinFET 2.8GHz Tri-Gear Deca-Core CPU Complex with Optimized Power-Delivery Network…，ISSCC2017|分别参考文献[6]和[4]|供电及监测相关前序；不要把两个后续间画成未经核实的直接引用边|
 |ScalePoM，ICCAD2024|F-LEMMA: Fast Learning-Based Energy Management for Multi-/Many-Core Processors，TCAD2023|PDF第9页参考文献[4]|学习型DVFS与快慢控制层次|
 |ScalePoM，ICCAD2024|Power Management for Chiplet-Based Multicore Systems Using Deep Reinforcement Learning，ISVLSI2022|PDF第9页参考文献[8]|Chiplet供电与在线策略的直接前序|
-|Liu2025博士论文|HSCONN2024、Jiang2020|参考文献[79]、[55]|作者论文合集/相关研究，章节需核对，不能重复计为独立创新|
+|Liu2025博士论文|HSCONN2024、Jiang2020|参考文献[79]、[55]；第2章背景|相关研究与已读原文对应，不能重复计为独立创新|
+|Liu2025博士论文第4章|Dynamic Voltage and Frequency Scaling to Improve Energy-Efficiency of Hardware Accelerators，HiPC2021|章首脚注及参考[77]，DOI10.1109/HiPC53243.2021.00037|CNN预测DVFS章节来源，2025合订年份非该方法首次年份|
+|Liu2025博士论文第4章|DozzNoC，2020|参考[20]及PDF70页的8.8ns/6.9ns开销引用|开销模型来源，不等于本平台PLL/PMIC实测|
 |PowerBench，2026 v2|Dissecting the Impact of Mobile DVFS Governors on LLM Inference Performance and Energy Efficiency，arXiv2507.02135|参考文献[11]|测量/工作点表征与既有手机DVFS策略研究；不意味着本文实现同一个governor|
 |Gonidec用户11页稿，2024|Blacklist Core，ISLPED2018|参考文献[19]及第8页|学习模型判定OPP是否可接受，和最省能动作选择是不同问题|
 |Gonidec用户11页稿，2024|SUIT，ASPLOS2024|参考文献[52]及第8页|保守/省能双曲线与指令敏感性，直接DVFS/co-design线索|
@@ -110,14 +112,18 @@ flowchart LR
 
 ## 已落地的本轮成果
 
-当前正式完成10/14、61项原图表/算法；在下方8篇基础上新增[电源管理安全](power-security/note.md)和[神经DVFS证据审查](neural-survey/note.md)。前者11页稿已与arXivv1身份核对，2025TECS扩展35页只核元数据；后者出版社DOI身份已确认，但图表来源与部分引用不匹配，不能因已完成阅读就提高其结果可信度。
+全部14篇已完成四报告：从零入门、完整图文精读、全图表索引、双语摘要与导读；共104项重要原图表/算法内嵌。正文逐篇给控制输入、触发、策略、输出、执行接口、负载与平台、实验基线、复现步骤及CPU/E902迁移边界。正式保存和所有必需审查已完成，没有独立复现声明。
 
-ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024、PowerBench、NPU融合功率尖峰、Terminator、Jiang2020和HSCONN已完成正式DeepPaperNote保存，分别嵌入3/4/8/8/8/6/8/9份原图表与算法，合计54份，各有完整索引；其余6篇仍按各自状态推进。另有博士论文第4–5章、EARA、JCEIM核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+建议初学者按以下次序阅读：
 
-新三篇补齐一条实用链：[PowerBench](powerbench/note.md)建立阶段/OPP/能量数据，帮助选择有用输入和前沿候选；[NPU融合](npu-bursts/note.md)说明平均能量之外还要看瞬态峰值与保护；[Terminator](terminator/note.md)把PS、MMCM和PMIC实际执行路径与正确性边界连接起来。前者没有新在线governor，中者主要改写负载，后者主要研究安全，不应强行都归类为智能选频算法。
+1. [Jiang2020](jiang2020/note.md)：离线表征与运行中按帧切换，先明白执行链。
+2. [Liu博士全书](liu-dissertation/note.md)：工作量预测与阈值不是一回事，异频要用缓冲与事务完成条件交接；图5.8有PLL请求确认，但具体安全时序仍需实现。
+3. [ISSCC2021](isscc2021/note.md)与[ISSCC2024](isscc2024/note.md)：传感器裕量、软硬件分层与硬件快环。
+4. [ScalePoM](scalepom/note.md)：把映射与供电损耗纳入co-design；[HSCONN](hsconn/note.md)理解应用稀疏性到域控制。
+5. [PowerBench](powerbench/note.md)、[NPU融合](npu-bursts/note.md)、[Terminator](terminator/note.md)：分别学习测量、公平比较、瞬态和正确性。
 
-[Jiang2020](jiang2020/note.md)进一步给出“离线定活动点、运行中按任务完成/下帧切换”的具体流程，用户版与旧版逐页核对完成；[HSCONN](hsconn/note.md)把稀疏mask接入PE岛状态选择，详细解释剪枝、阈值与异频结果汇合。两篇都有可复现思路，也都有需澄清的原文问题：前者UEE不能重建且图4驱动重复，后者状态/规模和结果图文冲突、完整CDC/电源切换未公开；这些不应被教学解释掩盖。
+正式笔记完成不等于原论文结果都可靠。保留EARA量纲不合、JCEIM错引、可穿戴转引身份问题、Jiang UEE不可重建、HSCONN图文冲突，以及Liu图5.15 NELL正文/图EDP冲突。不能把这些问题抹掉后用最大的节能率规划课题。
 
-## 尚待完成
+## 保留的后续边界
 
-全部14份的正式笔记、图表审查及复现计划；博士论文按章节核对；被引链的数据库/原文验证；完整比较矩阵；GitHub/Zotero增量发布及验证。当前公开检索建立了若干后续候选，不能称被引检索穷尽或保证某文章没有其他引用。
+引用/被引链建立了明确出处的候选，未计作本轮14份之外已完成的全文笔记，不保证穷尽全部后续研究。Zotero新增写入此前授权超时，仍为0；本地RIS仅是待导入材料，不能称备份成功。后续若取得授权再同步，当前无需反复触发原生授权。
