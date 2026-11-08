@@ -9,8 +9,6 @@ tags: [DVFS, reading-guide]
 
 在物联网和移动设备上采用深度学习，相比依赖云端处理有多种优势。然而，这些设备为了延长电池寿命，受到显著的能量约束；使用能量采集的设备甚至可能只能间歇运行。因此，近年来出现了许多面向资源受限设备、优化深度学习推理与训练的能量感知方法。本文概述这些方法的机制、它们对能量消耗和系统效率的影响，以及在网络类型、硬件平台和应用场景方面的限制。作者希望该综述能够清晰综合不断发展的能量感知深度学习领域，并为受能量约束的计算研究提供基础。
 
-**English abstract paraphrase**：The survey reviews energy-aware deep learning for constrained IoT and mobile hardware, including battery-powered and intermittently powered devices. It covers design, inference, training, and deployment policies, explaining their energy implications and limitations across network types, platforms, and applications. It is a synthesis of existing work rather than a new DVFS implementation or a unified benchmark experiment.
-
 ## 英文改写（非原摘要）
 
 **English abstract paraphrase**：The survey reviews energy-aware deep learning for constrained IoT and mobile hardware, including battery-powered and intermittently powered devices. It covers design, inference, training, and deployment policies, explaining their energy implications and limitations across network types, platforms, and applications. It is a synthesis of existing work rather than a new DVFS implementation or a unified benchmark experiment.

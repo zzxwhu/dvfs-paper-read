@@ -11,8 +11,6 @@ tags: [DVFS, reading-guide]
 
 摘要结尾跨到PDF第2页，本译文已接全。摘要百分比忠实保留为作者报告，后文的量纲核查不应倒填进摘要。
 
-**English abstract paraphrase**：EARA combines DVFS, clock gating, power gating, and runtime resource reconfiguration for edge inference. The paper reports a Zynq-based implementation and improvements in power, latency, and operations per watt over a static design. It connects analytical models, simulation, and FPGA evaluation. The detailed note below audits the disclosed control policy and the consistency of the reported measurements; it does not claim an independent reproduction.
-
 ## 英文改写（非原摘要）
 
 **English abstract paraphrase**：EARA combines DVFS, clock gating, power gating, and runtime resource reconfiguration for edge inference. The paper reports a Zynq-based implementation and improvements in power, latency, and operations per watt over a static design. It connects analytical models, simulation, and FPGA evaluation. The detailed note below audits the disclosed control policy and the consistency of the reported measurements; it does not claim an independent reproduction.

@@ -13,8 +13,6 @@ tags: [DVFS, reading-guide]
 
 以上忠实转述PDF第3–4页摘要，不加入结果判断。**阅读提醒：摘要最后的强化学习表述，与第120–121页将联合学习互连/DVFS列为未来工作的写法有落差；当前正文不足以认定已经完成一套RL控制器实验。** 摘要后的家人献辞不属于摘要内容。
 
-**English abstract paraphrase**： This dissertation studies energy-efficient neural-network accelerators through communication-aware architecture design. Its main technical threads include wireless data movement for CNNs, workload prediction and voltage/frequency adaptation for sparse computation, and graph-accelerator co-design involving dataflows, column organization, and DVFS. The detailed chapters are useful for reconstructing how workload observations become operating-state requests. Their evidence is primarily architectural simulation and technology-library-based estimation. The final reinforcement-learning direction should be distinguished from an experimentally demonstrated controller in the supplied dissertation.
-
 ## 英文改写（非原摘要）
 
 **English abstract paraphrase**： This dissertation studies energy-efficient neural-network accelerators through communication-aware architecture design. Its main technical threads include wireless data movement for CNNs, workload prediction and voltage/frequency adaptation for sparse computation, and graph-accelerator co-design involving dataflows, column organization, and DVFS. The detailed chapters are useful for reconstructing how workload observations become operating-state requests. Their evidence is primarily architectural simulation and technology-library-based estimation. The final reinforcement-learning direction should be distinguished from an experimentally demonstrated controller in the supplied dissertation.

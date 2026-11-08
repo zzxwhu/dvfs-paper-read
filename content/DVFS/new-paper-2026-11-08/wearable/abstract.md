@@ -11,8 +11,6 @@ tags: [DVFS, reading-guide]
 
 以上忠实转述原摘要；摘要中的发展判断属于作者观点，不能当作本文已实现芯片的结论。
 
-**English abstract paraphrase**：This review connects wearable sensing, computation, power management, and communication through system-level co-design. It discusses emerging processing and connectivity options, adaptive sampling, predictive DVFS, and offloading, then considers the validation challenges of clinical applications. It presents a conceptual roadmap rather than a new experimentally evaluated DVFS controller.
-
 ## 英文改写（非原摘要）
 
 **English abstract paraphrase**：This review connects wearable sensing, computation, power management, and communication through system-level co-design. It discusses emerging processing and connectivity options, adaptive sampling, predictive DVFS, and offloading, then considers the validation challenges of clinical applications. It presents a conceptual roadmap rather than a new experimentally evaluated DVFS controller.
