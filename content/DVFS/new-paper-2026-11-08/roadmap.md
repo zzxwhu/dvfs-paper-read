@@ -103,9 +103,11 @@ flowchart LR
 
 ## 已落地的本轮成果
 
-ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024、PowerBench、NPU融合功率尖峰和Terminator已完成正式DeepPaperNote保存，分别嵌入3/4/8/8/8/6份原图表与算法，合计37份，各有完整索引；其余8篇仍按各自状态推进。另有博士论文第4–5章、EARA、JCEIM核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024、PowerBench、NPU融合功率尖峰、Terminator、Jiang2020和HSCONN已完成正式DeepPaperNote保存，分别嵌入3/4/8/8/8/6/8/9份原图表与算法，合计54份，各有完整索引；其余6篇仍按各自状态推进。另有博士论文第4–5章、EARA、JCEIM核查草稿。正式笔记与研究草稿不能混称全部精读完成。
 
 新三篇补齐一条实用链：[PowerBench](powerbench/note.md)建立阶段/OPP/能量数据，帮助选择有用输入和前沿候选；[NPU融合](npu-bursts/note.md)说明平均能量之外还要看瞬态峰值与保护；[Terminator](terminator/note.md)把PS、MMCM和PMIC实际执行路径与正确性边界连接起来。前者没有新在线governor，中者主要改写负载，后者主要研究安全，不应强行都归类为智能选频算法。
+
+[Jiang2020](jiang2020/note.md)进一步给出“离线定活动点、运行中按任务完成/下帧切换”的具体流程，用户版与旧版逐页核对完成；[HSCONN](hsconn/note.md)把稀疏mask接入PE岛状态选择，详细解释剪枝、阈值与异频结果汇合。两篇都有可复现思路，也都有需澄清的原文问题：前者UEE不能重建且图4驱动重复，后者状态/规模和结果图文冲突、完整CDC/电源切换未公开；这些不应被教学解释掩盖。
 
 ## 尚待完成
 
