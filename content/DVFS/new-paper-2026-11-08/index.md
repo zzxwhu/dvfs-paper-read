@@ -5,7 +5,7 @@ tags: [DVFS, IC, PLL, PMIC, co-design]
 ---
 # new_paper 14篇：控制方法、证据边界与阅读进度
 
-本轮14份PDF共282页，包含135页学位论文；篇数不代表14项独立DVFS创新。正在逐篇处理，**当前正式图文精读完成12篇、70张原图表；24页广泛能效综述和135页博士论文尚未正式完成**。文本提取、研究草稿、正式笔记和独立复现是四种不同进度。本轮没有独立运行作者实验。
+本轮14份PDF共282页，包含135页学位论文；篇数不代表14项独立DVFS创新。正在逐篇处理，**当前正式图文精读完成13篇、76张原图表；仅135页博士全书尚未正式完成**。文本提取、研究草稿、正式笔记和独立复现是四种不同进度。本轮没有独立运行作者实验。
 
 [DVFS技术脉络与引用链](roadmap.md) · [ISSCC2024完整图文笔记](isscc2024/note.md) · [ISSCC2021完整图文笔记](isscc2021/note.md) · [ScalePoM完整图文笔记](scalepom/note.md) · [Jiang2020入门执行流程](../jiang2020-beginner/guide.md)
 
@@ -14,6 +14,8 @@ tags: [DVFS, IC, PLL, PMIC, co-design]
 继续新增：[Jiang2020完整执行流程](jiang2020/note.md) · [HSCONN剪枝与异频PE](hsconn/note.md)。两篇补17项原图表/算法；本批8篇合计54项。Jiang实例平台已纠正为ZCU104，UEE和HSCONN图文数据冲突保留审查，不把待澄清数字当课题目标。
 
 新增两篇综述：[电源管理安全与可信OPP许可](power-security/note.md) · [神经DVFS框架与引用审查](neural-survey/note.md)。补7项原图表，本批10篇合计61项。综述转引与作者实测分开；后者图2引用50为应急管理综述，31.4%等结果不采用为可靠证据。
+
+新增：[能量感知DL完整笔记](energy-dl/note.md)，24页全文、三图三表全嵌；重点解释早退预测与V/f接口，区分应用网络、工作量预测和控制执行。正式AAAI2023 PredictiveExit身份已核，不冒称外部全文复现。
 
 ## 先读与你课题最贴近的内容
 
@@ -33,7 +35,7 @@ tags: [DVFS, IC, PLL, PMIC, co-design]
 | [Terminator，DAC2022](terminator/note.md) | 研究DVFS越出安全工作点导致的时序错误；软件调MMCM/PMIC | SkyNet UAV目标检测 | Ultra96-V2，IRPS5401，真实测试 | 准确率破坏是风险结果，不是节能收益；不崩溃不代表计算正确 | **正式图文笔记完成**：6张原图、九图索引，MMCM分子M已核；全部检查通过 |
 | [NPU融合功率尖峰，2026](npu-bursts/note.md) | 离线电流剖析、Q-DQ边界阻止编译融合，降低尖峰、推迟保护性降频；不提出新governor | MobileNetV4/Hiera等NPU推理 | Xperia1VI、供电仪器和PMIC输入测量 | 一例峰值−37.8%，时延+3.76%，能量反增约2.6%；尖峰低不等于节能 | **正式图文笔记完成**：8张原图表/算法，全部14项索引；全部检查通过 |
 | [Do Not Trust Power Management，用户稿2024](power-security/note.md) | 控制/遥测/自动节流分类，可信代理、动态OPP许可、SUIT指令协同线索 | CPU/TEE、多平台文献 | 11页作者稿综述；2025 TECS35页扩展身份另核 | 转引Blacklist面积/延迟/功率非本综述实测；故障防护不等于无侧信道 | **正式笔记完成**：一图三表全嵌、完整分类和E902防御验证计划；全部检查通过 |
-| [Energy-Aware Deep Learning，2025](https://arxiv.org/abs/2505.12523) | 广泛能效综述；早退预测可为DVFS提供工作量先验 | 边缘深度学习 | 文献综合 | 只将明确涉及V/f的引用加入DVFS主线 | 摘要与DVFS相关段落/引用已筛，全篇精读待完成 |
+| [Energy-Aware Deep Learning，2025](energy-dl/note.md) | 能量模型/动态推理；PredictiveExit预测出口→剩余工作→V/f | CNN等边缘DL，非统一程序实验 | 24页综述，191编号含重复；异平台研究 | 无统一新DVFS实测；NEq符号/MAC倍率需回原始研究；非V/f方法列邻近主题 | **正式图文笔记完成**：六原图表全嵌，方法与E902接口、消融和复现边界明确；全部检查通过 |
 | [EARA，页眉2024](eara/note.md) | DEAR监控/预测/约束反馈，PE比例公式明确；V/f规则和执行器缺参数 | 声称CNN/RNN/轻量Transformer，具体模型配置不足 | 声称ZCU104，SAIF/轨测量边界未对齐 | 表1功率×时间与能量不同；表2总88.7mW与表1 78mW不同；年份/引用冲突 | **正式审查笔记完成**：5原图表、全九图表及算法索引，全部检查通过；不代表结果可靠 |
 | [Neural Methods for Adaptive Voltage and Frequency Scaling，2026](neural-survey/note.md) | 预测/策略/过滤概念闭环，非已重建LSTM+PPO系统 | 不同平台类别，具体负载版本不足 | DOI10.54097/pkgmn637身份核实，二手文献 | 图2六负载比较引用50应急管理；表1跨平台，25–35%/31.4%等不作可靠结果 | **正式审查笔记完成**：三图表全嵌，63引用条目核对及关键错引追查；全部检查通过，不代表结果可靠 |
 | [Wearable Circuit-Level Architectures，2025](wearable/note.md) | 采样需求→处理DVFS→卸载，广义系统协同，无完整控制器 | 健康信号、MCU/TinyML等背景 | 8页综述，非新DVFS实验 | 参考10 arXiv号实际题名/作者不同；59–66%等不可追溯为预测DVFS结果 | **正式笔记完成**：四图全嵌、三层方法和CPU/E902实验；主线相关性弱 |
