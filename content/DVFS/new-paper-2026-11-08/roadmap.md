@@ -41,6 +41,9 @@ DVFS改变工作电压与频率；DFS只改变频率；AVS在给定性能要求�
 |ScalePoM，ICCAD2024|Power Management for Chiplet-Based Multicore Systems Using Deep Reinforcement Learning，ISVLSI2022|PDF第9页参考文献[8]|Chiplet供电与在线策略的直接前序|
 |Liu2025博士论文|HSCONN2024、Jiang2020|参考文献[79]、[55]|作者论文合集/相关研究，章节需核对，不能重复计为独立创新|
 |PowerBench，2026 v2|Dissecting the Impact of Mobile DVFS Governors on LLM Inference Performance and Energy Efficiency，arXiv2507.02135|参考文献[11]|测量/工作点表征与既有手机DVFS策略研究；不意味着本文实现同一个governor|
+|Gonidec用户11页稿，2024|Blacklist Core，ISLPED2018|参考文献[19]及第8页|学习模型判定OPP是否可接受，和最省能动作选择是不同问题|
+|Gonidec用户11页稿，2024|SUIT，ASPLOS2024|参考文献[52]及第8页|保守/省能双曲线与指令敏感性，直接DVFS/co-design线索|
+|JCEIM神经DVFS综述，2026|Jiang2020；可解释CPU/GPU governor TECS2021；时序编码DRL JSA2023|参考文献[20]/[17]/[40]|引用边可核；但CNN负载不能被误读为控制预测模型，引用存在不代表综述所有主张正确|
 
 ## 已通过公开原始来源核对的扩展入口
 
@@ -102,6 +105,8 @@ flowchart LR
 触发可以是固定窗口、任务/层边界、请求事件或硬件异常。控制周期必须覆盖策略计算、通信及物理切换开销；快速欠压保护通常不能依赖较慢的任务调度周期。原文没有报告触发机制时，标缺失，不替作者补出一个阈值。
 
 ## 已落地的本轮成果
+
+当前正式完成10/14、61项原图表/算法；在下方8篇基础上新增[电源管理安全](power-security/note.md)和[神经DVFS证据审查](neural-survey/note.md)。前者11页稿已与arXivv1身份核对，2025TECS扩展35页只核元数据；后者出版社DOI身份已确认，但图表来源与部分引用不匹配，不能因已完成阅读就提高其结果可信度。
 
 ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024、PowerBench、NPU融合功率尖峰、Terminator、Jiang2020和HSCONN已完成正式DeepPaperNote保存，分别嵌入3/4/8/8/8/6/8/9份原图表与算法，合计54份，各有完整索引；其余6篇仍按各自状态推进。另有博士论文第4–5章、EARA、JCEIM核查草稿。正式笔记与研究草稿不能混称全部精读完成。
 
