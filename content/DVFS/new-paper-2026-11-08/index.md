@@ -5,9 +5,11 @@ tags: [DVFS, IC, PLL, PMIC, co-design]
 ---
 # new_paper 14篇：控制方法、证据边界与阅读进度
 
-本轮14份PDF共282页，包含135页学位论文；篇数不代表14项独立DVFS创新。正在逐篇处理，**当前正式图文精读完成3篇，其余保留真实阅读状态**。文本提取、研究草稿、正式笔记和独立复现是四种不同进度。本轮没有独立运行作者实验。
+本轮14份PDF共282页，包含135页学位论文；篇数不代表14项独立DVFS创新。正在逐篇处理，**当前正式图文精读完成6篇，其余保留真实阅读状态**。文本提取、研究草稿、正式笔记和独立复现是四种不同进度。本轮没有独立运行作者实验。
 
 [DVFS技术脉络与引用链](roadmap.md) · [ISSCC2024完整图文笔记](isscc2024/note.md) · [ISSCC2021完整图文笔记](isscc2021/note.md) · [ScalePoM完整图文笔记](scalepom/note.md) · [Jiang2020入门执行流程](../jiang2020-beginner/guide.md)
+
+本轮新增：[PowerBench：测量和有约束选档](powerbench/note.md) · [NPU融合：尖峰与低压保护](npu-bursts/note.md) · [Terminator：FPGA执行与正确性](terminator/note.md)。三篇共新增22张原图表/算法；每篇配从零入门、原图表索引、双语摘要导读及完整精读四份报告。
 
 ## 先读与你课题最贴近的内容
 
@@ -21,9 +23,9 @@ tags: [DVFS, IC, PLL, PMIC, co-design]
 | [ScalePoM，ICCAD2024](https://doi.org/10.1145/3676536.3676740) | 离线架构/映射/PDN优化，在线阶段/非瓶颈域DVFS；部分搜索显式遍历 | GPT-3、LLaMA、T5，多Chiplet | 分析模型、SPICE、16nm库和器件数据 | 对特定基线能量下降21.3/45.7/59.3%，组合优化；非制造LLM芯片实测 | **正式图文笔记完成**：8份原图/表/算法，全部17项索引与检查通过 |
 | Liu2025博士论文 | 第4章离线训练小网络预测窗口工作量，阈值映射5状态；第5章NoC/重排与列级DVFS | CNN；GCN/稀疏图计算 | FreePDK45 RTL综合、CACTI/周期级模拟 | 第4章约60–67%总能量下降、吞吐低11–14%；第5章Cora72.4%能量下降伴45.7%延迟增加；不是实测 | 第4–5章主要正文及若干核心图已读，全书仍待完整审查 |
 | [HSCONN，GLSVLSI2024](https://doi.org/10.1145/3649476.3658709) | 稀疏/剪枝与PE域工作量驱动DVFS，硬件软件共同设计 | 自注意力网络/NLP负载 | RTL/建模证据，非完整实物LLM系统 | 已发现档位/规模/结果表述待澄清，不能照抄峰值 | 沿用此前6页原文核对；正式批次笔记待完成 |
-| [PowerBench，2026](https://arxiv.org/abs/2607.05475v2) | 扫描CPU/GPU档位与NPU core×bus工作角，建立能量吞吐Pareto前沿；无完整新在线governor | Llama/Qwen/Phi，prefill/decode | 四款手机、五框架，QPT供电区能量计数 | CPU调频单项最高39.7%/token；组合53.2%是端到端估算并有时延代价 | 正文方法结果已读，图表与正式笔记待完成 |
-| [Terminator，DAC2022](https://doi.org/10.1145/3489517.3530516) | 研究DVFS越出安全工作点导致的时序错误；软件调MMCM/PMIC | SkyNet UAV目标检测 | Ultra96-V2，IRPS5401，真实测试 | 准确率破坏是风险结果，不是节能收益；不崩溃不代表计算正确 | 主要全文已读，原图与正式笔记待完成 |
-| [NPU融合功率尖峰，2026](https://arxiv.org/abs/2607.16555) | 离线电流剖析、Q-DQ边界阻止编译融合，降低尖峰、推迟保护性降频；不提出新governor | MobileNetV4/Hiera等NPU推理 | Xperia1VI、供电仪器和PMIC输入测量 | 一例峰值−37.8%，时延+3.76%，能量反增约2.6%；尖峰低不等于节能 | 全文含附录已读，图表与正式保存待完成 |
+| [PowerBench，2026](powerbench/note.md) | 扫描CPU/GPU档位与NPU core×bus工作角，建立能量吞吐Pareto前沿；无完整新在线governor | Llama/Qwen/Phi，prefill/decode | 四款手机、五框架，QPT供电区能量计数 | CPU调频单项最高39.7%/token；组合53.2%是端到端估算并有时延代价 | **正式图文笔记完成**：8张原图表，全部25项索引、公式与复现；全部检查通过 |
+| [Terminator，DAC2022](terminator/note.md) | 研究DVFS越出安全工作点导致的时序错误；软件调MMCM/PMIC | SkyNet UAV目标检测 | Ultra96-V2，IRPS5401，真实测试 | 准确率破坏是风险结果，不是节能收益；不崩溃不代表计算正确 | **正式图文笔记完成**：6张原图、九图索引，MMCM分子M已核；全部检查通过 |
+| [NPU融合功率尖峰，2026](npu-bursts/note.md) | 离线电流剖析、Q-DQ边界阻止编译融合，降低尖峰、推迟保护性降频；不提出新governor | MobileNetV4/Hiera等NPU推理 | Xperia1VI、供电仪器和PMIC输入测量 | 一例峰值−37.8%，时延+3.76%，能量反增约2.6%；尖峰低不等于节能 | **正式图文笔记完成**：8张原图表/算法，全部14项索引；全部检查通过 |
 | Do Not Trust Power Management，用户稿2024 | DVFS/能量管理安全综述，梳理越界、共享资源与保护方法 | CPU/TEE、多平台文献 | 文献综合，非新芯片控制器 | 不能把所引防护成本当本综述新测量；RISC-V安全边界有参考价值 | 主要方法/防护文字已读，版本身份和完整视觉审查待补 |
 | [Energy-Aware Deep Learning，2025](https://arxiv.org/abs/2505.12523) | 广泛能效综述；早退预测可为DVFS提供工作量先验 | 边缘深度学习 | 文献综合 | 只将明确涉及V/f的引用加入DVFS主线 | 摘要与DVFS相关段落/引用已筛，全篇精读待完成 |
 | [EARA，页眉2024](https://doi.org/10.31426/ijamsr.2024.7.11.7927) | 泛化描述负载预测、PE启停和V/f调整；缺具体OPP/物理接口 | 声称CNN/RNN/轻量Transformer | 声称ZCU104，实测/估计边界未清楚对齐 | 功率×时间与表列能量不一致，发表时间与引用年份冲突；收益不作可靠依据 | 全文文字及表1/2已核，证据审查草稿 |

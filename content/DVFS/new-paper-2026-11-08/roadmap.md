@@ -40,6 +40,7 @@ DVFS改变工作电压与频率；DFS只改变频率；AVS在给定性能要求�
 |ScalePoM，ICCAD2024|F-LEMMA: Fast Learning-Based Energy Management for Multi-/Many-Core Processors，TCAD2023|PDF第9页参考文献[4]|学习型DVFS与快慢控制层次|
 |ScalePoM，ICCAD2024|Power Management for Chiplet-Based Multicore Systems Using Deep Reinforcement Learning，ISVLSI2022|PDF第9页参考文献[8]|Chiplet供电与在线策略的直接前序|
 |Liu2025博士论文|HSCONN2024、Jiang2020|参考文献[79]、[55]|作者论文合集/相关研究，章节需核对，不能重复计为独立创新|
+|PowerBench，2026 v2|Dissecting the Impact of Mobile DVFS Governors on LLM Inference Performance and Energy Efficiency，arXiv2507.02135|参考文献[11]|测量/工作点表征与既有手机DVFS策略研究；不意味着本文实现同一个governor|
 
 ## 已通过公开原始来源核对的扩展入口
 
@@ -102,7 +103,9 @@ flowchart LR
 
 ## 已落地的本轮成果
 
-ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024已完成正式DeepPaperNote保存，分别嵌入3/4/8份原图表与算法，各有完整索引；其余文章仍按各自状态推进。另有PowerBench、NPU功率尖峰、博士论文第4–5章及EARA核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+ISSCC2024硬件DVFS、ISSCC2021传感器辅助DVFS、ScalePoM ICCAD2024、PowerBench、NPU融合功率尖峰和Terminator已完成正式DeepPaperNote保存，分别嵌入3/4/8/8/8/6份原图表与算法，合计37份，各有完整索引；其余8篇仍按各自状态推进。另有博士论文第4–5章、EARA、JCEIM核查草稿。正式笔记与研究草稿不能混称全部精读完成。
+
+新三篇补齐一条实用链：[PowerBench](powerbench/note.md)建立阶段/OPP/能量数据，帮助选择有用输入和前沿候选；[NPU融合](npu-bursts/note.md)说明平均能量之外还要看瞬态峰值与保护；[Terminator](terminator/note.md)把PS、MMCM和PMIC实际执行路径与正确性边界连接起来。前者没有新在线governor，中者主要改写负载，后者主要研究安全，不应强行都归类为智能选频算法。
 
 ## 尚待完成
 
